@@ -1,11 +1,8 @@
 const asyncHandler = require("express-async-handler");
-const OpenAIApi = require("openai");
 const User = require("../model/User");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-const openai = new OpenAIApi({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const { callGatewayLLM } = require("../config/llmService");
 
 let messages = [];
 function updateChat(messages, role, content) {
@@ -14,12 +11,7 @@ function updateChat(messages, role, content) {
 }
 
 async function getChatGPTResponse(messages) {
-  const response = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo",
-    messages: messages,
-  });
-
-  return response.choices[0].message.content;
+  return await callGatewayLLM(messages);
 }
 
 const getChat = asyncHandler(async (req, res) => {
@@ -47,16 +39,20 @@ const getChat = asyncHandler(async (req, res) => {
 });
 const handleSendChat = asyncHandler(async (req, res) => {
   try {
-    const userMessage = req.body.messages.slice(-1)[0];
-    messages = updateChat(messages, "user", userMessage.content);
+    const inputMessages = req.body?.messages;
+    if (!inputMessages || !Array.isArray(inputMessages) || inputMessages.length === 0) {
+      return res.status(400).json({ message: "Invalid or missing messages in request body" });
+    }
 
-    const modelResponse = await getChatGPTResponse(messages);
-    messages = updateChat(messages, "assistant", modelResponse);
-    console.log(messages);
+    const modelResponse = await getChatGPTResponse(inputMessages);
     res.status(200).json(modelResponse);
   } catch (err) {
-    console.error("Error processing chat request", err);
-    res.status(500).send("Internal Server Error");
+    const errorDetails = err?.response?.data || err?.message || err;
+    console.error("Error processing chat request:", errorDetails);
+    res.status(500).json({ 
+      error: "Internal Server Error", 
+      details: errorDetails 
+    });
   }
 });
 
@@ -118,13 +114,10 @@ const handleCreateRoadmap = asyncHandler(async (req, res) => {
           }]`,
       },
     ];
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: roadmapPrompt,
-    });
+    const responseText = await callGatewayLLM(roadmapPrompt);
 
-    console.log(response.choices[0].message.content);
-    const roadmapData = JSON.parse(response.choices[0].message.content);
+    console.log(responseText);
+    const roadmapData = JSON.parse(responseText);
     console.log("roadmapGenerate: ", roadmapData);
     // Decode the JWT token to get the user's I
     console.log(req.user);
@@ -248,7 +241,7 @@ const handleCreateRoadmap = asyncHandler(async (req, res) => {
         console.error("Error updating user roadmap:", error);
       });
 
-    return res.send(response.choices[0].message.content);
+    return res.send(responseText);
   } catch (err) {
     console.error("Error Happened ", err);
     res.status(500).send("Internal Server Error ");
@@ -300,14 +293,10 @@ const handleRoadmapUpdation = asyncHandler(async (req, res) => {
           }].`,
       },
     ];
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: updatedRoadmapPrompt,
-    });
+    const responseText = await callGatewayLLM(updatedRoadmapPrompt);
 
-    console.log("HandleUpdateRoadmap ", response.choices[0].message.content);
-    // messages = [...messages, response.choices[0].message.content];
-    return res.send(response.choices[0].message.content);
+    console.log("HandleUpdateRoadmap ", responseText);
+    return res.send(responseText);
   } catch (err) {
     console.error("Error Happened ", err);
     res.status(500).send("Internal Server Error ");

@@ -1,9 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../model/User");
-const OpenAIApi = require("openai");
-const openai = new OpenAIApi({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const { callGatewayLLM } = require("../config/llmService");
 const AWS = require("aws-sdk");
 const jwt = require("jsonwebtoken");
 require("aws-sdk/lib/maintenance_mode_message").suppress = true;
@@ -197,11 +194,7 @@ const handleGetSkills = asyncHandler(async (req, res) => {
   // console.log("Heading:", response.choices[0].message.content);
   // console.log(response.choices[0].message.content);
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: Heading,
-    });
-    let skill = response.choices[0].message.content;
+    let skill = await callGatewayLLM(Heading);
 
     skill = JSON.parse(skill);
     const user = await User.findOne({ email });

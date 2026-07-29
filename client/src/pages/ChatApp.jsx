@@ -15,6 +15,7 @@ import ReportModal from "../components/ReportModal";
 import ReactMarkdown from "react-markdown";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { callGatewayLLMDirect } from "../services/llmService";
 
 const ChatApp = () => {
   const [messages, setMessages] = useState([]);
@@ -69,56 +70,52 @@ const ChatApp = () => {
       if (window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
       }
-      const response = await axios.post("http://localhost:3001/api/v1/chat", {
-        messages: [...messages, userMessage],
-      });
+
+      const updatedMessages = [...messages, userMessage];
+      const botResponseText = await callGatewayLLMDirect(updatedMessages);
       setLoading(false);
 
-      if (response.status === 200) {
-        const botMessage = {
-          role: "assistant",
-          content: response.data,
-        };
+      const botMessage = {
+        role: "assistant",
+        content: botResponseText,
+      };
 
-        setMessages([...messages, userMessage, botMessage]);
+      setMessages([...updatedMessages, botMessage]);
 
-        try {
-          const utterance = new SpeechSynthesisUtterance(response.data);
-          utterance.rate = 1;
-          window.speechSynthesis.speak(utterance);
-        } catch (error) {
-          console.error("Error in Speech Synthesis:", error);
-        }
-      } else {
-        console.error("Error in communication with the server");
+      try {
+        const utterance = new SpeechSynthesisUtterance(botResponseText);
+        utterance.rate = 1;
+        window.speechSynthesis.speak(utterance);
+      } catch (error) {
+        console.error("Error in Speech Synthesis:", error);
       }
     } catch (err) {
-      console.error("Error occur while making the request to the server", err);
+      setLoading(false);
+      console.error("Error occurred while communicating directly with Gateway LLM", err);
+      toast.error("Failed to generate response from AI service");
     }
   };
 
   const HandleReportGenerate = async () => {
     try {
       setLoading(true);
-      const response = await axios.post(
-        "http://localhost:3001/api/v1/chat/report",
+      const gptReportPrompt = [
+        ...messages,
         {
-          chat: messages,
-          userName: userInfo?.name,
-          counsellorType,
-        }
-      );
-      if (response.status === 200) {
-        console.log(response.data);
-        setReport(response.data);
-        setReportModalOpen(true); // Open the modal after receiving the response
-      } else {
-        console.error("Error in fetching initial messages");
-      }
+          role: "system",
+          content: `I am ${userInfo?.name || "User"} I want you to create a report from the above chat conversation for the user. compile a formal report with proper space and headings, including SWOT analysis, roadmap, tips, recommendation with proper roadmap, videos, books, blogs,news anything and tricks to help user. To help user to understand more about him/her.`,
+        },
+      ];
+
+      const reportContent = await callGatewayLLMDirect(gptReportPrompt);
+      setLoading(false);
+      setReport(reportContent);
+      setReportModalOpen(true);
     } catch (err) {
-      console.error("Error in fetching initial messages", err);
+      setLoading(false);
+      console.error("Error in generating report from Gateway LLM", err);
+      toast.error("Failed to generate report");
     }
-    setLoading(false);
   };
 
   useEffect(() => {

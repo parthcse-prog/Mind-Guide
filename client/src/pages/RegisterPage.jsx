@@ -29,10 +29,10 @@ const RegisterPage = () => {
       const data = new FormData();
       data.append("file", pics);
       data.append("upload_preset", "Mind-Guide");
-      data.append("cloud_name", "abhiMiet");
+      data.append("cloud_name", "gvyc6qop");
       try {
         const response = await axios.post(
-          "https://api.cloudinary.com/v1_1/abhiMiet/image/upload",
+          "https://api.cloudinary.com/v1_1/gvyc6qop/image/upload",
           data,
           {
             withCredentials: false,
