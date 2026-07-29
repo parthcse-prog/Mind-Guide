@@ -3,27 +3,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { removeUser } from "../../redux/mindGuideSlice";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { Link } from "react-router-dom";
-import badge from "../../assets/badge.png";
-import tick from "../../assets/tick.png";
+
 const Profile = () => {
   const userInfo = useSelector((state) => state.mindGuide.userInfo);
   const dispatch = useDispatch();
 
-  // If user information is not available, return null or a loading spinner
   if (!userInfo) {
-    return null; // You might want to display a loading spinner here
+    return null;
   }
-  const skills = userInfo.skills;
-  const TechSkills = [];
-  const nonTechSkills = [];
-  skills.forEach((skill) => {
-    if (skill.type === "technical") {
-      TechSkills.push(skill.skill);
-    } else {
-      nonTechSkills.push(skill.skill);
-    }
-  });
 
   const handleLogout = async () => {
     try {
@@ -34,63 +21,68 @@ const Profile = () => {
       console.error("Error in logging out", error);
     }
   };
-  const createdAtDate = new Date(userInfo.createdAt);
 
-  // Format the date according to your preference
+  const createdAtDate = new Date(userInfo.createdAt);
   const formattedCreatedAt =
     createdAtDate.getDate() +
     " " +
     createdAtDate.toLocaleString("default", { month: "long" }) +
     " " +
     createdAtDate.getFullYear();
-  console.log("userInfo", userInfo);
+
   return (
-    <div className=" h-full border-2 rounded-lg">
-      <div className="bg-blue-200 px-10 py-2 rounded-lg flex gap-2">
-        <img src={userInfo.pic} alt="" className="h-60 mb-4 rounded-lg" />
-        <div className="text-xl flex flex-col gap-6 mb-10 p-10">
-          <h1>
-            Name:{" "}
-            <span className="font-semibold capitalize">{userInfo.name}</span>
-          </h1>
-          <h1>
-            Email: <span className="font-semibold">{userInfo.email}</span>
-          </h1>
-          <h1>
-            Account Created:{" "}
-            <span className="font-semibold">{formattedCreatedAt}</span>
-          </h1>
+    <div className="flex flex-col gap-6 font-['Plus_Jakarta_Sans'] max-w-3xl">
+      {/* Primary Profile Card */}
+      <div className="bg-gradient-to-r from-[#f0f7f4] to-[#e7eeff] rounded-2xl p-6 md:p-8 shadow-sm border border-[#e2e8f0]/50 flex flex-col md:flex-row justify-between items-start md:items-center relative overflow-hidden">
+        <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#acecdc] opacity-20 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6">
+          {userInfo.pic && (
+            <img
+              src={userInfo.pic}
+              alt={userInfo.name}
+              className="w-24 h-24 md:w-28 md:h-28 rounded-2xl object-cover border-4 border-white shadow-md"
+            />
+          )}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-baseline gap-2">
+              <span className="text-sm font-medium text-[#002531]/70">Name:</span>
+              <h2 className="text-2xl md:text-3xl font-extrabold text-[#002531] font-['Manrope'] capitalize">
+                {userInfo.name}
+              </h2>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-[#002531]">
+              <span className="material-symbols-outlined text-[#002531]/50 text-lg">
+                mail
+              </span>
+              <span>{userInfo.email}</span>
+            </div>
+            <div className="flex items-center gap-2 mt-2 px-3 py-1 bg-white/70 rounded-full border border-[#c6e8f7] w-fit">
+              <span className="material-symbols-outlined text-[#002531]/70 text-base">
+                calendar_today
+              </span>
+              <span className="text-xs font-semibold text-[#002531]/80">
+                Account Created: {formattedCreatedAt}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="flex flex-col gap-6 p-10">
-        <div>
-          <h1 className="text-xl font-semibold">Skills</h1>
-          <ul className="grid grid-cols-2 md:grid-cols-4">
-            {TechSkills.map((skill, index) => (
-              <li key={index} className="flex items-center ">
-                <img src={badge} alt="" className="h-14 w-14" />
-                {skill}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <h1 className="text-xl font-semibold">Non Technical Skills</h1>
-          <ul className="grid grid-cols-2 md:grid-cols-4">
-            {nonTechSkills.map((skill, index) => (
-              <li key={index} className="flex items-center ">
-                <img src={tick} alt="" className="h-14 w-14" />
-                {skill}
-              </li>
-            ))}
-          </ul>
-        </div>
+
+      {/* Action Footer */}
+      <div className="pt-6 border-t border-gray-200 flex flex-col gap-4">
         <button
           onClick={handleLogout}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+          className="w-full py-3.5 bg-[#002531] hover:bg-[#1a3b47] text-white rounded-full font-bold text-base flex items-center justify-center gap-3 transition-all active:scale-95 shadow-md group font-['Manrope']"
         >
+          <span className="material-symbols-outlined group-hover:rotate-180 transition-transform duration-500">
+            logout
+          </span>
           Logout
         </button>
+        <p className="text-center text-xs text-[#72787b]">
+          Version 2.4.1 (Stable) • Mind Guide Account
+        </p>
       </div>
     </div>
   );

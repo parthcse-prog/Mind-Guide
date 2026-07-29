@@ -17,6 +17,7 @@ import GetAllReports from "./components/Dashboard/GetAllReports.jsx";
 import GetRoadmap from "./components/Dashboard/GetRoadmap.jsx";
 import Profile from "./components/Dashboard/Profile.jsx";
 import HeroDashBoard from "./components/Dashboard/HeroDashBoard.jsx";
+import { ThemeProvider } from "./context/ThemeContext";
 
 axios.defaults.baseURL = "http://localhost:3001";
 axios.defaults.withCredentials = true;
@@ -24,7 +25,7 @@ function App() {
   const userInfo = useSelector((state) => state.mindGuide.userInfo);
   console.log("userInfo ", userInfo);
   return (
-    <>
+    <ThemeProvider>
       <Router>
         <ScrollToTop />
         <Routes>
@@ -49,7 +50,7 @@ function App() {
         </Routes>
       </Router>
       <ToastContainer />
-    </>
+    </ThemeProvider>
   );
 }
 

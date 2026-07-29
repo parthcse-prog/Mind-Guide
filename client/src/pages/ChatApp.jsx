@@ -148,35 +148,26 @@ const ChatApp = () => {
         return (
           <div
             key={index}
-            style={{
-              width: "100%",
-              display: "flex",
-              visibility: message.role === "system" ? "hidden" : "block",
-              position: message.role === "system" ? "absolute" : "",
-              justifyContent: isUserMessage ? "flex-end" : "flex-start",
-              marginTop: "8px",
-            }}
+            className={`w-full flex ${
+              message.role === "system" ? "hidden" : "block"
+            } ${isUserMessage ? "justify-end" : "justify-start"} my-3`}
           >
-            <span
-              className={`flex items-center w-full ${
-                isUserMessage ? "justify-end" : "justify-start"
-              } `}
+            <div
+              className={`flex items-start max-w-[85%] md:max-w-[70%] gap-3 ${
+                isUserMessage ? "flex-row-reverse" : "flex-row"
+              }`}
             >
               {isNewMessage && !isUserMessage && <AssistantAvatar />}
               <div
-                className={isUserMessage ? "userMsg" : "botMsg"}
-                style={{
-                  padding: "10px",
-                  margin: "8px",
-                  maxWidth: "50%",
-                  minWidth: "5%",
-                  wordWrap: "break-word",
-                  whiteSpace: "pre-line",
-                }}
+                className={`p-4 rounded-2xl text-sm leading-relaxed shadow-sm transition-all ${
+                  isUserMessage
+                    ? "bg-[#4648d4] text-white rounded-tr-none shadow-[0_8px_32px_rgba(70,72,212,0.18)]"
+                    : "bg-white/60 backdrop-blur-xl border border-white/50 text-[#131b2e] rounded-tl-none"
+                }`}
               >
                 <ReactMarkdown>{message.content}</ReactMarkdown>
               </div>
-            </span>
+            </div>
           </div>
         );
       })
@@ -189,12 +180,12 @@ const ChatApp = () => {
       microphoneAnimationControls.start({
         scale: [1, 1.2, 1],
         transition: { duration: 0.5, repeat: Infinity },
-        color: "red",
+        color: "#dc2c4f",
       });
     } else {
       // Stop the animation when not listening
       microphoneAnimationControls.start({
-        color: "white",
+        color: "#002531",
       });
       microphoneAnimationControls.stop();
     }
@@ -203,38 +194,37 @@ const ChatApp = () => {
     setTotalMessages(messages.length); // Update total messages when messages change
   }, [messages]);
   return (
-    <div className="h-[90vh] bg-slate-500 flex flex-col relative w-full ">
+    <div className="h-[88vh] bg-gradient-to-br from-[#e2e7ff] via-[#faf8ff] to-[#f0dbff] flex flex-col relative w-full font-['Plus_Jakarta_Sans'] overflow-hidden">
       {loading && (
-        <div className=" absolute   w-full h-full  modal flex items-center justify-center z-10">
-          <div className="flex flex-col">
+        <div className="absolute inset-0 bg-white/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="flex flex-col items-center gap-3 bg-white/80 p-6 rounded-2xl shadow-xl border border-white/60">
             <motion.div
-              className="box"
-              animate={{
-                scale: [1, 2, 2, 1, 1],
-                rotate: [0, 0, 180, 180, 0],
-                borderRadius: ["0%", "0%", "50%", "50%", "0%"],
-              }}
-              transition={{
-                duration: 2,
-                ease: "easeInOut",
-                times: [0, 0.2, 0.5, 0.8, 1],
-                repeat: Infinity,
-                repeatDelay: 1,
-              }}
+              className="w-10 h-10 border-4 border-[#4648d4] border-t-transparent rounded-full"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, ease: "linear", repeat: Infinity }}
             />
+            <span className="text-xs font-semibold text-[#4648d4] uppercase tracking-wider">
+              AI Thinking...
+            </span>
           </div>
         </div>
       )}
-      <div className="h-screen">
-        {report && <ReportModal report={report} open={isReportModalOpen} />}
-        <div className="chatAppBG h-[85vh] overflow-y-scroll flex-1  flex flex-col example pb-6">
-          <ScrollableFeed>{renderContent}</ScrollableFeed>
-        </div>
-        <div className="bg-slate-600  flex items-center w-full z-0">
+
+      {report && <ReportModal report={report} open={isReportModalOpen} />}
+
+      {/* Main Chat Canvas Area */}
+      <div className="flex-1 overflow-y-auto px-4 md:px-12 py-6 space-y-6 pb-28">
+        <ScrollableFeed>{renderContent}</ScrollableFeed>
+      </div>
+
+      {/* Floating Glassmorphic Input Bar */}
+      <div className="absolute bottom-4 left-0 right-0 px-4 md:px-12 z-20">
+        <div className="max-w-4xl mx-auto bg-white/60 backdrop-blur-xl rounded-full p-2.5 flex items-center shadow-[0_8px_32px_rgba(31,38,135,0.12)] border border-white/80 gap-2">
+          {/* Input field */}
           <input
             type="text"
-            className="h-10  bg-cyan-50 px-4 py-2 flex-1"
-            placeholder="Type hello..."
+            className="flex-grow bg-transparent border-none focus:ring-0 text-sm md:text-base px-4 text-[#131b2e] placeholder:text-[#464554]/50 outline-none"
+            placeholder="Type your message..."
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             ref={inputElement}
@@ -247,54 +237,49 @@ const ChatApp = () => {
               }
             }}
           />
-          <span className="flex items-center gap-1 px-2">
-            <div className="flex px-2 items-center justify-center   active:scale-75 duration-300">
-              <motion.div
-                animate={microphoneAnimationControls}
-                onClick={startListening}
-                className="text-xl text-white"
-              >
-                <FontAwesomeIcon icon={faMicrophone} />
-              </motion.div>
-            </div>
-            <button
-              className="text-white py-2 px-4"
-              onClick={() => {
-                setInputText(transcript);
-                resetTranscript();
-                generateText();
-              }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
-                />
-              </svg>
-            </button>
-            <button
-              className={`bg-red-500 text-white py-2 px-4 ${
-                totalMessages < 15 ? "cursor-not-allowed" : ""
-              }`}
-              onClick={() => {
-                if (totalMessages < 15) {
-                  toast.warning("Minimum 15 messages required to end session");
-                } else {
-                  HandleReportGenerate();
-                }
-              }}
-            >
-              End Session
-            </button>
-          </span>
+
+          {/* Voice Search Button */}
+          <motion.button
+            animate={microphoneAnimationControls}
+            onClick={startListening}
+            className="w-10 h-10 flex items-center justify-center rounded-full text-[#002531] hover:bg-[#002531]/10 transition-colors active:scale-90"
+            title="Voice Input"
+          >
+            <FontAwesomeIcon icon={faMicrophone} className="text-xl" />
+          </motion.button>
+
+          {/* Send Button */}
+          <button
+            className="bg-[#4648d4] hover:bg-[#3638c4] text-white w-10 h-10 rounded-full flex items-center justify-center shadow-md active:scale-95 transition-all"
+            onClick={() => {
+              setInputText(transcript);
+              resetTranscript();
+              generateText();
+            }}
+            title="Send Message"
+          >
+            <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+              send
+            </span>
+          </button>
+
+          {/* End Session Button */}
+          <button
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all shadow-sm ${
+              totalMessages < 15
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : "bg-[#dc2c4f] hover:bg-[#b90538] text-white active:scale-95"
+            }`}
+            onClick={() => {
+              if (totalMessages < 15) {
+                toast.warning("Minimum 15 messages required to end session");
+              } else {
+                HandleReportGenerate();
+              }
+            }}
+          >
+            End Session
+          </button>
         </div>
       </div>
     </div>
