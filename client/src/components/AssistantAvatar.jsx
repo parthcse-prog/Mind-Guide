@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Avatar } from "react-avataaars";
+
 
 const AssistantAvatar = () => {
   const hash = "5";
