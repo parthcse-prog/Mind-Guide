@@ -1,52 +1,44 @@
-import { useState, useEffect, useMemo } from "react";
-import { Avatar } from "react-avataaars";
+import { Suspense, useEffect } from "react";
+import { Canvas } from "@react-three/fiber";
+import { useGLTF, useAnimations, OrbitControls } from "@react-three/drei";
+import robotModelPath from "../assets/timy_robot.glb";
 
-const AssistantAvatar = () => {
-  const hash = "5";
-  const [blinking, setBlinking] = useState(false);
-  const [mouthMovement, setMouthMovement] = useState("default");
+const RobotModel = () => {
+  const { scene } = useGLTF(robotModelPath);
 
-  const mouthMovements = useMemo(() => ["default", "smile", "twinkle"], []);
+  return (
+    <primitive
+      object={scene}
+      scale={2.1}
+      position={[0, -1.25, 0]}
+      rotation={[0, 0, 0]}
+    />
+  );
+};
 
-  const options = {
-    style: "circle",
-    hairColor: "Black",
-    facialHairColor: "Black",
-    clothes: "sweater",
-    skin: "light",
-    eyes: blinking ? "close" : "default",
-    mouth: mouthMovement,
-    top: "shortHair",
-    accessories: "prescription02",
-  };
-  useEffect(() => {
-    const blinkingInterval = setInterval(() => {
-      setBlinking(true);
-      setTimeout(() => {
-        setBlinking(false);
-      }, 500);
-    }, 3000);
-    return () => clearInterval(blinkingInterval);
-  }, []);
-  useEffect(() => {
-    const speakingInterval = setInterval(() => {
-      const randomIndex = Math.floor(Math.random() * mouthMovements.length);
-      setMouthMovement(mouthMovements[randomIndex]);
-    }, 400);
-
-    // Stop mouth movements after 10 seconds (adjust as needed)
-    const stopSpeakingTimeout = setTimeout(() => {
-      clearInterval(speakingInterval);
-      setMouthMovement("twinkle");
-    }, 10000); // 10000 milliseconds = 10 seconds
-
-    return () => {
-      clearInterval(speakingInterval);
-      clearTimeout(stopSpeakingTimeout);
-    };
-  }, [mouthMovements]);
-
-  return <Avatar options={options} hash={hash} size="200px" />;
+const AssistantAvatar = ({ size = "w-full h-full" }) => {
+  return (
+    <div className={`${size} relative overflow-hidden bg-transparent flex items-center justify-center`}>
+      <Canvas
+        camera={{ position: [0, 0.4, 2.2], fov: 40 }}
+        style={{ width: "100%", height: "100%" }}
+      >
+        <ambientLight intensity={1.5} />
+        <directionalLight position={[5, 5, 5]} intensity={1.8} />
+        <directionalLight position={[-5, 3, -2]} intensity={0.8} />
+        <Suspense fallback={null}>
+          <RobotModel />
+        </Suspense>
+        <OrbitControls
+          enableZoom={false}
+          enablePan={false}
+          autoRotate={false}
+        />
+      </Canvas>
+    </div>
+  );
 };
 
 export default AssistantAvatar;
+
+
