@@ -14,12 +14,15 @@
     "@fortawesome/free-solid-svg-icons": "^6.5.1",
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@react-oauth/google": "^0.12.1",
+    "@react-three/drei": "^9.96.1",
+    "@react-three/fiber": "^8.15.19",
     "@reduxjs/toolkit": "^2.0.1",
     "axios": "^1.6.7",
     "browserify-fs": "^1.0.0",
     "chart.js": "^4.4.2",
     "framer-motion": "^10.16.16",
     "html2pdf.js": "^0.10.1",
+    "maath": "^0.10.8",
     "mermaid": "^10.9.0",
     "plantuml-encoder": "^1.4.0",
     "react": "^18.2.0",
@@ -38,7 +41,8 @@
     "react-speech-recognition": "^3.10.0",
     "react-toastify": "^9.1.3",
     "redux-persist": "^6.0.0",
-    "regenerator-runtime": "^0.14.0"
+    "regenerator-runtime": "^0.14.0",
+    "three": "^0.160.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",
