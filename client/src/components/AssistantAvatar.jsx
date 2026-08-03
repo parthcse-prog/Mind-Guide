@@ -9,8 +9,8 @@ const RobotModel = () => {
   return (
     <primitive
       object={scene}
-      scale={2.1}
-      position={[0, -1.25, 0]}
+      scale={1.4}
+      position={[0, -0.9, 0]}
       rotation={[0, 0, 0]}
     />
   );
