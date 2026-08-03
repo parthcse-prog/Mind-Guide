@@ -224,7 +224,7 @@ const ChatApp = () => {
               transition={{ duration: 1, ease: "linear", repeat: Infinity }}
             />
             <span className="text-xs font-semibold text-[#4648d4] uppercase tracking-wider">
-              AI Thinking...
+              Thinking...
             </span>
           </div>
         </div>
