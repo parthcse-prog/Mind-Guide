@@ -101,9 +101,25 @@ const ChatApp = () => {
       try {
         const utterance = new SpeechSynthesisUtterance(botResponseText);
         utterance.rate = 1;
-        utterance.onstart = () => setIsSpeaking(true);
-        utterance.onend = () => setIsSpeaking(false);
-        utterance.onerror = () => setIsSpeaking(false);
+        utterance.onstart = () => {
+          setIsSpeaking(true);
+          window.currentSpeakingText = botResponseText;
+          window.currentSpokenWord = "";
+        };
+        utterance.onboundary = (event) => {
+          if (event.name === "word") {
+            const word = botResponseText.slice(event.charIndex, event.charIndex + (event.charLength || 5));
+            window.currentSpokenWord = word;
+          }
+        };
+        utterance.onend = () => {
+          setIsSpeaking(false);
+          window.currentSpokenWord = "";
+        };
+        utterance.onerror = () => {
+          setIsSpeaking(false);
+          window.currentSpokenWord = "";
+        };
         window.speechSynthesis.speak(utterance);
       } catch (error) {
         console.error("Error in Speech Synthesis:", error);
