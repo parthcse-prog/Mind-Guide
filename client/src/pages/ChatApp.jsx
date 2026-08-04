@@ -101,6 +101,23 @@ const ChatApp = () => {
       try {
         const utterance = new SpeechSynthesisUtterance(botResponseText);
         utterance.rate = 1;
+
+        // Select a natural female voice from available system/browser voices
+        const availableVoices = window.speechSynthesis.getVoices();
+        const femaleVoice = availableVoices.find(
+          (voice) =>
+            voice.name.includes("Zira") ||
+            voice.name.includes("Female") ||
+            voice.name.includes("Samantha") ||
+            voice.name.includes("Victoria") ||
+            voice.name.includes("Google UK English Female") ||
+            voice.name.toLowerCase().includes("female")
+        ) || availableVoices.find((voice) => voice.lang.startsWith("en") && !voice.name.includes("David") && !voice.name.includes("Mark"));
+
+        if (femaleVoice) {
+          utterance.voice = femaleVoice;
+        }
+
         utterance.onstart = () => {
           setIsSpeaking(true);
           window.currentSpeakingText = botResponseText;
@@ -177,38 +194,61 @@ const ChatApp = () => {
   }, [type, userInfo]);
 
   useEffect(() => {
-    setRenderContent(
-      messages.map((message, index) => {
-        const isUserMessage = message.role === "user";
-        const isNewMessage = index === messages.length - 1;
+    const content = messages.map((message, index) => {
+      const isUserMessage = message.role === "user";
 
-        return (
+      return (
+        <div
+          key={index}
+          className={`w-full flex ${
+            message.role === "system" ? "hidden" : "block"
+          } ${isUserMessage ? "justify-end" : "justify-start"} my-3`}
+        >
           <div
-            key={index}
-            className={`w-full flex ${
-              message.role === "system" ? "hidden" : "block"
-            } ${isUserMessage ? "justify-end" : "justify-start"} my-3`}
+            className={`flex items-start max-w-[90%] gap-3 ${
+              isUserMessage ? "flex-row-reverse" : "flex-row"
+            }`}
           >
             <div
-              className={`flex items-start max-w-[90%] gap-3 ${
-                isUserMessage ? "flex-row-reverse" : "flex-row"
+              className={`p-4 rounded-2xl text-sm leading-relaxed shadow-sm transition-all ${
+                isUserMessage
+                  ? "bg-[#4648d4] text-white rounded-tr-none shadow-[0_8px_32px_rgba(70,72,212,0.18)]"
+                  : "bg-white/60 backdrop-blur-xl border border-white/50 text-[#131b2e] rounded-tl-none"
               }`}
             >
-              <div
-                className={`p-4 rounded-2xl text-sm leading-relaxed shadow-sm transition-all ${
-                  isUserMessage
-                    ? "bg-[#4648d4] text-white rounded-tr-none shadow-[0_8px_32px_rgba(70,72,212,0.18)]"
-                    : "bg-white/60 backdrop-blur-xl border border-white/50 text-[#131b2e] rounded-tl-none"
-                }`}
-              >
-                <ReactMarkdown>{message.content}</ReactMarkdown>
-              </div>
+              <ReactMarkdown>{message.content}</ReactMarkdown>
             </div>
           </div>
-        );
-      })
-    );
-  }, [messages]);
+        </div>
+      );
+    });
+
+    if (loading) {
+      content.push(
+        <div key="loading-indicator" className="w-full flex justify-start my-3">
+          <div className="flex items-center gap-1.5 px-4 py-3 bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl rounded-tl-none shadow-sm">
+            <motion.span
+              className="w-2 h-2 bg-[#4648d4] rounded-full"
+              animate={{ scale: [1, 1.4, 1], opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 0.8, repeat: Infinity, delay: 0 }}
+            />
+            <motion.span
+              className="w-2 h-2 bg-[#4648d4] rounded-full"
+              animate={{ scale: [1, 1.4, 1], opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 0.8, repeat: Infinity, delay: 0.2 }}
+            />
+            <motion.span
+              className="w-2 h-2 bg-[#4648d4] rounded-full"
+              animate={{ scale: [1, 1.4, 1], opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 0.8, repeat: Infinity, delay: 0.4 }}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    setRenderContent(content);
+  }, [messages, loading]);
 
   useEffect(() => {
     if (listening) {
@@ -231,21 +271,6 @@ const ChatApp = () => {
   }, [messages]);
   return (
     <div className="h-[88vh] bg-gradient-to-br from-[#e2e7ff] via-[#faf8ff] to-[#f0dbff] flex relative w-full font-['Plus_Jakarta_Sans'] overflow-hidden">
-      {loading && (
-        <div className="absolute inset-0 bg-white/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="flex flex-col items-center gap-3 bg-white/80 p-6 rounded-2xl shadow-xl border border-white/60">
-            <motion.div
-              className="w-10 h-10 border-4 border-[#4648d4] border-t-transparent rounded-full"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, ease: "linear", repeat: Infinity }}
-            />
-            <span className="text-xs font-semibold text-[#4648d4] uppercase tracking-wider">
-              Thinking...
-            </span>
-          </div>
-        </div>
-      )}
-
       {report && <ReportModal report={report} open={isReportModalOpen} />}
 
       {/* Left Partition: Prominent 3D Robot Assistant */}

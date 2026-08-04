@@ -139,8 +139,8 @@ const CharacterModel = ({ isSpeaking, loading }) => {
   });
 
   return (
-    <group ref={group} position={[0, -0.9, 0]} dispose={null}>
-      <primitive object={scene} scale={0.9} />
+    <group ref={group} position={[0, -2.1, 0]} dispose={null}>
+      <primitive object={scene} scale={1.35} />
     </group>
   );
 };
@@ -153,7 +153,7 @@ const AssistantAvatar = ({ size = "w-full h-full", isSpeaking = false, loading =
   return (
     <div className={`${size} relative overflow-hidden bg-transparent flex items-center justify-center`}>
       <Canvas
-        camera={{ position: [0, 0, 2.5], fov: 42 }}
+        camera={{ position: [0, 0, 1.95], fov: 40 }}
         style={{ width: "100%", height: "100%" }}
       >
         <ambientLight intensity={1.6} />
@@ -165,6 +165,7 @@ const AssistantAvatar = ({ size = "w-full h-full", isSpeaking = false, loading =
         <OrbitControls
           enableZoom={false}
           enablePan={false}
+          target={[0, 0, 0]}
           autoRotate={false}
         />
       </Canvas>
