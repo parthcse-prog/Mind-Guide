@@ -233,11 +233,11 @@ const ChatApp = () => {
       {report && <ReportModal report={report} open={isReportModalOpen} />}
 
       {/* Left Partition: Prominent 3D Robot Assistant */}
-      <div className="hidden md:flex w-1/3 lg:w-2/5 h-full relative border-r border-white/40 bg-white/20 backdrop-blur-md flex-col items-center justify-center p-4">
-        <div className="w-full h-[75vh] max-h-[600px] flex items-center justify-center">
-          <AssistantAvatar size="w-full h-full" />
+      <div className="hidden md:flex w-1/3 lg:w-2/5 h-full relative border-r border-white/40 bg-white/20 backdrop-blur-md flex-col items-center justify-between p-4 overflow-hidden">
+        <div className="w-full flex-1 flex items-center justify-center">
+          <AssistantAvatar size="w-full h-full" loading={loading} isSpeaking={isSpeaking} />
         </div>
-        <div className="text-center mt-2 bg-white/50 backdrop-blur-md px-6 py-2 rounded-full border border-white/60 shadow-sm">
+        <div className="text-center bg-white/50 backdrop-blur-md px-6 py-2 rounded-full border border-white/60 shadow-sm z-10 shrink-0 mb-2">
           <h3 className="text-sm font-bold text-[#131b2e]">MindGuide AI Counselor</h3>
           <p className="text-xs text-[#464554]/80">Interactive 3D Assistant</p>
         </div>
@@ -247,7 +247,7 @@ const ChatApp = () => {
       <div className="flex-1 flex flex-col h-full relative overflow-hidden">
         {/* Mobile Header 3D Avatar Display */}
         <div className="flex md:hidden w-full h-36 bg-white/30 backdrop-blur-sm border-b border-white/40 items-center justify-center relative">
-          <AssistantAvatar size="w-full h-full" />
+          <AssistantAvatar size="w-full h-full" loading={loading} isSpeaking={isSpeaking} />
         </div>
 
         {/* Main Scrollable Messages Feed */}
