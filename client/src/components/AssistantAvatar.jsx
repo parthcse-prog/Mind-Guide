@@ -57,7 +57,7 @@ const CharacterModel = ({ isSpeaking, loading }) => {
     };
   }, [isSpeaking, loading, actions]);
 
-  // Precise word-by-word phoneme-to-viseme lip-sync animation loop
+  // High-precision word-by-word phoneme & syllabic lip-sync animation loop
   useFrame(({ clock }) => {
     const elapsed = clock.getElapsedTime();
 
@@ -67,46 +67,68 @@ const CharacterModel = ({ isSpeaking, loading }) => {
       if (!dict || !infl) return;
 
       if (isSpeaking) {
-        const word = (window.currentSpokenWord || "").toLowerCase();
-        const vowels = word.match(/[aeiou]/g) || [];
-        const lastVowel = vowels[vowels.length - 1] || "";
+        const word = (window.currentSpokenWord || "").toLowerCase().trim();
+        const pulse = (Math.sin(elapsed * 26) + 1) / 2;
+        const openPulse = (Math.sin(elapsed * 18) + 1) / 2;
 
-        // Base speech pulse
-        const pulse = (Math.sin(elapsed * 24) + 1) / 2;
-
-        // Phoneme-driven viseme mapping
         let targetAA = 0, targetE = 0, targetI = 0, targetO = 0, targetU = 0;
         let targetPP = 0, targetFF = 0, targetTH = 0, targetJaw = 0;
 
-        if (lastVowel === "a") {
-          targetAA = 0.8 * pulse;
-          targetJaw = 0.6 * pulse;
-        } else if (lastVowel === "e") {
-          targetE = 0.7 * pulse;
-        } else if (lastVowel === "i") {
-          targetI = 0.7 * pulse;
-        } else if (lastVowel === "o") {
-          targetO = 0.85 * pulse;
-          targetJaw = 0.4 * pulse;
-        } else if (lastVowel === "u") {
-          targetU = 0.8 * pulse;
+        if (word.length > 0) {
+          // Detect active phoneme groups
+          const hasA = /[aáàâä]/.test(word);
+          const hasE = /[eéèêë]/.test(word);
+          const hasI = /[iíìîïy]/.test(word);
+          const hasO = /[oóòôö]/.test(word);
+          const hasU = /[uúùûüw]/.test(word);
+          const hasPBM = /[pbm]/.test(word);
+          const hasFV = /[fv]/.test(word);
+          const hasTH = /th/.test(word);
+
+          if (hasA) {
+            targetAA = 0.85 * pulse;
+            targetJaw = 0.7 * openPulse;
+          }
+          if (hasE) {
+            targetE = 0.75 * pulse;
+            targetJaw = Math.max(targetJaw, 0.35 * openPulse);
+          }
+          if (hasI) {
+            targetI = 0.75 * pulse;
+            targetJaw = Math.max(targetJaw, 0.3 * openPulse);
+          }
+          if (hasO) {
+            targetO = 0.9 * pulse;
+            targetJaw = Math.max(targetJaw, 0.5 * openPulse);
+          }
+          if (hasU) {
+            targetU = 0.85 * pulse;
+            targetJaw = Math.max(targetJaw, 0.35 * openPulse);
+          }
+
+          if (hasPBM) {
+            targetPP = 0.8;
+            targetJaw *= 0.1; // Lip closure
+          }
+          if (hasFV) {
+            targetFF = 0.75;
+          }
+          if (hasTH) {
+            targetTH = 0.7;
+          }
+
+          // Dynamic vocal fallback for words without explicit vowels
+          if (!hasA && !hasE && !hasI && !hasO && !hasU && !hasPBM) {
+            targetAA = 0.5 * pulse;
+            targetJaw = 0.4 * openPulse;
+          }
         } else {
-          // Default vocalization pulse if word has no explicit vowel
-          targetAA = 0.4 * pulse;
-          targetJaw = 0.3 * pulse;
+          // Gentle ambient vocalization pulse during speech pauses
+          targetAA = 0.3 * pulse;
+          targetJaw = 0.2 * openPulse;
         }
 
-        // Bilabial consonants (P, B, M) -> close lips
-        if (/[pbm]/.test(word)) {
-          targetPP = 0.7;
-          targetJaw *= 0.2;
-        }
-        // Labiodental consonants (F, V)
-        if (/[fv]/.test(word)) {
-          targetFF = 0.7;
-        }
-
-        // Smoothly interpolate influences to targets
+        // Smooth responsive interpolation
         const lerp = (curr, target) => curr + (target - curr) * 0.45;
 
         if (dict["viseme_aa"] !== undefined) infl[dict["viseme_aa"]] = lerp(infl[dict["viseme_aa"]], targetAA);
@@ -116,13 +138,14 @@ const CharacterModel = ({ isSpeaking, loading }) => {
         if (dict["viseme_U"] !== undefined) infl[dict["viseme_U"]] = lerp(infl[dict["viseme_U"]], targetU);
         if (dict["viseme_PP"] !== undefined) infl[dict["viseme_PP"]] = lerp(infl[dict["viseme_PP"]], targetPP);
         if (dict["viseme_FF"] !== undefined) infl[dict["viseme_FF"]] = lerp(infl[dict["viseme_FF"]], targetFF);
+        if (dict["viseme_TH"] !== undefined) infl[dict["viseme_TH"]] = lerp(infl[dict["viseme_TH"]], targetTH);
         if (dict["jawOpen"] !== undefined) infl[dict["jawOpen"]] = lerp(infl[dict["jawOpen"]], targetJaw);
       } else {
-        // Reset all visemes smoothly when silence/not speaking
+        // Reset all visemes smoothly when silent
         Object.keys(dict).forEach((key) => {
           if (key.startsWith("viseme_") || key === "jawOpen") {
             const idx = dict[key];
-            infl[idx] += (0 - infl[idx]) * 0.3;
+            infl[idx] += (0 - infl[idx]) * 0.35;
           }
         });
       }
