@@ -43,7 +43,7 @@ const Header = () => {
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-teal-300 transition-all group-hover:w-full"></span>
             )}
           </Link>
-          <Link
+          {/* <Link
             to="/tools"
             className={`transition-colors relative group py-2 ${
               isLinkActive("/tools")
@@ -55,7 +55,7 @@ const Header = () => {
             {!isLinkActive("/tools") && (
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-teal-300 transition-all group-hover:w-full"></span>
             )}
-          </Link>
+          </Link> */}
         </nav>
 
         {/* User Profile / Login Pill */}
