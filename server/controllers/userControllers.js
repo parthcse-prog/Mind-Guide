@@ -193,43 +193,48 @@ const handleGetUserData = asyncHandler(async (req, res) => {
   }
 });
 const handleReportUpload = asyncHandler(async (req, res) => {
-  if (!req.file) {
-    return res.status(400).send("No file uploaded.");
-  }
   const { counsellorType } = req.params;
   const { email } = req.user;
 
-  const params = {
-    Bucket: process.env.S3_BUCKET_NAME,
-    Key: `pdfs/${Date.now()}_${req.file.originalname}`,
-    Body: req.file.buffer,
-    ContentType: "application/pdf",
-  };
-
   try {
-    const data = await s3.upload(params).promise();
+    let fileUrl = "";
 
-    // Add the new report to the user's reportHistory
+    if (process.env.S3_BUCKET_NAME) {
+      const params = {
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: `pdfs/${Date.now()}_${req.file.originalname}`,
+        Body: req.file.buffer,
+        ContentType: "application/pdf",
+      };
+      const data = await s3.upload(params).promise();
+      fileUrl = data.Location;
+    } else {
+      // Fallback base64 data URI storage if S3 bucket is unconfigured
+      const base64Data = req.file.buffer.toString("base64");
+      fileUrl = `data:application/pdf;base64,${base64Data}`;
+    }
+
     const updatedUser = await User.findOneAndUpdate(
       { email },
       {
         $push: {
           reportHistory: {
-            title: `${counsellorType} Session Report`, // Customize the title as needed
-            filePath: data.Location,
+            title: `${counsellorType} Session Report`,
+            filePath: fileUrl,
+            date: new Date(),
           },
         },
       },
-      { new: true, upsert: true } // Upsert true to ensure the document is created if it does not exist
+      { new: true, upsert: true }
     );
-    console.log("updatedUser ", updatedUser);
+
     res.status(200).send({
       message: "PDF uploaded and saved to report history successfully",
-      url: data.Location,
+      url: fileUrl,
       user: updatedUser,
     });
   } catch (err) {
-    console.error("Error uploading to S3 or updating user:", err);
+    console.error("Error in handleReportUpload:", err);
     res.status(500).send(err.message);
   }
 });
