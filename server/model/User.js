@@ -63,6 +63,10 @@ const userSchema = mongoose.Schema(
         filePath: { type: String, default: "" },
       },
     ],
+    pi360Data: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
   },
 
   {

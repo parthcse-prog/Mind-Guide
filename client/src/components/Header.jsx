@@ -66,11 +66,20 @@ const Header = () => {
                 <span className="text-sm font-semibold truncate max-w-[120px]">
                   {userInfo.name}
                 </span>
-                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-teal-500 shadow-sm flex-shrink-0">
+                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-teal-500 shadow-sm flex-shrink-0 bg-white/20">
                   <img
-                    src={userInfo.pic}
+                    src={
+                      userInfo.pi360Profile?.student?.[0]?.ProfilePictureURL ||
+                      userInfo.pi360Data?.data?.avatar ||
+                      userInfo.pi360Data?.student?.[0]?.ProfilePictureURL ||
+                      userInfo.pic ||
+                      "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg"
+                    }
                     alt={userInfo.name}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg";
+                    }}
                   />
                 </div>
               </>

@@ -17,20 +17,64 @@ async function getChatGPTResponse(messages) {
 const getChat = asyncHandler(async (req, res) => {
   const counselorType = req.params.counselorType;
   try {
+    const user = await User.findById(req.user._id);
+
+    // Extract student profile data (PI360 info, education, skills, branch, etc.)
+    const pi360 = user?.pi360Data?.student?.[0] || user?.pi360Data?.data || user?.pi360Data || {};
+    const name = user?.name || pi360.Name || pi360.name || "Student";
+    const rollNumber = pi360.RollNumber || "N/A";
+    const branch = pi360.Branch || pi360.Program || pi360.Course || "Engineering";
+    const batch = pi360.Batch || "N/A";
+    const academicPercentage = pi360.OverallAcademicPercentage || "N/A";
+    const skills = user?.skills?.map((s) => s.skill).join(", ") || "N/A";
+
+    // Extract CV sections if available
+    let cvSummary = "";
+    try {
+      const cvDrafts = pi360.cv_drafts || pi360.ResumeDrafts;
+      if (Array.isArray(cvDrafts) && cvDrafts.length > 0) {
+        const latest = cvDrafts[cvDrafts.length - 1];
+        const content = typeof latest.Content === "string" ? JSON.parse(latest.Content) : latest.Content;
+        if (content?.sections) {
+          cvSummary = content.sections
+            .map((s) => `${s.title}: ${s.items.map((i) => i.title || i.role || i.company).join("; ")}`)
+            .join(" | ");
+        }
+      }
+    } catch (e) {
+      console.warn("Could not parse CV summary for counselor prompt:", e);
+    }
+
+    const studentContextPrompt = `You are a personalized, expert ${counselorType} for student ${name}.
+STUDENT PROFILE CONTEXT:
+- Name: ${name}
+- Roll Number: ${rollNumber}
+- Branch/Program: ${branch} (Batch: ${batch})
+- Academic Performance: ${academicPercentage}%
+- Acquired Skills: ${skills}
+${cvSummary ? `- Student Portfolio (Education, Projects, Internships, Certifications): ${cvSummary}` : ""}
+
+GUIDELINES:
+1. Always tailor your advice specifically to ${name}'s academic background, branch (${branch}), skills, and portfolio projects.
+2. Ask relevant, focused questions one by one.
+3. Be supportive, practical, and highly targeted to help ${name} achieve optimal academic and career growth.`;
+
     messages = [
       {
         role: "system",
-        content: `You are a helpful AI counsellor. Please ask me the most relevant questions related to counseling. Ask questions one by one followed by response by the user then continue. Striclty reply outside the scope if anything is asked outside the counselling domain.`,
+        content: studentContextPrompt,
       },
-      { role: "system", content: "Ask me questions one by one." },
       {
-        role: "system",
-        content: `I want you to act as a ${counselorType}.`,
+        role: "assistant",
+        content: `Hello ${name}! I am your ${counselorType}. I have reviewed your academic profile in ${branch} (Batch ${batch}). How can I assist you with your goals today?`,
       },
     ];
-    const user = await User.findById(req.user._id);
-    user.sessionHistory.push({ date: new Date(), status: "started" });
-    await user.save();
+
+    if (user) {
+      user.sessionHistory.push({ date: new Date(), status: "started" });
+      await user.save();
+    }
+
     res.status(200).json(messages);
   } catch (err) {
     console.error("Error in getting chat", err);

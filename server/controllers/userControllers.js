@@ -35,38 +35,118 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
+const axios = require("axios");
+
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     res.status(400);
     throw new Error("Please enter all the fields");
   }
-  const user = await User.findOne({ email });
-  if (!user) {
+
+  try {
+    let pi360LoginRes = null;
+
+    // 1. Attempt JSON login payload to PI360 API
+    try {
+      pi360LoginRes = await axios.post(
+        "https://pi360.net/site/api/api_login_user.php?institute_id=mietjammu",
+        {
+          username_1: email,
+          password_1: password,
+        },
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    } catch (jsonErr) {
+      console.warn("JSON payload failed, attempting URLSearchParams payload:", jsonErr.message);
+      const params = new URLSearchParams();
+      params.append("username_1", email);
+      params.append("password_1", password);
+      pi360LoginRes = await axios.post(
+        "https://pi360.net/site/api/api_login_user.php?institute_id=mietjammu",
+        params,
+        {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        }
+      );
+    }
+
+    const loginData = pi360LoginRes?.data;
+    if (!loginData || (loginData.statusCode && loginData.statusCode !== 200) || (loginData.status === "error")) {
+      res.status(400);
+      throw new Error(loginData?.message || "Invalid PI360 Credentials");
+    }
+
+    const tokenFromLogin = loginData?.token || loginData?.jwt || loginData?.data?.token || loginData?.access_token;
+    let profileData = null;
+
+    // 2. Fetch full student profile using Bearer token
+    if (tokenFromLogin) {
+      try {
+        const profileRes = await axios.get(
+          "https://pi360.net/site/api/endpoints/api_student_profile.php?institute_id=mietjammu",
+          {
+            headers: {
+              Authorization: `Bearer ${tokenFromLogin}`,
+            },
+          }
+        );
+        profileData = profileRes.data;
+      } catch (profErr) {
+        console.error("PI360 Student Profile Fetch Error:", profErr?.response?.data || profErr.message);
+      }
+    }
+
+    // 3. Upsert / Sync user profile in MongoDB
+    const studentInfo = profileData?.student?.[0] || profileData || {};
+    const studentName = studentInfo.Name || studentInfo.student_name || loginData?.data?.name || email.split("@")[0];
+    
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        name: studentName,
+        email: email,
+        password: password,
+        pi360Data: profileData || loginData,
+      });
+    } else {
+      user.name = studentName || user.name;
+      user.pi360Data = profileData || loginData;
+      await user.save();
+    }
+
+    const token = user.createJWT();
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 604800000),
+    });
+
+    return res.status(200).json({
+      ...user._doc,
+      pi360Profile: profileData,
+      pi360Token: tokenFromLogin,
+      createdAt: user._id.getTimestamp(),
+      password: undefined,
+    });
+  } catch (error) {
+    console.error("PI360 Authentication Error:", error?.response?.data || error.message);
     res.status(400);
-    throw new Error("Invalid Credentials");
+    throw new Error(error?.response?.data?.message || error?.message || "PI360 Login Failed. Check credentials.");
   }
-  // Check Password
-  const isPasswordMatch = await user.matchPassword(password);
-  if (!isPasswordMatch) {
-    throw new Error("Invalid Credentials");
-  }
-  const token = user.createJWT();
-  console.log("token", user);
-  res.cookie("token", token, {
-    expires: new Date(Date.now() + 604800000),
-  });
-  return res.status(200).json({
-    ...user._doc,
-    createdAt: user._id.getTimestamp(),
-    password: undefined,
-  });
 });
 const getUserProfile = asyncHandler(async (req, res) => {
   const { token } = req.cookies;
   if (token) {
-    const user = jwt.verify(token, process.env.JWT_SECRET);
-    return res.json(user);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded._id);
+    if (user) {
+      return res.json({
+        ...user._doc,
+        password: undefined,
+      });
+    }
   }
   return res.status(200).json(null);
 });

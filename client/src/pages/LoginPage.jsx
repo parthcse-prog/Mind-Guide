@@ -53,23 +53,23 @@ const LoginPage = () => {
       >
         <h2 className="text-2xl font-bold mb-8 text-center">Login</h2>
 
-        {/* Email field */}
+        {/* Username / Email field */}
         <div className="mb-4">
           <label
             htmlFor="email"
             className="block text-gray-700 text-sm font-bold mb-2"
           >
-            Email
+            Username / Email
           </label>
           <input
-            type="email"
+            type="text"
             id="email"
             name="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             className="border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            placeholder="Email"
+            placeholder="PI360 Username or Email"
           />
         </div>
 
