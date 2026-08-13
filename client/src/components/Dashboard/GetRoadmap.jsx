@@ -96,8 +96,7 @@ const GetRoadmap = () => {
   // Generate Mermaid Graph string dynamically based on student roadmap items
   const generateMermaidGraph = () => {
     if (!roadmapData || roadmapData.length === 0) return "";
-    let code = "%%{init: { 'theme': 'base', 'themeVariables': { 'fontSize': '18px', 'fontFamily': 'Plus Jakarta Sans, sans-serif', 'primaryColor': '#e6f4f1', 'primaryTextColor': '#002531', 'primaryBorderColor': '#0d9488', 'lineColor': '#0d9488', 'secondaryColor': '#d1fae5', 'tertiaryColor': '#ffffff' } } }%%\n";
-    code += "graph TD;\n";
+    let code = "graph TD;\n";
 
     // Class Definitions for high-legibility styling
     code += `  classDef rootStyle fill:#002531,stroke:#002531,color:#ffffff,font-weight:bold,font-size:18px;\n`;
@@ -255,9 +254,6 @@ const GetRoadmap = () => {
                   Reset
                 </button>
               </div>
-              <span className="text-xs text-gray-500 hidden md:inline">
-                Click checkboxes below to mark progress
-              </span>
             </div>
           </div>
 
@@ -309,29 +305,6 @@ const GetRoadmap = () => {
             >
               <Mermaid className="w-full min-w-[750px]" chart={generateMermaidGraph()} />
             </div>
-          </div>
-
-          {/* Interactive Node Checklist */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-4 border-t border-gray-100">
-            {roadmapData.map((item, idx) => (
-              <div
-                key={idx}
-                onClick={() => handleTaskClick(idx)}
-                className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center gap-3 ${
-                  item.isCompleted
-                    ? "bg-emerald-50/80 border-emerald-300 text-emerald-900"
-                    : "bg-white border-gray-200 hover:border-teal-400 text-gray-800"
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={item.isCompleted || false}
-                  onChange={() => {}}
-                  className="w-5 h-5 accent-teal-600 rounded cursor-pointer"
-                />
-                <span className="text-xs font-bold">{item.Goal}</span>
-              </div>
-            ))}
           </div>
         </div>
       ) : (
