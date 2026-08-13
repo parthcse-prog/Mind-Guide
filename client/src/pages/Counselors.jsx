@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { stopNeuralTTS } from "../services/azureSpeechService";
 
 const counselors = [
   {
@@ -57,6 +58,10 @@ const Counselors = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [selectedCounselor, setSelectedCounselor] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    stopNeuralTTS();
+  }, []);
 
   const handleCounselorClick = (counselor) => {
     setSelectedCounselor(counselor);

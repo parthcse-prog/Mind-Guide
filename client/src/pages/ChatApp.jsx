@@ -9,13 +9,28 @@ import SpeechRecognition, {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMicrophone } from "@fortawesome/free-solid-svg-icons";
 import { motion, useAnimation } from "framer-motion";
-import AssistantAvatar from "../components/AssistantAvatar";
+import AssistantAvatar, { COUNSELOR_CONFIGS } from "../components/AssistantAvatar";
 import ScrollableFeed from "react-scrollable-feed";
 import ReportModal from "../components/ReportModal";
 import ReactMarkdown from "react-markdown";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { callGatewayLLMDirect } from "../services/llmService";
+import { speakWithNeuralTTS, stopNeuralTTS } from "../services/azureSpeechService";
+
+const sanitizeTextForSpeech = (text) => {
+  if (!text) return "";
+  return text
+    // Strip Emojis, Symbols, and Pictographs
+    .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F004}\u{1F0CF}\u{1F170}-\u{1F251}]/gu, "")
+    // Strip Markdown symbols (*, #, `, _, ~, >, |, bullet points)
+    .replace(/[\*\#\`\_\~\>\|\-\+\=\[\]\(\)]+/g, " ")
+    // Strip URLs
+    .replace(/https?:\/\/\S+/gi, "")
+    // Normalize spaces
+    .replace(/\s+/g, " ")
+    .trim();
+};
 
 const ChatApp = () => {
   const [messages, setMessages] = useState([]);
@@ -27,14 +42,28 @@ const ChatApp = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const { type } = useParams();
   const [report, setReport] = useState();
-  const userInfo = useSelector((state) => state.mindGuide.userInfo);
-  const { type: counsellorType } = useParams();
+  const userInfo = useSelector((state) => state.mindGuide?.userInfo);
   const [isReportModalOpen, setReportModalOpen] = useState(false);
   const [totalMessages, setTotalMessages] = useState(0);
 
+  const normType = (type || "").toLowerCase().trim();
+  const activeCounselor = COUNSELOR_CONFIGS[normType] || COUNSELOR_CONFIGS["academic counselor"];
+
+  // Stop speech synthesis immediately when component unmounts / user navigates away
+  useEffect(() => {
+    return () => {
+      stopNeuralTTS();
+      setIsSpeaking(false);
+    };
+  }, []);
+
   const startListening = () => {
+    if (!browserSupportsSpeechRecognition) {
+      toast.info("Voice input is not supported in this browser. You can type your message below.");
+      return;
+    }
     if (!listening) {
-      if (window.speechSynthesis.speaking) {
+      if (window.speechSynthesis && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
         setIsSpeaking(false);
       }
@@ -58,16 +87,16 @@ const ChatApp = () => {
     return () => clearInterval(checkSpeaking);
   }, []);
 
-  if (!browserSupportsSpeechRecognition) {
-    return null;
-  }
-
   useEffect(() => {
-    setInputText(transcript);
+    if (transcript) {
+      setInputText(transcript);
+    }
   }, [transcript]);
 
   useEffect(() => {
-    inputElement.current.focus();
+    if (inputElement.current) {
+      inputElement.current.focus();
+    }
   }, [messages]);
 
   const generateText = async () => {
@@ -82,7 +111,7 @@ const ChatApp = () => {
       setInputText("");
 
       setLoading(true);
-      if (window.speechSynthesis.speaking) {
+      if (window.speechSynthesis && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
         setIsSpeaking(false);
       }
@@ -99,47 +128,15 @@ const ChatApp = () => {
       setMessages([...updatedMessages, botMessage]);
 
       try {
-        const utterance = new SpeechSynthesisUtterance(botResponseText);
-        utterance.rate = 1;
-
-        // Select a natural female voice from available system/browser voices
-        const availableVoices = window.speechSynthesis.getVoices();
-        const femaleVoice = availableVoices.find(
-          (voice) =>
-            voice.name.includes("Zira") ||
-            voice.name.includes("Female") ||
-            voice.name.includes("Samantha") ||
-            voice.name.includes("Victoria") ||
-            voice.name.includes("Google UK English Female") ||
-            voice.name.toLowerCase().includes("female")
-        ) || availableVoices.find((voice) => voice.lang.startsWith("en") && !voice.name.includes("David") && !voice.name.includes("Mark"));
-
-        if (femaleVoice) {
-          utterance.voice = femaleVoice;
-        }
-
-        utterance.onstart = () => {
-          setIsSpeaking(true);
-          window.currentSpeakingText = botResponseText;
-          window.currentSpokenWord = "";
-        };
-        utterance.onboundary = (event) => {
-          if (event.name === "word") {
-            const word = botResponseText.slice(event.charIndex, event.charIndex + (event.charLength || 5));
-            window.currentSpokenWord = word;
-          }
-        };
-        utterance.onend = () => {
-          setIsSpeaking(false);
-          window.currentSpokenWord = "";
-        };
-        utterance.onerror = () => {
-          setIsSpeaking(false);
-          window.currentSpokenWord = "";
-        };
-        window.speechSynthesis.speak(utterance);
+        await speakWithNeuralTTS({
+          text: botResponseText,
+          gender: activeCounselor.gender,
+          onStart: () => setIsSpeaking(true),
+          onEnd: () => setIsSpeaking(false),
+          onError: () => setIsSpeaking(false),
+        });
       } catch (error) {
-        console.error("Error in Speech Synthesis:", error);
+        console.error("Error in Neural Speech Synthesis:", error);
         setIsSpeaking(false);
       }
     } catch (err) {
@@ -173,24 +170,25 @@ const ChatApp = () => {
   };
 
   useEffect(() => {
-    console.log("userInfo ", userInfo);
-    if (!userInfo) return;
+    if (!type) return;
     const fetchData = async () => {
       try {
         const response = await axios.get(
           `http://localhost:3001/api/v1/chat/${type}`
         );
-        if (response.status === 200) {
+        if (response.status === 200 && Array.isArray(response.data)) {
           setMessages(response.data);
         } else {
           console.error("Error in fetching initial messages");
         }
       } catch (err) {
-        console.error("Error in fetching initial messages", err);
+        console.warn("Server chat history fetch offline, starting fresh session:", err);
       }
     };
     fetchData();
-    inputElement.current.focus();
+    if (inputElement.current) {
+      inputElement.current.focus();
+    }
   }, [type, userInfo]);
 
   useEffect(() => {
@@ -269,26 +267,48 @@ const ChatApp = () => {
   useEffect(() => {
     setTotalMessages(messages.length); // Update total messages when messages change
   }, [messages]);
+
   return (
     <div className="h-[88vh] bg-gradient-to-br from-[#e2e7ff] via-[#faf8ff] to-[#f0dbff] flex relative w-full font-['Plus_Jakarta_Sans'] overflow-hidden">
       {report && <ReportModal report={report} open={isReportModalOpen} />}
 
       {/* Left Partition: Prominent 3D Robot Assistant */}
       <div className="hidden md:flex w-1/3 lg:w-2/5 h-full relative border-r border-white/40 bg-white/20 backdrop-blur-md flex-col items-center justify-between p-4 overflow-hidden">
-        <div className="w-full flex-1 flex items-center justify-center">
-          <AssistantAvatar size="w-full h-full" loading={loading} isSpeaking={isSpeaking} />
+        <div className="w-full flex-1 flex items-center justify-center relative">
+          <AssistantAvatar
+            size="w-full h-full"
+            loading={loading}
+            isSpeaking={isSpeaking}
+            counselorType={type}
+          />
         </div>
-        <div className="text-center bg-white/50 backdrop-blur-md px-6 py-2 rounded-full border border-white/60 shadow-sm z-10 shrink-0 mb-2">
-          <h3 className="text-sm font-bold text-[#131b2e]">MindGuide AI Counselor</h3>
-          <p className="text-xs text-[#464554]/80">Interactive 3D Assistant</p>
+
+        {/* Counselor Title & Status Badge */}
+        <div className="w-full bg-white/60 backdrop-blur-md p-3.5 rounded-2xl border border-white/60 shadow-sm z-10 shrink-0 mb-2 flex flex-col items-center text-center gap-1">
+          <h3 className="text-base font-bold text-[#131b2e]">{activeCounselor.name}</h3>
+          <p className="text-xs font-medium text-[#4648d4]">{activeCounselor.title}</p>
+          <div className="flex items-center gap-1.5 mt-1 px-3 py-0.5 bg-emerald-500/10 border border-emerald-500/30 rounded-full">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[11px] font-semibold text-emerald-700">3D Interactive Lip-Sync Active</span>
+          </div>
         </div>
       </div>
 
       {/* Right Partition: Chat Interface & Inputs */}
       <div className="flex-1 flex flex-col h-full relative overflow-hidden">
         {/* Mobile Header 3D Avatar Display */}
-        <div className="flex md:hidden w-full h-36 bg-white/30 backdrop-blur-sm border-b border-white/40 items-center justify-center relative">
-          <AssistantAvatar size="w-full h-full" loading={loading} isSpeaking={isSpeaking} />
+        <div className="flex md:hidden w-full h-40 bg-white/30 backdrop-blur-sm border-b border-white/40 flex-col items-center justify-center relative p-2">
+          <div className="w-full h-28">
+            <AssistantAvatar
+              size="w-full h-full"
+              loading={loading}
+              isSpeaking={isSpeaking}
+              counselorType={type}
+            />
+          </div>
+          <div className="text-center bg-white/70 backdrop-blur-md px-3 py-1 rounded-full border border-white/60 z-10">
+            <span className="text-xs font-bold text-[#131b2e]">{activeCounselor.name} - {activeCounselor.title}</span>
+          </div>
         </div>
 
         {/* Main Scrollable Messages Feed */}
@@ -312,7 +332,9 @@ const ChatApp = () => {
                 if (e.key === "Enter") {
                   e.preventDefault();
                   generateText();
-                  inputElement.current.focus();
+                  if (inputElement.current) {
+                    inputElement.current.focus();
+                  }
                 }
               }}
             />
@@ -367,3 +389,4 @@ const ChatApp = () => {
 };
 
 export default ChatApp;
+

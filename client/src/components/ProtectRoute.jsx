@@ -9,9 +9,9 @@ const ProtectRoute = ({ userInfo }) => {
   useEffect(() => {
     if (!userInfo) {
       navigate("/login");
-      return;
     }
-  });
+  }, [userInfo, navigate]);
+
   return <Outlet />;
 };
 
