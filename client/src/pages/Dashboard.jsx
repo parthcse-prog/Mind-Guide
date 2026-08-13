@@ -18,6 +18,11 @@ const Dashboard = () => {
       link: "./getRoadmap",
     },
     {
+      title: "Job Board",
+      icon: "work",
+      link: "./jobBoard",
+    },
+    {
       title: "Profile",
       icon: "person",
       link: "./profile",

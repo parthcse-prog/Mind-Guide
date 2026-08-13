@@ -297,6 +297,37 @@ const handleGetSkills = asyncHandler(async (req, res) => {
     res.json("Error while saving User skills!!!");
   }
 });
+
+const { fetchRealtimeIndiaJobs } = require("../services/jobService");
+
+const handleGetJobs = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const region = req.query.region || "All India";
+  const userType = req.query.type || "all";
+
+  const user = await User.findById(userId);
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  const userSkills = (user.skills || []).map((s) => s.skill);
+
+  const jobs = await fetchRealtimeIndiaJobs({
+    userSkills,
+    region,
+    userType,
+  });
+
+  res.status(200).json({
+    success: true,
+    count: jobs.length,
+    jobs,
+    userSkills,
+    region,
+  });
+});
+
 module.exports = {
   registerUser,
   authUser,
@@ -307,4 +338,5 @@ module.exports = {
   handleReportUpload,
   handleGetAllReports,
   handleGetSkills,
+  handleGetJobs,
 };

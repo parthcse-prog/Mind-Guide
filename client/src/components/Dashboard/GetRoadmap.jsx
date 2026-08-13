@@ -11,6 +11,11 @@ const GetRoadmap = () => {
   const [loading, setLoading] = useState(true);
   const [unsavedChanges, setUnsavedChanges] = useState(false);
   const [activeTab, setActiveTab] = useState("graph"); // "graph" or "list"
+  const [zoomScale, setZoomScale] = useState(1);
+  const [panPosition, setPanPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
   const user = useSelector((state) => state.mindGuide.userInfo);
   const dispatch = useDispatch();
 
@@ -27,6 +32,36 @@ const GetRoadmap = () => {
     };
     fetchRoadmap();
   }, []);
+
+  const handleMouseDown = (e) => {
+    if (e.button !== 0) return; // Left click only
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - panPosition.x, y: e.clientY - panPosition.y });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    setPanPosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y,
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleWheel = (e) => {
+    // Smooth wheel zoom
+    const delta = e.deltaY < 0 ? 0.1 : -0.1;
+    setZoomScale((prev) => Math.min(Math.max(prev + delta, 0.6), 2.5));
+  };
+
+  const handleResetZoomPan = () => {
+    setZoomScale(1);
+    setPanPosition({ x: 0, y: 0 });
+  };
 
   const completedTasksCount = roadmapData.filter((item) => item.isCompleted).length;
   const totalTasksCount = roadmapData.length;
@@ -61,21 +96,29 @@ const GetRoadmap = () => {
   // Generate Mermaid Graph string dynamically based on student roadmap items
   const generateMermaidGraph = () => {
     if (!roadmapData || roadmapData.length === 0) return "";
-    let code = "graph TD;\n";
+    let code = "%%{init: { 'theme': 'base', 'themeVariables': { 'fontSize': '18px', 'fontFamily': 'Plus Jakarta Sans, sans-serif', 'primaryColor': '#e6f4f1', 'primaryTextColor': '#002531', 'primaryBorderColor': '#0d9488', 'lineColor': '#0d9488', 'secondaryColor': '#d1fae5', 'tertiaryColor': '#ffffff' } } }%%\n";
+    code += "graph TD;\n";
+
+    // Class Definitions for high-legibility styling
+    code += `  classDef rootStyle fill:#002531,stroke:#002531,color:#ffffff,font-weight:bold,font-size:18px;\n`;
+    code += `  classDef completedStyle fill:#d1fae5,stroke:#10b981,color:#065f46,font-weight:bold,font-size:16px;\n`;
+    code += `  classDef pendingStyle fill:#e6f4f1,stroke:#0d9488,color:#002531,font-weight:bold,font-size:16px;\n`;
+    code += `  classDef resourceStyle fill:#f8fafc,stroke:#94a3b8,color:#334155,font-size:14px;\n`;
 
     // Main root node
-    code += `  START["${user?.name || "Student"} Counselor Roadmap"]\n`;
+    code += `  START["${user?.name || "Student"} Counselor Roadmap"]:::rootStyle\n`;
 
     roadmapData.forEach((item, idx) => {
       const nodeId = `NODE_${idx}`;
       const statusIcon = item.isCompleted ? "✔ " : "";
       const label = `${statusIcon}${item.Goal.replace(/"/g, "'")}`;
+      const styleClass = item.isCompleted ? "completedStyle" : "pendingStyle";
 
       if (idx === 0) {
-        code += `  START --> ${nodeId}["${label}"]\n`;
+        code += `  START --> ${nodeId}["${label}"]:::${styleClass}\n`;
       } else {
         const prevId = `NODE_${idx - 1}`;
-        code += `  ${prevId} --> ${nodeId}["${label}"]\n`;
+        code += `  ${prevId} --> ${nodeId}["${label}"]:::${styleClass}\n`;
       }
 
       // Add recommendations sub-nodes if available
@@ -83,7 +126,7 @@ const GetRoadmap = () => {
         item.recommendations.forEach((rec, rIdx) => {
           const recId = `REC_${idx}_${rIdx}`;
           const recLabel = rec.title.replace(/"/g, "'");
-          code += `  ${nodeId} -. Resource .-> ${recId}["📚 ${recLabel}"]\n`;
+          code += `  ${nodeId} -. Resource .-> ${recId}["📚 ${recLabel}"]:::resourceStyle\n`;
         });
       }
     });
@@ -178,17 +221,94 @@ const GetRoadmap = () => {
       {/* GRAPH VIEW */}
       {activeTab === "graph" ? (
         <div className="bg-white rounded-3xl p-6 border border-gray-200/80 shadow-sm flex flex-col gap-4 overflow-x-auto">
-          <div className="flex items-center justify-between border-b pb-4 border-gray-100">
+          <div className="flex items-center justify-between border-b pb-4 border-gray-100 flex-wrap gap-3">
             <h3 className="font-extrabold text-[#002531] text-base flex items-center gap-2">
               <span className="material-symbols-outlined text-teal-600">hub</span>
               Visual Dependency Graph
             </h3>
-            <span className="text-xs text-gray-500">Click checkboxes below to mark progress</span>
+
+            {/* Zoom Controls */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200">
+                <button
+                  onClick={() => setZoomScale((prev) => Math.max(prev - 0.2, 0.6))}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm hover:bg-gray-50 text-gray-700 font-bold text-base transition-all"
+                  title="Zoom Out"
+                >
+                  -
+                </button>
+                <span className="text-xs font-bold px-2 text-[#002531]">
+                  {Math.round(zoomScale * 100)}%
+                </span>
+                <button
+                  onClick={() => setZoomScale((prev) => Math.min(prev + 0.2, 2.5))}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm hover:bg-gray-50 text-gray-700 font-bold text-base transition-all"
+                  title="Zoom In"
+                >
+                  +
+                </button>
+                <button
+                  onClick={handleResetZoomPan}
+                  className="px-2.5 py-1 text-xs font-bold rounded-lg bg-white shadow-sm hover:bg-gray-50 text-teal-700 transition-all ml-1"
+                  title="Reset Zoom & Pan"
+                >
+                  Reset
+                </button>
+              </div>
+              <span className="text-xs text-gray-500 hidden md:inline">
+                Click checkboxes below to mark progress
+              </span>
+            </div>
           </div>
 
-          {/* Render Mermaid Visual Chart */}
-          <div className="w-full min-h-[350px] bg-slate-50/50 rounded-2xl p-6 border border-gray-100 flex items-center justify-center overflow-x-auto">
-            <Mermaid className="w-full max-w-full" chart={generateMermaidGraph()} />
+          {/* Render Mermaid Visual Chart with Mouse Drag-to-Pan */}
+          <div
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            className={`w-full min-h-[480px] bg-slate-50/50 rounded-2xl p-6 border border-gray-100 flex flex-col items-center justify-center overflow-hidden relative select-none ${
+              isDragging ? "cursor-grabbing" : "cursor-grab"
+            }`}
+          >
+            {/* Helper pill */}
+            <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl text-[11px] font-semibold text-gray-600 border border-gray-200/80 shadow-xs pointer-events-none z-10 flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-sm text-teal-600">pan_tool</span>
+              <span>Click & drag to pan • Use + / - to zoom</span>
+            </div>
+
+            <style>{`
+              .mermaid-container svg {
+                font-size: 16px !important;
+                max-width: 100% !important;
+                height: auto !important;
+                min-width: 750px;
+              }
+              .mermaid-container svg text {
+                font-size: 16px !important;
+                font-weight: 700 !important;
+                font-family: 'Plus Jakarta Sans', sans-serif !important;
+              }
+              .mermaid-container svg .node rect,
+              .mermaid-container svg .node polygon,
+              .mermaid-container svg .node circle {
+                rx: 10px !important;
+                ry: 10px !important;
+                stroke-width: 2px !important;
+              }
+              .mermaid-container svg .edgeLabel text {
+                font-size: 13px !important;
+                fill: #475569 !important;
+              }
+            `}</style>
+            <div
+              className="mermaid-container w-full flex justify-center origin-center transition-transform duration-75"
+              style={{
+                transform: `translate(${panPosition.x}px, ${panPosition.y}px) scale(${zoomScale})`,
+              }}
+            >
+              <Mermaid className="w-full min-w-[750px]" chart={generateMermaidGraph()} />
+            </div>
           </div>
 
           {/* Interactive Node Checklist */}

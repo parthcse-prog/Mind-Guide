@@ -9,6 +9,7 @@ const {
   handleReportUpload,
   handleGetAllReports,
   handleGetSkills,
+  handleGetJobs,
 } = require("../controllers/userControllers");
 const multer = require("multer");
 const { protectCookie } = require("../middleware/authMiddleware");
@@ -32,4 +33,5 @@ router.post(
   handleReportUpload
 );
 router.route("/getSkills").get(protectCookie, handleGetSkills);
+router.route("/jobs").get(protectCookie, handleGetJobs);
 module.exports = router;

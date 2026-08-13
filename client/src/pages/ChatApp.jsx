@@ -287,10 +287,10 @@ const ChatApp = () => {
         <div className="w-full bg-white/60 backdrop-blur-md p-3.5 rounded-2xl border border-white/60 shadow-sm z-10 shrink-0 mb-2 flex flex-col items-center text-center gap-1">
           <h3 className="text-base font-bold text-[#131b2e]">{activeCounselor.name}</h3>
           <p className="text-xs font-medium text-[#4648d4]">{activeCounselor.title}</p>
-          <div className="flex items-center gap-1.5 mt-1 px-3 py-0.5 bg-emerald-500/10 border border-emerald-500/30 rounded-full">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[11px] font-semibold text-emerald-700">3D Interactive Lip-Sync Active</span>
-          </div>
+          
+           
+            
+          
         </div>
       </div>
 
