@@ -216,7 +216,7 @@ const Home = () => {
                     mail
                   </span>
                   <span className="font-semibold text-sm">
-                    2020a1r062@mietjammu.in
+                    info@mietjammu.in
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-[#002531]">
@@ -229,7 +229,7 @@ const Home = () => {
             </div>
 
             <form
-              action="mailto:2020a1r062@mietjammu.in"
+              action="mailto:info@mietjammu.in"
               method="post"
               encType="text/plain"
               className="space-y-4"

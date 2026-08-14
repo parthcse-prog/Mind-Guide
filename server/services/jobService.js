@@ -350,7 +350,7 @@ const fetchRealtimeIndiaJobs = async ({ userSkills = [], region = "All India", u
   // 2. Combine online live jobs with regional Indian engineering database
   const combinedList = [...onlineJobs, ...himalayasJobs, ...BASE_JOB_DATABASE];
 
-  // 3. Filter jobs based on Region and Job Type
+  // 3. Filter jobs based on Region, Job Type, and Experience Level (no senior roles)
   let filteredJobs = combinedList.filter((job) => {
     // Region match
     const matchRegion =
@@ -366,7 +366,22 @@ const fetchRealtimeIndiaJobs = async ({ userSkills = [], region = "All India", u
       (userType === "internship" && job.type.toLowerCase() === "internship") ||
       (userType === "fulltime" && job.type.toLowerCase() === "full-time");
 
-    return matchRegion && matchType;
+    // Title match to exclude senior/lead roles
+    const t = job.title.toLowerCase();
+    const isSenior = 
+      t.includes("senior") || 
+      t.includes("sr.") || 
+      t.includes("sr ") || 
+      t.includes("lead") || 
+      t.includes("manager") || 
+      t.includes("director") || 
+      t.includes("head") || 
+      t.includes("principal") || 
+      t.includes("staff") || 
+      t.includes("vp") || 
+      t.includes("chief");
+
+    return matchRegion && matchType && !isSenior;
   });
 
   // Calculate Match Percentage and Missing Skills for each job

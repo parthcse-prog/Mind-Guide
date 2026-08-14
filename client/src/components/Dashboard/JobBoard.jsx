@@ -121,21 +121,7 @@ const JobBoard = () => {
           />
         </div>
 
-        {/* Region Dropdown Filter */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="material-symbols-outlined text-teal-600 text-lg">location_on</span>
-          <select
-            value={selectedRegion}
-            onChange={(e) => setSelectedRegion(e.target.value)}
-            className="bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#002531] focus:outline-none focus:border-teal-500 cursor-pointer"
-          >
-            {INDIAN_REGIONS.map((reg) => (
-              <option key={reg} value={reg}>
-                Region: {reg}
-              </option>
-            ))}
-          </select>
-        </div>
+
 
         {/* Job Type Toggle */}
         <div className="bg-gray-100 p-1 rounded-xl flex items-center shrink-0 border border-gray-200">

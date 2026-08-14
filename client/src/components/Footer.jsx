@@ -48,11 +48,7 @@ const Footer = () => {
                 Counselors
               </Link>
             </li>
-            <li>
-              <Link to="/tools" className="hover:text-white transition-colors">
-                Tools
-              </Link>
-            </li>
+            
           </ul>
         </div>
 
@@ -63,11 +59,11 @@ const Footer = () => {
           </h4>
           <ul className="flex flex-col gap-1.5 text-slate-300 text-xs">
             <li className="flex items-start gap-1.5">
-              <span className="font-medium text-white">Address:</span> Jammu
+              <span className="font-medium text-white">Address:</span>MIET, Kot Bhalwal, Jammu - 181122
             </li>
             <li className="flex items-start gap-1.5">
               <span className="font-medium text-white">Email:</span>{" "}
-              2020A1R062@mietjammu.in
+              info@mietjammu.in
             </li>
           </ul>
         </div>

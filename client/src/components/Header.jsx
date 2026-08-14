@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import headIcon from "../assets/headerIcon.png";
+import headIcon from "../assets/finallogo.png";
 import { useSelector, useDispatch } from "react-redux";
 import { removeUser } from "../redux/mindGuideSlice";
 import axios from "axios";
@@ -31,7 +31,7 @@ const Header = () => {
         {/* Brand Logo & Title */}
         <div className="flex items-center gap-3">
           <Link to="/" className="flex items-center gap-3">
-            <img src={headIcon} alt="Mind Guide Logo" className="h-10 w-auto" />
+            <img src={headIcon} alt="Mind Guide Logo" className="h-20 w-auto object-contain" />
             <h1 className="text-2xl font-extrabold tracking-tight text-white hover:text-teal-300 transition-colors">
               Mind Guide
             </h1>
