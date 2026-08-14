@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import AiJobAssistant from "./AiJobAssistant";
 
 const INDIAN_REGIONS = [
   "All India",
@@ -301,6 +302,9 @@ const JobBoard = () => {
           })}
         </div>
       )}
+
+      {/* Floating AI Job Assistant Chat */}
+      <AiJobAssistant userSkills={user?.pi360Data?.data?.skills || []} />
     </div>
   );
 };

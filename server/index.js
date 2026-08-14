@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const connectDB = require("./config/connectDB");
 const userRouter = require("./routes/User");
 const chatRouter = require("./routes/Chat"); // Import chatRouter module
+const aiChatRouter = require("./routes/aiChatRoute"); // Import AI Chat router
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/chat", chatRouter); // Use chatRouter for /chat route
+app.use("/api/v1/ai/chat", aiChatRouter); // Use aiChatRoute for /ai/chat route
 
 app.use(notFound);
 app.use(errorHandler);
