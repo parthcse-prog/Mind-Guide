@@ -173,32 +173,169 @@ const BASE_JOB_DATABASE = [
 ];
 
 /**
- * Live online web fetch from public job API endpoints
+ * Helper to fetch fallback jobs from Arbeitnow (Global + UK)
  */
-const fetchOnlineJobs = async (region) => {
+const fetchArbeitnowJobs = async (region) => {
   try {
-    const res = await axios.get("https://www.arbeitnow.com/api/job-board-api", { timeout: 4000 });
-    if (res.data && Array.isArray(res.data.data)) {
-      return res.data.data.slice(0, 10).map((j, i) => ({
-        id: `ONLINE-${i}-${j.slug || i}`,
+     const globalEndpoint = "https://www.arbeitnow.com/api/job-board-api" + ((region && region.toLowerCase().includes("remote")) ? "?visa_sponsorship=true" : "");
+     const ukEndpoint = "https://www.arbeitnow.co.uk/api/job-board-api";
+         
+     const [globalRes, ukRes] = await Promise.allSettled([
+       axios.get(globalEndpoint, { timeout: 5000 }),
+       axios.get(ukEndpoint, { timeout: 5000 })
+     ]);
+     
+     let allJobs = [];
+     if (globalRes.status === "fulfilled" && globalRes.value.data && Array.isArray(globalRes.value.data.data)) {
+       allJobs = [...allJobs, ...globalRes.value.data.data.slice(0, 10)];
+     }
+     if (ukRes.status === "fulfilled" && ukRes.value.data && Array.isArray(ukRes.value.data.data)) {
+       allJobs = [...allJobs, ...ukRes.value.data.data.slice(0, 10)];
+     }
+     
+     return allJobs.map((j, i) => ({
+        id: `ONLINE-ARBEITNOW-${i}-${j.slug || i}`,
         title: j.title,
         company: j.company_name,
         logo: `https://logo.clearbit.com/${(j.company_name || "tech").toLowerCase().replace(/[^a-z]/g, "")}.com`,
-        location: j.location || `${region}, India`,
+        location: j.location || `${region === "All India" ? "Remote" : region}, Fallback`,
         region: region === "All India" ? "Remote" : region,
         type: j.job_types && j.job_types.includes("Internship") ? "Internship" : "Full-Time",
         experience: "0 - 1 Year (Fresher)",
         stipendSalary: j.job_types && j.job_types.includes("Internship") ? "₹35,000 / month" : "₹6.5 - ₹10.5 LPA",
         requiredSkills: j.tags && j.tags.length > 0 ? j.tags.slice(0, 5) : ["JavaScript", "Python", "React", "Node.js"],
-        applyUrl: j.url || "https://www.linkedin.com/jobs",
+        applyUrl: j.url || "https://www.arbeitnow.com/",
         postedDate: "Live Online",
+        originalSource: "Arbeitnow"
       }));
-    }
-  } catch (e) {
-    console.warn("Online job fetch warning, using verified Indian dataset fallback:", e.message);
+  } catch (err) {
+     console.warn("Arbeitnow fallback also failed:", err.message);
   }
   return [];
 };
+
+/**
+ * Live online web fetch from public job API endpoints (IndianAPI + Fallback)
+ */
+const fetchOnlineJobs = async (region) => {
+  try {
+    const params = { limit: 15 };
+    if (region && region !== "All India" && region !== "Remote") {
+      params.location = region;
+    }
+    
+    const res = await axios.get("https://jobs.indianapi.in/jobs", {
+      headers: {
+        "X-Api-Key": process.env.INDIAN_API_KEY || "sk-live-SImVWB5j6piw4I1pHBhSvv2vGF9K8J3zLmWkn1S4"
+      },
+      params,
+      timeout: 6000
+    });
+    
+    if (res.data && Array.isArray(res.data)) {
+      return res.data.map((j, i) => {
+        const companyName = j.company || "TechCorp";
+        const title = j.title || j.job_title || "Software Engineer";
+        
+        let skills = ["JavaScript", "Python", "React", "Node.js", "Java"];
+        if (j.education_and_skills) {
+           const extracted = j.education_and_skills.split(/[,\n]/).map(s => s.trim()).filter(s => s.length > 2 && s.length < 25);
+           if (extracted.length > 0) skills = extracted.slice(0, 5);
+        }
+        
+        const jobType = j.job_type || "Full Time";
+        const isIntern = jobType.toLowerCase().includes("intern");
+        
+        let postedDate = "Live Online";
+        if (j.posted_date) {
+           const d = new Date(j.posted_date);
+           if (!isNaN(d.getTime())) {
+             postedDate = d.toLocaleDateString();
+           }
+        }
+
+        return {
+          id: `ONLINE-INDAPI-${j.id || i}`,
+          title: title,
+          company: companyName,
+          logo: `https://logo.clearbit.com/${companyName.toLowerCase().replace(/[^a-z]/g, "")}.com`,
+          location: j.location || `${region === "All India" ? "Remote" : region}, India`,
+          region: region === "All India" ? "Remote" : region,
+          type: isIntern ? "Internship" : "Full-Time",
+          experience: j.experience || "0 - 1 Year (Fresher)",
+          stipendSalary: isIntern ? "₹25,000 - ₹40,000 / month" : "₹5.0 - ₹12.0 LPA",
+          requiredSkills: skills,
+          applyUrl: j.apply_link || "https://jobs.indianapi.in/",
+          postedDate: postedDate,
+        };
+      });
+    }
+  } catch (e) {
+    console.warn("IndianAPI fetch failed, falling back to Arbeitnow API:", e.message);
+    return await fetchArbeitnowJobs(region);
+  }
+  
+  return [];
+};
+
+/**
+ * Live online web fetch from Himalayas (Remote Jobs)
+ * As requested, mentions Himalayas as original source and links back.
+ */
+const fetchHimalayasJobs = async (region) => {
+  try {
+    // We typically only want this for All India or Remote searches since it's global remote
+    if (region && region !== "All India" && region !== "Remote") {
+       return [];
+    }
+
+    const res = await axios.get("https://himalayas.app/jobs/api?limit=10", {
+      timeout: 6000
+    });
+    
+    const jobs = Array.isArray(res.data) ? res.data : (res.data?.jobs || []);
+    
+    return jobs.map((j, i) => {
+      const companyName = j.companyName || j.company_name || j.company || "Tech Company";
+      const title = j.title || "Software Engineer";
+      
+      let skills = ["JavaScript", "Python", "React", "Node.js", "Remote"];
+      if (j.categories && Array.isArray(j.categories)) {
+         const extracted = j.categories.filter(c => typeof c === 'string').map(c => c.trim());
+         if (extracted.length > 0) skills = extracted.slice(0, 5);
+      }
+      
+      const jobType = j.employmentType || j.employment_type || "Full Time";
+      const isIntern = jobType.toLowerCase().includes("intern");
+      
+      let postedDate = "Live Online";
+      if (j.pubDate || j.published_at) {
+         const d = new Date(j.pubDate || j.published_at);
+         if (!isNaN(d.getTime())) postedDate = d.toLocaleDateString();
+      }
+
+      return {
+        id: `HIMALAYAS-${j.id || i}`,
+        title: title,
+        company: typeof companyName === 'object' ? companyName.name : companyName,
+        logo: j.companyLogo || j.company_logo || (typeof companyName === 'object' ? `https://logo.clearbit.com/${(companyName.name || "tech").toLowerCase().replace(/[^a-z]/g, "")}.com` : `https://logo.clearbit.com/${companyName.toLowerCase().replace(/[^a-z]/g, "")}.com`),
+        location: "Worldwide / Remote",
+        region: "Remote",
+        type: isIntern ? "Internship" : "Full-Time",
+        experience: j.seniority || "0 - 1 Year",
+        stipendSalary: isIntern ? "Remote Stipend" : "Remote Competitive",
+        requiredSkills: skills,
+        applyUrl: j.applicationLink || j.apply_url || j.url || "https://himalayas.app/",
+        postedDate: postedDate,
+        originalSource: "Himalayas", // Attribution
+      };
+    });
+  } catch (e) {
+    console.warn("Himalayas job fetch warning:", e.message);
+  }
+  return [];
+};
+
 
 /**
  * Fetch and filter jobs real-time with skill matching algorithm
@@ -208,9 +345,10 @@ const fetchRealtimeIndiaJobs = async ({ userSkills = [], region = "All India", u
 
   // 1. Fetch live online jobs from web APIs
   const onlineJobs = await fetchOnlineJobs(region);
+  const himalayasJobs = await fetchHimalayasJobs(region);
 
   // 2. Combine online live jobs with regional Indian engineering database
-  const combinedList = [...onlineJobs, ...BASE_JOB_DATABASE];
+  const combinedList = [...onlineJobs, ...himalayasJobs, ...BASE_JOB_DATABASE];
 
   // 3. Filter jobs based on Region and Job Type
   let filteredJobs = combinedList.filter((job) => {

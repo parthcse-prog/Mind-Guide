@@ -283,9 +283,23 @@ const JobBoard = () => {
 
                 {/* Bottom Action Footer */}
                 <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-3">
-                  <span className="text-[11px] font-semibold text-gray-400">
-                    Posted {job.postedDate}
-                  </span>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[11px] font-semibold text-gray-400">
+                      Posted {job.postedDate}
+                    </span>
+                    {job.originalSource === "Himalayas" && (
+                      <a 
+                        href="https://himalayas.app/" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-[10px] font-bold text-blue-500 hover:underline flex items-center gap-1"
+                        title="View remote jobs on Himalayas"
+                      >
+                        <span className="material-symbols-outlined text-[12px]">public</span>
+                        Source: Himalayas
+                      </a>
+                    )}
+                  </div>
                   <a
                     href={job.applyUrl}
                     target="_blank"
