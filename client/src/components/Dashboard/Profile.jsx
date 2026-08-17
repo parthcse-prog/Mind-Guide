@@ -256,6 +256,10 @@ const Profile = () => {
             </div>
           ) : (!personalityData && !aiSummary) ? (
             <div className="text-gray-500 text-sm text-center py-4">No personality data found for this account.</div>
+          ) : (personalityData?.response_code == '404' || aiSummary?.response_code == '404' || personalityData?.message?.includes("No personality test") || aiSummary?.message?.includes("No personality test")) ? (
+            <div className="bg-[#f0f7f4]/50 border border-[#acecdc]/30 rounded-2xl p-6 text-center text-[#002531]/80 font-medium">
+              You have not taken the Big 5 Personality Test, please take it to get an enhanced report.
+            </div>
           ) : (
             <div className="flex flex-col lg:flex-row gap-8 overflow-hidden w-full">
               {/* Big 5 Traits */}
