@@ -66,15 +66,15 @@ const Dashboard = () => {
         </nav>
 
         {/* Progress Milestone Badge */}
-        <div className="mt-auto p-4 rounded-xl bg-white/5 border border-white/10">
+        {/* <div className="mt-auto p-4 rounded-xl bg-white/5 border border-white/10">
           <p className="text-xs text-[#85a5b3] mb-2 uppercase tracking-wider font-bold">
             Your Progress
           </p>
           <div className="h-2 w-full bg-white/20 rounded-full overflow-hidden mb-2">
-            <div className="h-full bg-[#afefdf] w-[65%] rounded-full"></div>
+            <div className="h-full bg-[#afefdf] w-[70%] rounded-full"></div>
           </div>
-          <p className="text-xs text-white/90 font-medium">65% to next milestone</p>
-        </div>
+          <p className="text-xs text-white/90 font-medium">70% to next milestone</p>
+        </div> */}
       </aside>
 
       {/* Main Outlet Area */}

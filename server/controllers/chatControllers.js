@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const User = require("../model/User");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
+const axios = require("axios");
 const { callGatewayLLM } = require("../config/llmService");
 
 let messages = [];
@@ -45,6 +46,40 @@ const getChat = asyncHandler(async (req, res) => {
       console.warn("Could not parse CV summary for counselor prompt:", e);
     }
 
+    let personalityContext = "";
+    if (user?.pi360Token) {
+      try {
+        const headers = { Authorization: `Bearer ${user.pi360Token}` };
+        const reportRes = await axios.get(`https://pi360.net/site/api/endpoints/api_get_personality_report.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg%3D&action=get_report`, { headers });
+        const summaryRes = await axios.get(`https://pi360.net/site/api/endpoints/api_get_personality_report.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg%3D&action=get_ai_summary`, { headers });
+        
+        const reportData = reportRes.data?.data || reportRes.data;
+        const summaryData = summaryRes.data?.data || summaryRes.data;
+        
+        // Safely extract Big 5 Traits
+        let extractedTraits = {};
+        if (reportData?.key_metrics?.trait_scores) extractedTraits = reportData.key_metrics.trait_scores;
+        else if (reportData?.trait_scores) extractedTraits = reportData.trait_scores;
+        
+        let traitStr = "";
+        if (Object.keys(extractedTraits).length > 0) {
+          traitStr = Object.entries(extractedTraits).map(([t, v]) => `${t}: ${typeof v === 'object' ? v.score : v}`).join(", ");
+        }
+
+        // Extract AI summary
+        const aiSumText = typeof summaryData === 'string' ? summaryData : (summaryData?.ai_summary || summaryData?.summary || "");
+
+        if (traitStr || aiSumText) {
+          personalityContext = `\nSTUDENT PSYCHOLOGICAL PROFILE (PI360 Data):
+${traitStr ? `- Big 5 Traits: ${traitStr}` : ""}
+${aiSumText ? `- AI Personality Summary: ${aiSumText}` : ""}
+`;
+        }
+      } catch (err) {
+        console.warn("Could not fetch PI360 Personality data for counselor prompt:", err.message);
+      }
+    }
+
     const studentContextPrompt = `You are a personalized, expert ${counselorType} for student ${name}.
 STUDENT PROFILE CONTEXT:
 - Name: ${name}
@@ -52,12 +87,11 @@ STUDENT PROFILE CONTEXT:
 - Branch/Program: ${branch} (Batch: ${batch})
 - Academic Performance: ${academicPercentage}%
 - Acquired Skills: ${skills}
-${cvSummary ? `- Student Portfolio (Education, Projects, Internships, Certifications): ${cvSummary}` : ""}
-
+${cvSummary ? `- Student Portfolio (Education, Projects, Internships, Certifications): ${cvSummary}` : ""}${personalityContext}
 GUIDELINES:
-1. Always tailor your advice specifically to ${name}'s academic background, branch (${branch}), skills, and portfolio projects.
+1. Always tailor your advice specifically to ${name}'s academic background, branch (${branch}), skills, portfolio, and psychological personality traits.
 2. Ask relevant, focused questions one by one.
-3. Be supportive, practical, and highly targeted to help ${name} achieve optimal academic and career growth.`;
+3. Be supportive, practical, and highly targeted to help ${name} achieve optimal academic, career, and personal growth.`;
 
     messages = [
       {

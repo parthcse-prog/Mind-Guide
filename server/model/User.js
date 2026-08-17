@@ -67,6 +67,10 @@ const userSchema = mongoose.Schema(
       type: mongoose.Schema.Types.Mixed,
       default: null,
     },
+    pi360Token: {
+      type: String,
+      default: "",
+    },
   },
 
   {

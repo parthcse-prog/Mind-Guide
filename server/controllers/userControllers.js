@@ -111,10 +111,12 @@ const authUser = asyncHandler(async (req, res) => {
         email: email,
         password: password,
         pi360Data: profileData || loginData,
+        pi360Token: tokenFromLogin,
       });
     } else {
       user.name = studentName || user.name;
       user.pi360Data = profileData || loginData;
+      user.pi360Token = tokenFromLogin || user.pi360Token;
       await user.save();
     }
 
@@ -328,6 +330,27 @@ const handleGetJobs = asyncHandler(async (req, res) => {
   });
 });
 
+const handleGetPersonality = asyncHandler(async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const dbToken = user ? user.pi360Token : null;
+    const pi360Token = req.headers["x-pi360-token"] || dbToken;
+    const headers = pi360Token ? { Authorization: `Bearer ${pi360Token}` } : {};
+
+    const reportRes = await axios.get(`https://pi360.net/site/api/endpoints/api_get_personality_report.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg%3D&action=get_report`, { headers });
+    const summaryRes = await axios.get(`https://pi360.net/site/api/endpoints/api_get_personality_report.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg%3D&action=get_ai_summary`, { headers });
+    
+    res.status(200).json({
+      report: reportRes.data,
+      summary: summaryRes.data
+    });
+  } catch (error) {
+    console.error("Error fetching PI360 personality:", error.message);
+    res.status(500);
+    throw new Error("Failed to fetch personality data from PI360");
+  }
+});
+
 module.exports = {
   registerUser,
   authUser,
@@ -339,4 +362,5 @@ module.exports = {
   handleGetAllReports,
   handleGetSkills,
   handleGetJobs,
+  handleGetPersonality,
 };

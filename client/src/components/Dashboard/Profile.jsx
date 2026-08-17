@@ -8,6 +8,49 @@ const Profile = () => {
   const userInfo = useSelector((state) => state.mindGuide.userInfo);
   const dispatch = useDispatch();
 
+  const [personalityData, setPersonalityData] = React.useState(null);
+  const [aiSummary, setAiSummary] = React.useState(null);
+  const [loadingPersonality, setLoadingPersonality] = React.useState(true);
+  const [personalityError, setPersonalityError] = React.useState(null);
+
+  React.useEffect(() => {
+    if (userInfo?.email) {
+      const fetchPersonality = async () => {
+        setLoadingPersonality(true);
+        setPersonalityError(null);
+        try {
+          // We must route this through our backend proxy because PI360 servers block CORS preflight requests 
+          // when we try to send the Authorization header directly from the browser.
+          const res = await axios.get(
+            `/api/v1/user/personality`,
+            { headers: { "X-PI360-Token": userInfo.pi360Token || "" } }
+          );
+          
+          const reportData = res.data?.report;
+          const summaryData = res.data?.summary;
+
+          if (reportData?.status === 'error') {
+            setPersonalityError(reportData.message || "Error fetching report");
+          } else {
+            setPersonalityData(reportData?.data || reportData);
+          }
+
+          if (summaryData?.status !== 'error') {
+            setAiSummary(summaryData?.data || summaryData);
+          }
+        } catch (err) {
+          console.error("Failed to fetch personality data:", err);
+          setPersonalityError(err.message || "Network Error (CORS?)");
+        } finally {
+          setLoadingPersonality(false);
+        }
+      };
+      fetchPersonality();
+    } else {
+      setLoadingPersonality(false);
+    }
+  }, [userInfo?.email]);
+
   if (!userInfo) {
     return null;
   }
@@ -118,6 +161,31 @@ const Profile = () => {
     );
   });
 
+  // Safely extract Big 5 Traits from PI360 response
+  let extractedTraits = {};
+  if (personalityData) {
+    if (personalityData?.key_metrics?.trait_scores) {
+      extractedTraits = personalityData.key_metrics.trait_scores;
+    } else if (personalityData?.trait_scores) {
+      extractedTraits = personalityData.trait_scores;
+    } else {
+      const big5Keys = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'];
+      Object.entries(personalityData).forEach(([k, v]) => {
+        if (big5Keys.includes(k.toLowerCase())) {
+          extractedTraits[k] = v;
+        }
+      });
+    }
+    // Fallback: use top-level primitives
+    if (Object.keys(extractedTraits).length === 0) {
+      Object.entries(personalityData).forEach(([k, v]) => {
+        if (typeof v !== 'object' && !['email', 'student_id', 'status'].includes(k.toLowerCase())) {
+          extractedTraits[k] = v;
+        }
+      });
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6 font-['Plus_Jakarta_Sans'] max-w-4xl pb-10">
       {/* Primary Profile Header Card */}
@@ -169,6 +237,72 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* PI360 Personality & AI Summary */}
+      {(personalityData || aiSummary || loadingPersonality || personalityError) && (
+        <div className="bg-white/90 backdrop-blur-md rounded-3xl p-6 md:p-8 border border-white/60 shadow-sm flex flex-col gap-6 relative overflow-hidden">
+          <h3 className="text-xl font-bold text-[#002531] flex items-center gap-2 border-b border-gray-100 pb-4">
+            <span className="material-symbols-outlined text-[#4648d4] text-2xl">psychology</span>
+            Personality & AI Analysis
+          </h3>
+          
+          {loadingPersonality ? (
+            <div className="flex items-center justify-center py-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4648d4]"></div>
+            </div>
+          ) : personalityError ? (
+            <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-medium border border-red-100 text-center">
+              {personalityError}
+            </div>
+          ) : (!personalityData && !aiSummary) ? (
+            <div className="text-gray-500 text-sm text-center py-4">No personality data found for this account.</div>
+          ) : (
+            <div className="flex flex-col lg:flex-row gap-8 overflow-hidden w-full">
+              {/* Big 5 Traits */}
+              {Object.keys(extractedTraits).length > 0 && (
+                <div className="flex-1 flex flex-col gap-4 min-w-0">
+                  <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest">Big 5 Traits</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {Object.entries(extractedTraits).map(([trait, value]) => {
+                      const valString = typeof value === 'object' && value !== null ? value.score || value.value || String(value) : String(value);
+                      return (
+                        <div key={trait} className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 flex flex-col justify-between items-start gap-1">
+                          <span className="font-semibold text-xs text-gray-500 uppercase tracking-wide truncate w-full">{trait.replace(/_/g, " ")}</span>
+                          <span className="font-bold text-base text-[#4648d4]">{valString}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* AI Summary */}
+              {aiSummary && (
+                <div className="flex-1 flex flex-col gap-4 min-w-0">
+                  <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest">AI Summary</h4>
+                  <div className="bg-[#f0f7f4]/50 p-5 rounded-2xl border border-[#acecdc]/30 flex-1 flex items-start overflow-y-auto max-h-[300px]">
+                    <p className="text-sm text-[#002531]/80 leading-relaxed italic whitespace-pre-wrap break-words w-full">
+                      {(() => {
+                        const summaryText = typeof aiSummary === 'string' ? aiSummary : aiSummary.ai_summary || aiSummary.summary || aiSummary.text || "";
+                        if (!summaryText) return JSON.stringify(aiSummary);
+                        
+                        // Parse simple bold markdown **text**
+                        const parts = summaryText.split(/(\*\*.*?\*\*)/g);
+                        return parts.map((part, i) => {
+                          if (part.startsWith('**') && part.endsWith('**')) {
+                            return <strong key={i} className="font-bold text-[#002531]">{part.slice(2, -2)}</strong>;
+                          }
+                          return part;
+                        });
+                      })()}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Dynamic Render of Education, Projects, Experience, Internships, Certifications */}
       {cvSections.length > 0 &&
