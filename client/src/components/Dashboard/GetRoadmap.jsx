@@ -173,7 +173,7 @@ const GetRoadmap = () => {
             </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold font-['Manrope'] text-white">
-            Counselor Growth Roadmap
+            Academic Growth Roadmap
           </h1>
           <p className="text-sm text-[#85a5b3] max-w-xl">
             Interactive visual flow map derived from your counselor sessions and profile milestones.
@@ -206,7 +206,7 @@ const GetRoadmap = () => {
       {/* Progress Bar Header */}
       <div className="bg-white rounded-3xl p-6 border border-gray-200/80 shadow-sm flex flex-col gap-3">
         <div className="flex justify-between items-center text-sm font-bold text-[#002531]">
-          <span>Overall Roadmap Progress</span>
+          <span>Overall Progress</span>
           <span className="text-[#1a3b47]">{progress}% Completed</span>
         </div>
         <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden p-0.5 border border-gray-200">

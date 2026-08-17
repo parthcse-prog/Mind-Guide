@@ -40,13 +40,13 @@ const Header = () => {
 
         {/* Navigation Links */}
         <nav className="hidden lg:flex items-center gap-10 font-medium text-base">
-          <a
-            href="/#secTwo"
+          <Link
+            to="/#secTwo"
             className="hover:text-teal-300 transition-colors relative group py-2"
           >
             About Us
             <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-teal-300 transition-all group-hover:w-full"></span>
-          </a>
+          </Link>
           <Link
             to="/counselors"
             className={`transition-colors relative group py-2 ${

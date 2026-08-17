@@ -110,15 +110,15 @@ const Home = () => {
                     options, ensuring they embark on a fulfilling professional journey.
                   </p>
                 </div>
-                <a
-                  href="/counselors"
-                  className="mt-4 text-[#28695c] font-semibold text-sm inline-flex items-center gap-1.5 hover:gap-2.5 transition-all font-['Manrope']"
+                <button
+                  onClick={() => navigate("/counselors")}
+                  className="mt-4 text-[#28695c] font-semibold text-sm inline-flex items-center gap-1.5 hover:gap-2.5 transition-all font-['Manrope'] text-left"
                 >
                   Learn more{" "}
                   <span className="material-symbols-outlined text-base">
                     arrow_forward
                   </span>
-                </a>
+                </button>
               </div>
             </div>
 
@@ -127,31 +127,28 @@ const Home = () => {
               <div className="aspect-video w-full overflow-hidden">
                 <img
                   src="https://img.freepik.com/free-photo/collage-customer-experience-concept_23-2149367121.jpg?w=1380"
-                  alt="Sentiment Analysis Tools"
+                  alt="AI Based Job Matching"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="p-6 flex-1 flex flex-col justify-between gap-4">
                 <div>
                   <h3 className="text-2xl font-bold text-[#002531] font-['Manrope'] mb-2">
-                    Sentiment Analysis Tools
+                    AI Based Job Matching
                   </h3>
                   <p className="text-[#41484b] text-base leading-relaxed">
-                    Using cutting-edge AI, our sentiment analysis tools monitor
-                    students&#39; well-being, alerting them to potential issues and
-                    enhancing overall emotional support by assessing sentiment in
-                    feedback and interactions.
+                    Discover your perfect career path with our intelligent Job Board. We match your unique skills against live real-time job and internship postings to find the most relevant opportunities for you.
                   </p>
                 </div>
-                <a
-                  href="/tools"
-                  className="mt-4 text-[#28695c] font-semibold text-sm inline-flex items-center gap-1.5 hover:gap-2.5 transition-all font-['Manrope']"
+                <button
+                  onClick={() => navigate("/account/dashboard")}
+                  className="mt-4 text-[#28695c] font-semibold text-sm inline-flex items-center gap-1.5 hover:gap-2.5 transition-all font-['Manrope'] text-left"
                 >
-                  View tools{" "}
+                  Find jobs{" "}
                   <span className="material-symbols-outlined text-base">
                     arrow_forward
                   </span>
-                </a>
+                </button>
               </div>
             </div>
 
@@ -176,15 +173,15 @@ const Home = () => {
                     academic performance.
                   </p>
                 </div>
-                <a
-                  href="/account/dashboard"
-                  className="mt-4 text-[#28695c] font-semibold text-sm inline-flex items-center gap-1.5 hover:gap-2.5 transition-all font-['Manrope']"
+                <button
+                  onClick={() => navigate("/account/dashboard/getRoadmap")}
+                  className="mt-4 text-[#28695c] font-semibold text-sm inline-flex items-center gap-1.5 hover:gap-2.5 transition-all font-['Manrope'] text-left"
                 >
                   Start planning{" "}
                   <span className="material-symbols-outlined text-base">
                     arrow_forward
                   </span>
-                </a>
+                </button>
               </div>
             </div>
           </div>
