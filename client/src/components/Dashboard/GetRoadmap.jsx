@@ -173,7 +173,7 @@ const GetRoadmap = () => {
             </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold font-['Manrope'] text-white">
-            Academic Growth Roadmap
+            Growth Roadmap
           </h1>
           <p className="text-sm text-[#85a5b3] max-w-xl">
             Interactive visual flow map derived from your counselor sessions and profile milestones.

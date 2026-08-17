@@ -173,11 +173,12 @@ const handleCreateRoadmap = asyncHandler(async (req, res) => {
       ...messages,
       {
         role: "system",
-        content: `Pretend you are an expert helpful AI  career counsellor.`,
+        content: `Pretend you are an expert helpful AI career counsellor.`,
       },
       {
         role: "system",
-        content: ` Create a precise list of all the specific goals associated with a definitive timeline such that the output gives us a detailed step by step reccomendation of that goals and recommendations.
+        content: `Create a precise list of all the specific goals associated with a definitive timeline such that the output gives us a detailed step by step recommendation of that goals and recommendations.
+          You MUST link the student's Personality & AI Analysis data (from the STUDENT PROFILE CONTEXT earlier) to this roadmap. Transform it from a generic technical guide into a highly personalized development framework designed around how the student learns, collaborates, and performs under pressure based on their specific Big 5 traits and AI Summary.
           should contains all goals from the roadmap for days wise days tasks based on the user goal.
           Keep in mind to not include any explanations with specific entries and follow this format without any deviation. Also dont include a weekly based planner in the timeline. make sure to use a day-wise planner.
           dont give any explanation just provide the roadmap in the following format.
