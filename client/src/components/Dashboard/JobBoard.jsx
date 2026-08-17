@@ -286,6 +286,18 @@ const JobBoard = () => {
                         Source: Himalayas
                       </a>
                     )}
+                    {job.originalSource === "Remotive" && (
+                      <a 
+                        href="https://remotive.com/" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-[10px] font-bold text-blue-500 hover:underline flex items-center gap-1"
+                        title="View remote jobs on Remotive"
+                      >
+                        <span className="material-symbols-outlined text-[12px]">public</span>
+                        Source: Remotive
+                      </a>
+                    )}
                   </div>
                   <a
                     href={job.applyUrl}

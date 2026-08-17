@@ -290,6 +290,66 @@ const fetchHimalayasJobs = async (region) => {
 
 
 /**
+ * Live online web fetch from Remotive (Remote Jobs)
+ * As requested, mentions Remotive as original source and links back.
+ */
+const fetchRemotiveJobs = async (region) => {
+  try {
+    if (region && region !== "All India" && region !== "Remote") {
+       return [];
+    }
+    
+    // We fetch software-dev category. We limit to a reasonable number to avoid huge payloads.
+    const res = await axios.get("https://remotive.com/api/remote-jobs?category=software-dev&limit=20", {
+      timeout: 6000
+    });
+    
+    const jobs = res.data?.jobs || [];
+    
+    const mappedJobs = jobs.map((j, i) => {
+      const companyName = j.company_name || "Tech Company";
+      const title = j.title || "Software Engineer";
+      
+      let skills = ["JavaScript", "Python", "React", "Node.js", "Remote"];
+      if (j.tags && Array.isArray(j.tags)) {
+         skills = j.tags.slice(0, 5);
+      }
+      
+      const jobType = j.job_type || "Full Time";
+      const isIntern = jobType.toLowerCase().includes("intern") || title.toLowerCase().includes("intern");
+      
+      let postedDate = "Live Online";
+      if (j.publication_date) {
+         const d = new Date(j.publication_date);
+         if (!isNaN(d.getTime())) postedDate = d.toLocaleDateString();
+      }
+
+      return {
+        id: `REMOTIVE-${j.id || i}`,
+        title: title,
+        company: companyName,
+        logo: j.company_logo || `https://logo.clearbit.com/${companyName.toLowerCase().replace(/[^a-z]/g, "")}.com`,
+        location: j.candidate_required_location || "Worldwide / Remote",
+        region: "Remote",
+        type: isIntern ? "Internship" : "Full-Time",
+        experience: "0 - 1 Year", // Filtering below removes seniors, assume entry otherwise
+        stipendSalary: j.salary || (isIntern ? "Remote Stipend" : "Remote Competitive"),
+        requiredSkills: skills,
+        applyUrl: j.url || "https://remotive.com/",
+        postedDate: postedDate,
+        originalSource: "Remotive", // Attribution
+      };
+    });
+
+    return mappedJobs.filter(job => !job.postedDate.includes("1970"));
+  } catch (e) {
+    console.warn("Remotive job fetch warning:", e.message);
+  }
+  return [];
+};
+
+
+/**
  * Fetch and filter jobs real-time with skill matching algorithm
  */
 const fetchRealtimeIndiaJobs = async ({ userSkills = [], region = "All India", userType = "all" }) => {
@@ -298,9 +358,10 @@ const fetchRealtimeIndiaJobs = async ({ userSkills = [], region = "All India", u
   // 1. Fetch live online jobs from web APIs
   const onlineJobs = await fetchOnlineJobs(region);
   const himalayasJobs = await fetchHimalayasJobs(region);
+  const remotiveJobs = await fetchRemotiveJobs(region);
 
   // 2. Combine online live jobs with regional Indian engineering database
-  const combinedList = [...onlineJobs, ...himalayasJobs, ...BASE_JOB_DATABASE];
+  const combinedList = [...onlineJobs, ...himalayasJobs, ...remotiveJobs, ...BASE_JOB_DATABASE];
 
   // 3. Filter jobs based on Region, Job Type, and Experience Level (no senior roles)
   let filteredJobs = combinedList.filter((job) => {

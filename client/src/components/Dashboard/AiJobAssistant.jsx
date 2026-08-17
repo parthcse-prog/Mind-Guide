@@ -81,10 +81,11 @@ const AiJobAssistant = ({ userSkills }) => {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 bg-[#1a3b47] hover:bg-[#002531] text-[#acecdc] p-4 rounded-full shadow-lg transition-transform hover:scale-110 z-50 flex items-center justify-center border border-[#acecdc]/30 group"
+          className="fixed bottom-6 right-6 bg-[#1a3b47] hover:bg-[#002531] text-[#acecdc] px-6 py-4 rounded-full shadow-lg transition-transform hover:scale-105 z-50 flex items-center justify-center gap-2 border border-[#acecdc]/30 group"
           title="AI Job Assistant"
         >
           <span className="material-symbols-outlined text-2xl group-hover:animate-pulse">smart_toy</span>
+          <span className="font-extrabold text-sm tracking-wide hidden sm:block">Ask AI</span>
         </button>
       )}
 
