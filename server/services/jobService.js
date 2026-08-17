@@ -219,63 +219,12 @@ const fetchArbeitnowJobs = async (region) => {
  */
 const fetchOnlineJobs = async (region) => {
   try {
-    const params = { limit: 15 };
-    if (region && region !== "All India" && region !== "Remote") {
-      params.location = region;
-    }
-    
-    const res = await axios.get("https://jobs.indianapi.in/jobs", {
-      headers: {
-        "X-Api-Key": process.env.INDIAN_API_KEY || "sk-live-SImVWB5j6piw4I1pHBhSvv2vGF9K8J3zLmWkn1S4"
-      },
-      params,
-      timeout: 6000
-    });
-    
-    if (res.data && Array.isArray(res.data)) {
-      return res.data.map((j, i) => {
-        const companyName = j.company || "TechCorp";
-        const title = j.title || j.job_title || "Software Engineer";
-        
-        let skills = ["JavaScript", "Python", "React", "Node.js", "Java"];
-        if (j.education_and_skills) {
-           const extracted = j.education_and_skills.split(/[,\n]/).map(s => s.trim()).filter(s => s.length > 2 && s.length < 25);
-           if (extracted.length > 0) skills = extracted.slice(0, 5);
-        }
-        
-        const jobType = j.job_type || "Full Time";
-        const isIntern = jobType.toLowerCase().includes("intern");
-        
-        let postedDate = "Live Online";
-        if (j.posted_date) {
-           const d = new Date(j.posted_date);
-           if (!isNaN(d.getTime())) {
-             postedDate = d.toLocaleDateString();
-           }
-        }
-
-        return {
-          id: `ONLINE-INDAPI-${j.id || i}`,
-          title: title,
-          company: companyName,
-          logo: `https://logo.clearbit.com/${companyName.toLowerCase().replace(/[^a-z]/g, "")}.com`,
-          location: j.location || `${region === "All India" ? "Remote" : region}, India`,
-          region: region === "All India" ? "Remote" : region,
-          type: isIntern ? "Internship" : "Full-Time",
-          experience: j.experience || "0 - 1 Year (Fresher)",
-          stipendSalary: isIntern ? "₹25,000 - ₹40,000 / month" : "₹5.0 - ₹12.0 LPA",
-          requiredSkills: skills,
-          applyUrl: j.apply_link || "https://jobs.indianapi.in/",
-          postedDate: postedDate,
-        };
-      });
-    }
-  } catch (e) {
-    console.warn("IndianAPI fetch failed, falling back to Arbeitnow API:", e.message);
+    // IndianAPI usage limit reached, so we immediately fall back to Arbeitnow API
     return await fetchArbeitnowJobs(region);
+  } catch (e) {
+    console.warn("Online job fetch failed:", e.message);
+    return [];
   }
-  
-  return [];
 };
 
 /**
@@ -295,7 +244,7 @@ const fetchHimalayasJobs = async (region) => {
     
     const jobs = Array.isArray(res.data) ? res.data : (res.data?.jobs || []);
     
-    return jobs.map((j, i) => {
+    const mappedJobs = jobs.map((j, i) => {
       const companyName = j.companyName || j.company_name || j.company || "Tech Company";
       const title = j.title || "Software Engineer";
       
@@ -330,6 +279,9 @@ const fetchHimalayasJobs = async (region) => {
         originalSource: "Himalayas", // Attribution
       };
     });
+
+    // Filter out jobs with buggy 1970 epoch dates
+    return mappedJobs.filter(job => !job.postedDate.includes("1970"));
   } catch (e) {
     console.warn("Himalayas job fetch warning:", e.message);
   }
