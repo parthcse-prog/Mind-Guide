@@ -415,10 +415,15 @@ const fetchRealtimeIndiaJobs = async ({ userSkills = [], region = "All India", u
     });
 
     // Base match percentage calculation
-    let matchPct = Math.round((matchedCount / required.length) * 100);
-    // Give a friendly base score for engineering freshers
-    if (matchPct < 55) matchPct = 55 + (matchedCount * 10);
-    if (matchPct > 98) matchPct = 98;
+    let matchPct = 0;
+    if (required.length > 0) {
+      matchPct = Math.round((matchedCount / required.length) * 100);
+    } else {
+      matchPct = 100;
+    }
+    
+    // Ensure it doesn't exceed 100
+    if (matchPct > 100) matchPct = 100;
 
     return {
       ...job,
