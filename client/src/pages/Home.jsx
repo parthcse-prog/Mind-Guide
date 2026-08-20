@@ -141,7 +141,7 @@ const Home = () => {
                   </p>
                 </div>
                 <button
-                  onClick={() => navigate("/account/dashboard")}
+                  onClick={() => navigate("/account/dashboard/jobBoard")}
                   className="mt-4 text-[#28695c] font-semibold text-sm inline-flex items-center gap-1.5 hover:gap-2.5 transition-all font-['Manrope'] text-left"
                 >
                   Find jobs{" "}
@@ -157,27 +157,24 @@ const Home = () => {
               <div className="aspect-video w-full overflow-hidden">
                 <img
                   src="https://images.unsplash.com/photo-1506784881475-0e408bbca849?q=80&w=2068&auto=format&fit=crop"
-                  alt="Academic Planning"
+                  alt="Resume Analyzer"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="p-6 flex-1 flex flex-col justify-between gap-4">
                 <div>
                   <h3 className="text-2xl font-bold text-[#002531] font-['Manrope'] mb-2">
-                    Academic Planning
+                    Resume Analyzer
                   </h3>
                   <p className="text-[#41484b] text-base leading-relaxed">
-                    Our AI constructs personalized academic roadmaps for students,
-                    considering their unique learning styles and progress, while also
-                    generating detailed student reports to provide insights into
-                    academic performance.
+                    Our AI-powered Resume Analyzer instantly extracts your resume text and compares it against your target job description to identify critical missing skills and ensure a perfect match.
                   </p>
                 </div>
                 <button
-                  onClick={() => navigate("/account/dashboard/getRoadmap")}
+                  onClick={() => navigate("/account/dashboard/resume-analyzer")}
                   className="mt-4 text-[#28695c] font-semibold text-sm inline-flex items-center gap-1.5 hover:gap-2.5 transition-all font-['Manrope'] text-left"
                 >
-                  Start planning{" "}
+                  Analyze resume{" "}
                   <span className="material-symbols-outlined text-base">
                     arrow_forward
                   </span>
