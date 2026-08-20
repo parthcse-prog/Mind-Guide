@@ -138,14 +138,14 @@ const ResumeAnalyzer = () => {
           {!result && !loading && (
             <div className="flex-1 flex flex-col items-center justify-center text-gray-400 gap-3">
               <span className="material-symbols-outlined text-5xl opacity-50">data_exploration</span>
-              <p>Upload your resume and JD to see results</p>
+              <p>Upload your resume and JD to get the analysis...</p>
             </div>
           )}
 
           {loading && (
             <div className="flex-1 flex flex-col items-center justify-center text-[#4648d4] gap-4">
               <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#4648d4]/30 border-t-[#4648d4]"></div>
-              <p className="font-semibold animate-pulse">Analyzing with AI...</p>
+              <p className="font-semibold animate-pulse">Analyzing please wait...</p>
             </div>
           )}
 

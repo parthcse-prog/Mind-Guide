@@ -413,7 +413,7 @@ const handleResumeAnalyze = asyncHandler(async (req, res) => {
     let verdict = "";
     if (percentage >= 80) verdict = "Excellent match! Your profile aligns strongly with the core requirements of this role.";
     else if (percentage >= 50) verdict = "Good match. You have a solid foundation, but addressing the missing keywords could strengthen your application.";
-    else verdict = "Low match. Consider tailoring your resume to better highlight the specific skills mentioned in the job description.";
+    else verdict = "Low match. Consider tailoring your resume to better highlight the specific skills mentioned in the job description and work on those skills for better chance of getting into the job.";
 
     const analysisResult = {
       percentage,
