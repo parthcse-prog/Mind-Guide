@@ -156,8 +156,8 @@ const ResumeAnalyzer = () => {
               className="flex flex-col gap-6 flex-1 overflow-y-auto pr-2 custom-scrollbar"
             >
               {/* Score */}
-              <div className="flex items-center gap-6 p-5 bg-[#f0f7f4]/50 rounded-2xl border border-[#acecdc]/30">
-                <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
+              <div className="flex flex-col items-center gap-4 p-6 bg-[#f0f7f4]/50 rounded-2xl border border-[#acecdc]/30 text-center">
+                <div className="relative w-32 h-32 flex items-center justify-center shrink-0">
                   <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
                     <path
                       className="text-gray-200"
@@ -177,12 +177,12 @@ const ResumeAnalyzer = () => {
                     />
                   </svg>
                   <div className="absolute flex flex-col items-center justify-center text-center">
-                    <span className="text-2xl font-bold text-[#002531] leading-none">{result.percentage}%</span>
+                    <span className="text-3xl font-bold text-[#002531] leading-none">{result.percentage}%</span>
                   </div>
                 </div>
                 <div>
-                  <h4 className="text-sm uppercase tracking-widest text-gray-500 font-bold mb-1">Match Score</h4>
-                  <p className="text-sm text-[#002531]/80 font-medium leading-relaxed">
+                  <h4 className="text-sm uppercase tracking-widest text-gray-500 font-bold mb-2">Match Score</h4>
+                  <p className="text-base text-[#002531]/80 font-medium leading-relaxed max-w-xl mx-auto">
                     {result.verdict}
                   </p>
                 </div>

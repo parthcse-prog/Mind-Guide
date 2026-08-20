@@ -410,10 +410,74 @@ const handleResumeAnalyze = asyncHandler(async (req, res) => {
       ? Math.round((matching.length / jdKeywords.length) * 100) 
       : 0;
 
+    // Fetch user profile and PI360 data to personalize the verdict
+    const user = await User.findById(req.user._id);
+    let personalityContext = "";
+    if (user?.pi360Token) {
+      try {
+        const axios = require("axios");
+        const headers = { Authorization: `Bearer ${user.pi360Token}` };
+        const reportRes = await axios.get(`https://pi360.net/site/api/endpoints/api_get_personality_report.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg%3D&action=get_report`, { headers });
+        const summaryRes = await axios.get(`https://pi360.net/site/api/endpoints/api_get_personality_report.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg%3D&action=get_ai_summary`, { headers });
+        
+        const reportData = reportRes.data?.data || reportRes.data;
+        const summaryData = summaryRes.data?.data || summaryRes.data;
+        
+        let extractedTraits = {};
+        if (reportData?.key_metrics?.trait_scores) extractedTraits = reportData.key_metrics.trait_scores;
+        else if (reportData?.trait_scores) extractedTraits = reportData.trait_scores;
+        
+        let traitStr = "";
+        if (Object.keys(extractedTraits).length > 0) {
+          traitStr = Object.entries(extractedTraits).map(([t, v]) => `${t}: ${typeof v === 'object' ? v.score : v}`).join(", ");
+        }
+
+        const aiSumText = typeof summaryData === 'string' ? summaryData : (summaryData?.ai_summary || summaryData?.summary || "");
+
+        if (traitStr || aiSumText) {
+          personalityContext = `\nSTUDENT PSYCHOLOGICAL PROFILE (PI360 Data):
+${traitStr ? `- Big 5 Traits: ${traitStr}` : ""}
+${aiSumText ? `- AI Personality Summary: ${aiSumText}` : ""}
+`;
+        }
+      } catch (err) {
+        console.warn("Could not fetch PI360 Personality data for resume analyzer:", err.message);
+      }
+    }
+
+    const userSkills = user?.skills?.map(s => s.skill).join(", ") || "None listed";
+    const userProfileStr = `
+- Name: ${user.name}
+- Branch: ${user.branch || "N/A"}
+- Existing Profile Skills: ${userSkills}
+${personalityContext}`;
+
     let verdict = "";
-    if (percentage >= 80) verdict = "Excellent match! Your profile aligns strongly with the core requirements of this role.";
-    else if (percentage >= 50) verdict = "Good match. You have a solid foundation, but addressing the missing keywords could strengthen your application.";
-    else verdict = "Low match. Consider tailoring your resume to better highlight the specific skills mentioned in the job description and work on those skills for better chance of getting into the job.";
+    try {
+      const prompt = [
+        {
+          role: "system",
+          content: `You are an expert ATS and career coach. Your task is to provide a brief 2-3 sentence personalized verdict for a student analyzing their resume against a Job Description.
+          
+STUDENT PROFILE: ${userProfileStr}
+
+MATCH STATS:
+- Score: ${percentage}%
+- Matching Keywords: ${finalMatching.join(", ")}
+- Missing Keywords: ${finalMissing.join(", ")}
+
+Write a highly personalized, encouraging, and actionable verdict that references their psychological traits and current skills from their profile, advising them on how they align with the job and what they should focus on next.`
+        }
+      ];
+      verdict = await callGatewayLLM(prompt, "qwen3:latest");
+      // Clean quotes and markdown asterisks
+      verdict = verdict.replace(/^"|"$/g, '').replace(/\*\*/g, '').replace(/\*/g, '').trim();
+    } catch (llmErr) {
+      console.warn("LLM failed to generate verdict, falling back to standard verdict.", llmErr.message);
+      if (percentage >= 80) verdict = "Excellent match! Your profile aligns strongly with the core requirements of this role.";
+      else if (percentage >= 50) verdict = "Good match. You have a solid foundation, but addressing the missing keywords could strengthen your application.";
+      else verdict = "Low match. Consider tailoring your resume to better highlight the specific skills mentioned in the job description.";
+    }
 
     const analysisResult = {
       percentage,
