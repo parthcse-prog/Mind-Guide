@@ -23,6 +23,11 @@ const Dashboard = () => {
       link: "./jobBoard",
     },
     {
+      title: "Resume Analyzer",
+      icon: "document_scanner",
+      link: "./resume-analyzer",
+    },
+    {
       title: "Profile",
       icon: "person",
       link: "./profile",

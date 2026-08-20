@@ -3,6 +3,7 @@ const User = require("../model/User");
 const { callGatewayLLM } = require("../config/llmService");
 const AWS = require("aws-sdk");
 const jwt = require("jsonwebtoken");
+const pdfParse = require("pdf-parse");
 require("aws-sdk/lib/maintenance_mode_message").suppress = true;
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -351,6 +352,58 @@ const handleGetPersonality = asyncHandler(async (req, res) => {
   }
 });
 
+const handleResumeAnalyze = asyncHandler(async (req, res) => {
+  try {
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({ success: false, message: "No resume PDF uploaded." });
+    }
+    const jobDescription = req.body.jobDescription;
+    if (!jobDescription) {
+      return res.status(400).json({ success: false, message: "Job description is required." });
+    }
+
+    // Extract text from PDF
+    const pdfData = await pdfParse(req.file.buffer);
+    const resumeText = pdfData.text;
+
+    const prompt = [
+      {
+        role: "system",
+        content: `You are an expert ATS (Applicant Tracking System) and career coach. Your task is to analyze the provided Resume text against the provided Job Description.
+Return ONLY a valid JSON object (no markdown, no explanations) with the following exact structure:
+{
+  "percentage": 85,
+  "verdict": "Strong match. The candidate has most of the core skills but lacks X and Y.",
+  "matching": ["React", "Node.js", "Python"],
+  "missing": ["AWS", "Docker", "GraphQL"]
+}`
+      },
+      {
+        role: "user",
+        content: `JOB DESCRIPTION:\n${jobDescription}\n\nRESUME TEXT:\n${resumeText}`
+      }
+    ];
+
+    const responseText = await callGatewayLLM(prompt, "qwen3:latest");
+    
+    // Clean up potential markdown formatting in case LLM disobeys
+    const cleanedJSON = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
+    
+    let analysisResult;
+    try {
+      analysisResult = JSON.parse(cleanedJSON);
+    } catch (parseErr) {
+      console.error("Failed to parse LLM JSON:", cleanedJSON);
+      return res.status(500).json({ success: false, message: "Failed to parse AI response." });
+    }
+
+    res.status(200).json({ success: true, data: analysisResult });
+  } catch (error) {
+    console.error("Error in handleResumeAnalyze:", error);
+    res.status(500).json({ success: false, message: "Internal server error during resume analysis: " + error.message });
+  }
+});
+
 module.exports = {
   registerUser,
   authUser,
@@ -363,4 +416,5 @@ module.exports = {
   handleGetSkills,
   handleGetJobs,
   handleGetPersonality,
+  handleResumeAnalyze,
 };
