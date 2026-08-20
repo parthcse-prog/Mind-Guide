@@ -362,73 +362,65 @@ const handleResumeAnalyze = asyncHandler(async (req, res) => {
       return res.status(400).json({ success: false, message: "Job description is required." });
     }
 
-    // Extract text from PDF using Vision/OCR Model with pdf-parse fallback
-    const FormData = require('form-data');
-    const axios = require('axios');
+    // Extract text from PDF using local pdf-parse
     const pdfParse = require('pdf-parse');
-    
     let resumeText = "";
     try {
-      const formData = new FormData();
-      formData.append('file', req.file.buffer, {
-        filename: req.file.originalname,
-        contentType: req.file.mimetype || 'application/pdf'
-      });
-      formData.append('format', 'markdown');
-      formData.append('model', 'qwen2.5vl:7b');
+      const pdfData = await pdfParse(req.file.buffer);
+      resumeText = pdfData.text.toLowerCase();
+    } catch (pdfErr) {
+      throw new Error("Failed to extract text from PDF: " + pdfErr.message);
+    }
 
-      const ocrResponse = await axios.post("https://ai-services.mietjmu.in/gateway/ocr/extract", formData, {
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          ...formData.getHeaders()
+    const jdText = jobDescription.toLowerCase();
+
+    // Simple keyword extraction (ignoring common stop words)
+    const stopWords = new Set(['the', 'and', 'a', 'to', 'of', 'in', 'i', 'is', 'that', 'it', 'on', 'you', 'this', 'for', 'but', 'with', 'are', 'have', 'be', 'at', 'or', 'as', 'was', 'so', 'if', 'out', 'not', 'we', 'my', 'can', 'will', 'an', 'your', 'which', 'their', 'has', 'would', 'what', 'there', 'from', 'they', 'about', 'when', 'who', 'how', 'some', 'by', 'up', 'more', 'do', 'all', 'any', 'one', 'these', 'could', 'other', 'like', 'than', 'then', 'its', 'our', 'also', 'just', 'only', 'new', 'very', 'been', 'such', 'should', 'through', 'into', 'well', 'much', 'where', 'after', 'even', 'over', 'now', 'right', 'because', 'did', 'work', 'experience', 'team', 'years', 'skills', 'role', 'looking', 'join', 'working']);
+    
+    const extractKeywords = (text) => {
+      const words = text.replace(/[^a-z0-9+#]/g, ' ').split(/\s+/);
+      const uniqueWords = new Set();
+      words.forEach(w => {
+        if (w.length > 2 && !stopWords.has(w) && !Number(w)) {
+          uniqueWords.add(w);
         }
       });
+      return Array.from(uniqueWords);
+    };
 
-      if (ocrResponse.data && ocrResponse.data.success) {
-        resumeText = ocrResponse.data.text;
+    const jdKeywords = extractKeywords(jdText);
+    const resumeWords = new Set(extractKeywords(resumeText));
+
+    const matching = [];
+    const missing = [];
+
+    jdKeywords.forEach(kw => {
+      if (resumeWords.has(kw)) {
+        matching.push(kw);
       } else {
-        throw new Error("OCR extraction failed");
+        missing.push(kw);
       }
-    } catch (ocrErr) {
-      console.warn("OCR Model rejected the request (likely because it expects an image, not a PDF). Falling back to pdf-parse...", ocrErr.message);
-      try {
-        const pdfData = await pdfParse(req.file.buffer);
-        resumeText = pdfData.text;
-      } catch (pdfErr) {
-        throw new Error("Both OCR and standard PDF text extraction failed.");
-      }
-    }
+    });
 
-    const prompt = [
-      {
-        role: "system",
-        content: `You are an expert ATS (Applicant Tracking System) and career coach. Your task is to analyze the provided Resume text against the provided Job Description.
-Return ONLY a valid JSON object (no markdown, no explanations) with the following exact structure:
-{
-  "percentage": 85,
-  "verdict": "Strong match. The candidate has most of the core skills but lacks X and Y.",
-  "matching": ["React", "Node.js", "Python"],
-  "missing": ["AWS", "Docker", "GraphQL"]
-}`
-      },
-      {
-        role: "user",
-        content: `JOB DESCRIPTION:\n${jobDescription}\n\nRESUME TEXT:\n${resumeText}`
-      }
-    ];
+    // Take top 15 missing and matching to not overwhelm the UI
+    const finalMatching = matching.slice(0, 15);
+    const finalMissing = missing.slice(0, 15);
 
-    const responseText = await callGatewayLLM(prompt, "qwen3:latest");
-    
-    // Clean up potential markdown formatting in case LLM disobeys
-    const cleanedJSON = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
-    
-    let analysisResult;
-    try {
-      analysisResult = JSON.parse(cleanedJSON);
-    } catch (parseErr) {
-      console.error("Failed to parse LLM JSON:", cleanedJSON);
-      return res.status(500).json({ success: false, message: "Failed to parse AI response." });
-    }
+    const percentage = jdKeywords.length > 0 
+      ? Math.round((matching.length / jdKeywords.length) * 100) 
+      : 0;
+
+    let verdict = "";
+    if (percentage >= 80) verdict = "Excellent match! Your profile aligns strongly with the core requirements of this role.";
+    else if (percentage >= 50) verdict = "Good match. You have a solid foundation, but addressing the missing keywords could strengthen your application.";
+    else verdict = "Low match. Consider tailoring your resume to better highlight the specific skills mentioned in the job description.";
+
+    const analysisResult = {
+      percentage,
+      verdict,
+      matching: finalMatching,
+      missing: finalMissing
+    };
 
     res.status(200).json({ success: true, data: analysisResult });
   } catch (error) {
