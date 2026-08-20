@@ -362,9 +362,42 @@ const handleResumeAnalyze = asyncHandler(async (req, res) => {
       return res.status(400).json({ success: false, message: "Job description is required." });
     }
 
-    // Extract text from PDF
-    const pdfData = await pdfParse(req.file.buffer);
-    const resumeText = pdfData.text;
+    // Extract text from PDF using Vision/OCR Model with pdf-parse fallback
+    const FormData = require('form-data');
+    const axios = require('axios');
+    const pdfParse = require('pdf-parse');
+    
+    let resumeText = "";
+    try {
+      const formData = new FormData();
+      formData.append('file', req.file.buffer, {
+        filename: req.file.originalname,
+        contentType: req.file.mimetype || 'application/pdf'
+      });
+      formData.append('format', 'markdown');
+      formData.append('model', 'qwen2.5vl:7b');
+
+      const ocrResponse = await axios.post("https://ai-services.mietjmu.in/gateway/ocr/extract", formData, {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          ...formData.getHeaders()
+        }
+      });
+
+      if (ocrResponse.data && ocrResponse.data.success) {
+        resumeText = ocrResponse.data.text;
+      } else {
+        throw new Error("OCR extraction failed");
+      }
+    } catch (ocrErr) {
+      console.warn("OCR Model rejected the request (likely because it expects an image, not a PDF). Falling back to pdf-parse...", ocrErr.message);
+      try {
+        const pdfData = await pdfParse(req.file.buffer);
+        resumeText = pdfData.text;
+      } catch (pdfErr) {
+        throw new Error("Both OCR and standard PDF text extraction failed.");
+      }
+    }
 
     const prompt = [
       {
@@ -399,8 +432,9 @@ Return ONLY a valid JSON object (no markdown, no explanations) with the followin
 
     res.status(200).json({ success: true, data: analysisResult });
   } catch (error) {
-    console.error("Error in handleResumeAnalyze:", error);
-    res.status(500).json({ success: false, message: "Internal server error during resume analysis: " + error.message });
+    const errorDetails = error.response?.data ? JSON.stringify(error.response.data) : error.message;
+    console.error("Error in handleResumeAnalyze:", errorDetails);
+    res.status(500).json({ success: false, message: "Internal server error during resume analysis: " + errorDetails });
   }
 });
 
