@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
+import logoDark from "../assets/MIET Logos/miet-logo-dark.png";
 
 const Footer = () => {
   return (
     <footer className="bg-[#1a3b47] text-white mt-auto pt-6 pb-4 border-t border-white/10 font-['Manrope']">
-      <div className="max-w-[1366px] mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-4 gap-6 mb-4">
+      <div className="max-w-[1366px] mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         {/* Column 1: Brand Info */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
@@ -48,7 +49,6 @@ const Footer = () => {
                 Counselors
               </Link>
             </li>
-            
           </ul>
         </div>
 
@@ -92,8 +92,16 @@ const Footer = () => {
         </div>
       </div>
 
-      <div className="max-w-[1366px] mx-auto px-6 md:px-12 pt-3 border-t border-white/5 text-center text-slate-400 text-[11px]">
-        <p>© 2023 Mind Guide. All professional assessments are for guidance purposes only.</p>
+      <div className="max-w-[1366px] mx-auto px-6 md:px-12 pt-5 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="flex flex-col items-center md:items-start gap-3">
+          <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Developed By</span>
+          <div className="flex items-center gap-4 bg-white py-2 px-6 rounded-xl shadow-inner">
+            <img src={logoDark} alt="MIET Logo" className="h-10 object-contain mix-blend-multiply" />
+          </div>
+        </div>
+        <div className="text-center md:text-right text-slate-400 text-[11px] max-w-sm">
+          <p>© 2026 Mind Guide & MIET. All professional assessments are for guidance purposes only.</p>
+        </div>
       </div>
     </footer>
   );

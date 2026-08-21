@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import logo2d from "../assets/MIET Logos/2d-logo-miet-comp.png";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -18,12 +19,12 @@ const Home = () => {
           <p className="text-xl md:text-2xl text-[#41484b] font-normal leading-relaxed">
             Discover the power of education with Mind-Guide.
             <br />
-            Transform your future and achieve your goals.
+            Empowering students to achieve their dreams.
           </p>
-          <div className="pt-4">
+          <div className="pt-4 flex gap-4">
             <button
-              className="bg-[#002531] hover:bg-[#1a3b47] text-white text-lg font-semibold px-8 py-4 rounded-full shadow-lg transition-all duration-300 active:scale-95 font-['Manrope']"
-              onClick={() => navigate("/counselors")}
+              className="bg-[#28695c] text-white px-8 py-3.5 rounded-full font-semibold font-['Manrope'] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#28695c]/30 hover:shadow-[#28695c]/50"
+              onClick={() => navigate("/login")}
             >
               Get Started
             </button>
@@ -35,9 +36,12 @@ const Home = () => {
       <section className="py-20 px-6 md:px-16 bg-white" id="secTwo">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="order-2 lg:order-1 space-y-6">
-            <h2 className="text-4xl md:text-5xl font-extrabold text-[#002531] font-['Manrope'] leading-tight">
-              About us
-            </h2>
+            <div className="flex items-center gap-6">
+              <h2 className="text-4xl md:text-5xl font-extrabold text-[#002531] font-['Manrope'] leading-tight">
+                About us
+              </h2>
+              <img src={logo2d} alt="MIET" className="h-16 md:h-20 object-contain mix-blend-multiply" />
+            </div>
             <div className="space-y-4 text-[#41484b] leading-relaxed">
               <p className="text-lg md:text-xl leading-relaxed">
                 Welcome to our Mind Guide App, where we empower students on their
