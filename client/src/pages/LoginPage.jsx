@@ -4,6 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useSelector, useDispatch } from "react-redux";
 import { addUser } from "../redux/mindGuideSlice";
+import logoDark from "../assets/MIET Logos/miet-logo-dark.png";
+
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,9 +50,12 @@ const LoginPage = () => {
   return (
     <div className="flex h-full items-center justify-center">
       <form
-        className="bg-white shadow-md  rounded px-8 pt-6 pb-8 mb-4"
+        className="bg-white shadow-md  rounded px-8 pt-6 pb-8 mb-4 min-w-[320px]"
         onSubmit={handleSubmit}
       >
+        <div className="flex justify-center mb-4">
+          <img src={logoDark} alt="MIET Logo" className="h-16 object-contain mix-blend-multiply" />
+        </div>
         <h2 className="text-2xl font-bold mb-8 text-center">Login</h2>
 
         {/* Username / Email field */}

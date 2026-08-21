@@ -3,6 +3,8 @@ import axios from "axios";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import logoDark from "../assets/MIET Logos/miet-logo-dark.png";
+
 const RegisterPage = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -76,9 +78,12 @@ const RegisterPage = () => {
   return (
     <div className="flex items-center justify-center ">
       <form
-        className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
+        className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 min-w-[320px]"
         onSubmit={handleSubmit}
       >
+        <div className="flex justify-center mb-4">
+          <img src={logoDark} alt="MIET Logo" className="h-16 object-contain mix-blend-multiply" />
+        </div>
         <h2 className="text-2xl font-bold mb-8 text-center">Register</h2>
 
         {/* Name field */}
