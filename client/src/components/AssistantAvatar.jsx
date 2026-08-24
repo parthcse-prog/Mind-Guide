@@ -18,7 +18,11 @@ export const COUNSELOR_CONFIGS = {
   "academic counselor": {
     model: model1Path,
     gender: "male",
+<<<<<<< HEAD
     name: "Dr. Bruce",
+=======
+    name: "Alex",
+>>>>>>> 84e539fd6914e951cbce476b0ca1c927cf1c5000
     title: "Academic Counselor",
     position: [0, -2.1, 0],
     scale: 1.35,
@@ -33,8 +37,13 @@ export const COUNSELOR_CONFIGS = {
   },
   "personal counselor": {
     model: model2Path,
+<<<<<<< HEAD
     gender: "male", // Changed to male to match typical model, or if user meant male voice for this too.
     name: "Allen Rostova",
+=======
+    gender: "male",
+    name: "Ethan",
+>>>>>>> 84e539fd6914e951cbce476b0ca1c927cf1c5000
     title: "Personal Counselor",
     position: [0, -2.1, 0],
     scale: 1.35,
