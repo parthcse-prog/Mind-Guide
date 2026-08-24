@@ -8,15 +8,17 @@ import femaleBrunetteTPath from "../assets/NewCharacters/avatars/brunette-t.glb"
 import maleAvaturnPath from "../assets/NewCharacters/avatars/avaturn.glb";
 import maleAvatarPath from "../assets/models/avatar.glb";
 import maleSdkPath from "../assets/NewCharacters/avatars/avatarsdk.glb";
+import model1Path from "../assets/Opensourcemodel/Model 1.glb";
+import model2Path from "../assets/Opensourcemodel/Model 2.glb";
 import animationsPath from "../assets/models/animations.glb";
 import { AZURE_VISEME_MAP } from "../services/azureSpeechService";
 
 // 7 Distinct Counselors: 3 Female, 3 Male, 1 Initial Robot Avatar
 export const COUNSELOR_CONFIGS = {
   "academic counselor": {
-    model: femaleVroidPath,
-    gender: "female",
-    name: "Dr. Sarah",
+    model: model1Path,
+    gender: "male",
+    name: "Alex",
     title: "Academic Counselor",
     position: [0, -2.1, 0],
     scale: 1.35,
@@ -30,9 +32,9 @@ export const COUNSELOR_CONFIGS = {
     scale: 1.4,
   },
   "personal counselor": {
-    model: femaleMpfbPath,
-    gender: "female",
-    name: "Elena Rostova",
+    model: model2Path,
+    gender: "male",
+    name: "Ethan",
     title: "Personal Counselor",
     position: [0, -2.1, 0],
     scale: 1.35,
