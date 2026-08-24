@@ -24,7 +24,7 @@ const Home = () => {
           <div className="pt-4 flex gap-4">
             <button
               className="bg-[#28695c] text-white px-8 py-3.5 rounded-full font-semibold font-['Manrope'] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#28695c]/30 hover:shadow-[#28695c]/50"
-              onClick={() => navigate("/login")}
+              onClick={() => navigate("/counselors")}
             >
               Get Started
             </button>

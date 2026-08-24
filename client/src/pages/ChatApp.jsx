@@ -317,7 +317,7 @@ const ChatApp = () => {
         </div>
 
         {/* Floating Glassmorphic Input Bar */}
-        <div className="absolute bottom-4 left-0 right-0 px-4 md:px-8 z-20">
+        <div className="absolute bottom-2 left-0 right-0 px-4 md:px-8 z-20">
           <div className="w-full bg-white/70 backdrop-blur-xl rounded-full p-2.5 flex items-center shadow-[0_8px_32px_rgba(31,38,135,0.12)] border border-white/80 gap-2">
             {/* Input field */}
             <input
@@ -382,6 +382,11 @@ const ChatApp = () => {
               End Session
             </button>
           </div>
+
+          {/* Disclaimer Text */}
+          <div className="w-full text-center mt-2 pb-1 text-[11px] text-[#464554]/70 tracking-wide font-medium">
+            AI Assistants can make mistakes. Always check relevant information.
+          </div>
         </div>
       </div>
     </div>
@@ -389,4 +394,3 @@ const ChatApp = () => {
 };
 
 export default ChatApp;
-
