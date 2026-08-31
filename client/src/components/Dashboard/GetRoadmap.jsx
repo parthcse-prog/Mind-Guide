@@ -143,7 +143,7 @@ const GetRoadmap = () => {
               </div>
             </div>
 
-            {item.timeline && <p className="text-xs text-gray-500 font-semibold">Timeline: {item.timeline}</p>}
+
           </div>
         ))}
       </div>
