@@ -6,7 +6,7 @@ import { addUser } from "../../redux/mindGuideSlice";
 
 const GetRoadmap = () => {
   const [roadmapData, setRoadmapData] = useState([]);
-  const [showRecommendationsIndex, setShowRecommendationsIndex] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [unsavedChanges, setUnsavedChanges] = useState(false);
 
@@ -128,7 +128,7 @@ const GetRoadmap = () => {
               item.isCompleted ? "border-emerald-300 bg-emerald-50/30" : "border-gray-200"
             }`}
           >
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-4 mb-2">
               <div
                 className="flex items-center gap-3 cursor-pointer"
                 onClick={() => handleTaskClick(index)}
@@ -141,42 +141,9 @@ const GetRoadmap = () => {
                 />
                 <h3 className="text-base font-extrabold text-[#002531]">{item.Goal}</h3>
               </div>
-
-              <button
-                onClick={() =>
-                  setShowRecommendationsIndex(showRecommendationsIndex === index ? null : index)
-                }
-                className="text-xs font-bold px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-[#002531] transition-all"
-              >
-                {showRecommendationsIndex === index ? "Hide Resources" : "View Resources"}
-              </button>
             </div>
 
             {item.timeline && <p className="text-xs text-gray-500 font-semibold">Timeline: {item.timeline}</p>}
-
-            {showRecommendationsIndex === index && (
-              <div className="pt-3 border-t border-gray-100 flex flex-col gap-2">
-                <h4 className="text-xs font-bold text-gray-700">Recommended Resources & References:</h4>
-                {item.recommendations && item.recommendations.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {item.recommendations.map((rec, rIdx) => (
-                      <a
-                        key={rIdx}
-                        href={rec.link}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-[#002531] hover:text-teal-700 hover:border-teal-200 transition-all shadow-sm"
-                      >
-                        <FaExternalLinkAlt className="text-xs" />
-                        <span>{rec.title}</span>
-                      </a>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-gray-500 italic">No direct links attached for this goal.</p>
-                )}
-              </div>
-            )}
           </div>
         ))}
       </div>
