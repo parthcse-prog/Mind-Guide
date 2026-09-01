@@ -12,7 +12,7 @@ router.post("/", protectCookie, async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid messages format" });
     }
 
-    const responseContent = await callGatewayLLM(messages, "qwen3:latest");
+    const responseContent = await callGatewayLLM(messages, "qwen3-coder:30b");
     
     res.json({
       success: true,

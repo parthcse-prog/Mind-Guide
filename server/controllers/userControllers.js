@@ -469,7 +469,7 @@ MATCH STATS:
 Write a highly personalized, encouraging, and actionable verdict that references their psychological traits and current skills from their profile, advising them on how they align with the job and what they should focus on next.`
         }
       ];
-      verdict = await callGatewayLLM(prompt, "qwen3:latest");
+      verdict = await callGatewayLLM(prompt, "qwen3-coder:30b");
       // Clean quotes and markdown asterisks
       verdict = verdict.replace(/^"|"$/g, '').replace(/\*\*/g, '').replace(/\*/g, '').trim();
     } catch (llmErr) {

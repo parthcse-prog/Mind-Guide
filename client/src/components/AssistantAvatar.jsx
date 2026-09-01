@@ -187,67 +187,105 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
         if (!dict || !infl) return;
 
         if (isSpeaking) {
-          const word = (window.currentSpokenWord || "").toLowerCase().trim();
-          const pulse = (Math.sin(elapsed * 26) + 1) / 2;
-          const openPulse = (Math.sin(elapsed * 18) + 1) / 2;
+          // =======================
+          // WEB AUDIO API ANALYZER (FREE LIP SYNC)
+          // =======================
+          if (window.currentAudioAnalyser && window.currentAudioDataArray) {
+            window.currentAudioAnalyser.getByteFrequencyData(window.currentAudioDataArray);
+            
+            // Calculate Bass (low freq) and Treble (high freq)
+            let bass = 0, treble = 0;
+            const half = Math.floor(window.currentAudioDataArray.length / 2);
+            for (let i = 0; i < half; i++) {
+              bass += window.currentAudioDataArray[i];
+              treble += window.currentAudioDataArray[i + half];
+            }
+            bass = bass / half / 255.0; 
+            treble = treble / half / 255.0;
 
-          let targetAA = 0, targetE = 0, targetI = 0, targetO = 0, targetU = 0;
-          let targetPP = 0, targetFF = 0, targetTH = 0, targetJaw = 0;
+            const volume = Math.min((bass + treble), 1.0);
+            
+            // Map frequencies to shapes
+            const targetJaw = volume * 1.5; // Jaw opens with volume
+            const targetO = bass > treble ? bass * 1.2 : 0; // O shape for bass
+            const targetE = treble > bass ? treble * 1.2 : 0; // E/wide shape for treble
+            
+            const lerp = (curr, target) => curr + (target - curr) * 0.35;
+            
+            const idxAA = getMorphIdx(dict, ["viseme_aa", "vowel_a", "A01", "Fcl_MTH_A"]);
+            const idxE = getMorphIdx(dict, ["viseme_E", "vowel_e", "E01", "Fcl_MTH_E"]);
+            const idxO = getMorphIdx(dict, ["viseme_O", "vowel_o", "O01", "Fcl_MTH_O"]);
+            const idxJaw = getMorphIdx(dict, ["jawOpen", "mouthOpen", "Fcl_MTH_A"]);
 
-          if (word.length > 0) {
-            const hasA = /[aáàâä]/.test(word);
-            const hasE = /[eéèêë]/.test(word);
-            const hasI = /[iíìîïy]/.test(word);
-            const hasO = /[oóòôö]/.test(word);
-            const hasU = /[uúùûüw]/.test(word);
-            const hasPBM = /[pbm]/.test(word);
-            const hasFV = /[fv]/.test(word);
-            const hasTH = /th/.test(word);
-
-            if (hasA) {
-              targetAA = 0.85 * pulse;
-              targetJaw = 0.7 * openPulse;
-            }
-            if (hasE) {
-              targetE = 0.75 * pulse;
-              targetJaw = Math.max(targetJaw, 0.35 * openPulse);
-            }
-            if (hasI) {
-              targetI = 0.75 * pulse;
-              targetJaw = Math.max(targetJaw, 0.3 * openPulse);
-            }
-            if (hasO) {
-              targetO = 0.9 * pulse;
-              targetJaw = Math.max(targetJaw, 0.5 * openPulse);
-            }
-            if (hasU) {
-              targetU = 0.85 * pulse;
-              targetJaw = Math.max(targetJaw, 0.35 * openPulse);
-            }
-
-            if (hasPBM) {
-              targetPP = 0.8;
-              targetJaw *= 0.1;
-            }
-            if (hasFV) {
-              targetFF = 0.75;
-            }
-            if (hasTH) {
-              targetTH = 0.7;
-            }
-
-            if (!hasA && !hasE && !hasI && !hasO && !hasU && !hasPBM) {
-              targetAA = 0.5 * pulse;
-              targetJaw = 0.4 * openPulse;
-            }
+            if (idxJaw !== undefined) infl[idxJaw] = lerp(infl[idxJaw] || 0, Math.min(targetJaw, 1.0));
+            if (idxO !== undefined) infl[idxO] = lerp(infl[idxO] || 0, Math.min(targetO, 1.0));
+            if (idxE !== undefined) infl[idxE] = lerp(infl[idxE] || 0, Math.min(targetE, 1.0));
+            
           } else {
-            targetAA = 0.3 * pulse;
-            targetJaw = 0.2 * openPulse;
-          }
-
-          const lerp = (curr, target) => curr + (target - curr) * 0.45;
-
-          const idxAA = getMorphIdx(dict, ["viseme_aa", "vowel_a", "A01", "Fcl_MTH_A"]);
+            // =======================
+            // OLD BROWSER FALLBACK
+            // =======================
+            const word = (window.currentSpokenWord || "").toLowerCase().trim();
+            const pulse = (Math.sin(elapsed * 26) + 1) / 2;
+            const openPulse = (Math.sin(elapsed * 18) + 1) / 2;
+  
+            let targetAA = 0, targetE = 0, targetI = 0, targetO = 0, targetU = 0;
+            let targetPP = 0, targetFF = 0, targetTH = 0, targetJaw = 0;
+  
+            if (word.length > 0) {
+              const hasA = /[aAAAA ]/.test(word);
+              const hasE = /[eAcA"AA]/.test(word);
+              const hasI = /[iA-AArA_y]/.test(word);
+              const hasO = /[oA3AA'A ]/.test(word);
+              const hasU = /[uAA1AAw]/.test(word);
+              const hasPBM = /[pbm]/.test(word);
+              const hasFV = /[fv]/.test(word);
+              const hasTH = /th/.test(word);
+  
+              if (hasA) {
+                targetAA = 0.85 * pulse;
+                targetJaw = 0.7 * openPulse;
+              }
+              if (hasE) {
+                targetE = 0.75 * pulse;
+                targetJaw = Math.max(targetJaw, 0.35 * openPulse);
+              }
+              if (hasI) {
+                targetI = 0.75 * pulse;
+                targetJaw = Math.max(targetJaw, 0.3 * openPulse);
+              }
+              if (hasO) {
+                targetO = 0.9 * pulse;
+                targetJaw = Math.max(targetJaw, 0.5 * openPulse);
+              }
+              if (hasU) {
+                targetU = 0.85 * pulse;
+                targetJaw = Math.max(targetJaw, 0.35 * openPulse);
+              }
+  
+              if (hasPBM) {
+                targetPP = 0.8;
+                targetJaw *= 0.1;
+              }
+              if (hasFV) {
+                targetFF = 0.75;
+              }
+              if (hasTH) {
+                targetTH = 0.7;
+              }
+  
+              if (!hasA && !hasE && !hasI && !hasO && !hasU && !hasPBM) {
+                targetAA = 0.5 * pulse;
+                targetJaw = 0.4 * openPulse;
+              }
+            } else {
+              targetAA = 0.3 * pulse;
+              targetJaw = 0.2 * openPulse;
+            }
+  
+            const lerp = (curr, target) => curr + (target - curr) * 0.45;
+  
+            const idxAA = getMorphIdx(dict, ["viseme_aa", "vowel_a", "A01", "Fcl_MTH_A"]);
           const idxE = getMorphIdx(dict, ["viseme_E", "vowel_e", "A02", "Fcl_MTH_E"]);
           const idxI = getMorphIdx(dict, ["viseme_I", "vowel_i", "A03", "Fcl_MTH_I"]);
           const idxO = getMorphIdx(dict, ["viseme_O", "vowel_o", "A04", "Fcl_MTH_O"]);
@@ -266,6 +304,7 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
           if (idxFF !== undefined) infl[idxFF] = lerp(infl[idxFF], targetFF);
           if (idxTH !== undefined) infl[idxTH] = lerp(infl[idxTH], targetTH);
           if (idxJaw !== undefined) infl[idxJaw] = lerp(infl[idxJaw], targetJaw);
+          } // <-- Close the else block for OLD BROWSER FALLBACK
         } else {
           Object.keys(dict).forEach((key) => {
             if (key.startsWith("viseme_") || key === "jawOpen" || key === "mouthOpen") {

@@ -6,12 +6,12 @@ const axios = require("axios");
  * Returned format:
  * {
  *   "success": true,
- *   "model": "qwen3:latest",
+ *   "model": "qwen3-coder:30b",
  *   "message": { "role": "assistant", "content": "..." },
  *   "usage": { ... }
  * }
  */
-async function callGatewayLLM(messages, model = "qwen3:latest") {
+async function callGatewayLLM(messages, model = "qwen3-coder:30b") {
   const token = process.env.OPENAI_API_KEY;
   const endpoint = process.env.LLM_GATEWAY_URL || "https://ai-services.mietjmu.in/gateway/llm/chat";
 

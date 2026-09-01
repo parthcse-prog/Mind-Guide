@@ -3,7 +3,7 @@ import axios from "axios";
 const GATEWAY_URL = "https://ai-services.mietjmu.in/gateway/llm/chat";
 const TOKEN = import.meta.env.VITE_OPENAI_API_KEY || "dgx_942ea91f275263b6ee47220c55583ba3e9ca8fa9f7904833";
 
-export async function callGatewayLLMDirect(messages, model = "qwen3:latest") {
+export async function callGatewayLLMDirect(messages, model = "qwen3-coder:30b") {
   try {
     const response = await axios.post(
       GATEWAY_URL,

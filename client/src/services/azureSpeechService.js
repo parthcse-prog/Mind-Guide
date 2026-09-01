@@ -62,8 +62,12 @@ export const stopNeuralTTS = () => {
     }
   }
   window.currentSpokenWord = "";
+  if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+  }
   window.currentVisemeId = 0;
-  window.currentSpeakingText = "";
+  window.currentSpokenWord = "";
+  window.currentAudioAnalyser = null;
 };
 
 /**
@@ -74,7 +78,7 @@ export const speakWithNeuralTTS = async ({
   gender = "female",
   onStart = () => {},
   onEnd = () => {},
-  onError = () => {},
+  onError = () => {}
 }) => {
   stopNeuralTTS();
 
@@ -121,20 +125,20 @@ export const speakWithNeuralTTS = async ({
         };
 
         audio.onerror = (e) => {
-          console.warn("Azure audio playback error, falling back to Web Speech API", e);
-          fallbackWebSpeech({ sanitizedText, gender, onStart, onEnd, onError });
+          console.warn("Azure audio playback error, falling back to Web Audio API analyzer", e);
+          playFreeTTS(sanitizedText, gender, onStart, onEnd, onError);
         };
 
         await audio.play();
         return;
       }
     } catch (err) {
-      console.warn("Azure Neural Speech request failed, falling back to Web Speech API:", err);
+      console.warn("Azure Neural Speech request failed, falling back to Web Audio API analyzer:", err);
     }
   }
 
-  // Fallback to Browser SpeechSynthesis Neural/System voices
-  fallbackWebSpeech({ sanitizedText, gender, onStart, onEnd, onError });
+  // Fallback to Free TTS with Web Audio Frequency Analysis
+  playFreeTTS(sanitizedText, gender, onStart, onEnd, onError);
 };
 
 const fallbackWebSpeech = ({ sanitizedText, gender, onStart, onEnd, onError }) => {
