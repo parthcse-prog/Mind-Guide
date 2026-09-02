@@ -10,6 +10,8 @@ const Profile = () => {
 
   const [personalityData, setPersonalityData] = React.useState(null);
   const [aiSummary, setAiSummary] = React.useState(null);
+  const [personalityHistory, setPersonalityHistory] = React.useState([]);
+  const [selectedHistoryIndex, setSelectedHistoryIndex] = React.useState(0);
   const [loadingPersonality, setLoadingPersonality] = React.useState(true);
   const [personalityError, setPersonalityError] = React.useState(null);
 
@@ -28,6 +30,11 @@ const Profile = () => {
           
           const reportData = res.data?.report;
           const summaryData = res.data?.summary;
+          const historyArr = res.data?.history || [];
+
+          if (historyArr.length > 0) {
+            setPersonalityHistory(historyArr);
+          }
 
           if (reportData?.status === 'error') {
             setPersonalityError(reportData.message || "Error fetching report");
@@ -50,6 +57,15 @@ const Profile = () => {
       setLoadingPersonality(false);
     }
   }, [userInfo?.email]);
+
+  // Handle history selection change
+  React.useEffect(() => {
+    if (personalityHistory.length > 0 && personalityHistory[selectedHistoryIndex]) {
+      const selectedLog = personalityHistory[selectedHistoryIndex];
+      setPersonalityData(selectedLog.reportData?.data || selectedLog.reportData);
+      setAiSummary(selectedLog.summaryData?.data || selectedLog.summaryData);
+    }
+  }, [selectedHistoryIndex, personalityHistory]);
 
   if (!userInfo) {
     return null;
@@ -241,10 +257,28 @@ const Profile = () => {
       {/* PI360 Personality & AI Summary */}
       {(personalityData || aiSummary || loadingPersonality || personalityError) && (
         <div className="bg-white/90 backdrop-blur-md rounded-3xl p-6 md:p-8 border border-white/60 shadow-sm flex flex-col gap-6 relative overflow-hidden">
-          <h3 className="text-xl font-bold text-[#002531] flex items-center gap-2 border-b border-gray-100 pb-4">
-            <span className="material-symbols-outlined text-[#4648d4] text-2xl">psychology</span>
-            Personality & AI Analysis
-          </h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
+            <h3 className="text-xl font-bold text-[#002531] flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#4648d4] text-2xl">psychology</span>
+              Personality & AI Analysis
+            </h3>
+            {personalityHistory.length > 1 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-500">History:</span>
+                <select 
+                  className="bg-gray-50 border border-gray-200 text-sm rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#4648d4]/30"
+                  value={selectedHistoryIndex}
+                  onChange={(e) => setSelectedHistoryIndex(Number(e.target.value))}
+                >
+                  {personalityHistory.map((log, idx) => (
+                    <option key={idx} value={idx}>
+                      {new Date(log.date).toLocaleDateString()} {idx === 0 ? "(Latest)" : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
           
           {loadingPersonality ? (
             <div className="flex items-center justify-center py-10">

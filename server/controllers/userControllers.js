@@ -338,13 +338,59 @@ const handleGetPersonality = asyncHandler(async (req, res) => {
     const pi360Token = req.headers["x-pi360-token"] || dbToken;
     const headers = pi360Token ? { Authorization: `Bearer ${pi360Token}` } : {};
 
-    const reportRes = await axios.get(`https://pi360.net/site/api/endpoints/api_get_personality_report.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg%3D&action=get_report`, { headers });
-    const summaryRes = await axios.get(`https://pi360.net/site/api/endpoints/api_get_personality_report.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg%3D&action=get_ai_summary`, { headers });
+    const PersonalityLog = require("../model/PersonalityLog");
+    const crypto = require("crypto");
     
-    res.status(200).json({
-      report: reportRes.data,
-      summary: summaryRes.data
-    });
+    // 1. Always fetch the user's personality test history from our DB
+    const history = await PersonalityLog.find({ user: req.user._id }).sort({ date: -1 });
+    
+    let liveReportData = null;
+    let liveSummaryData = null;
+
+    // 2. Try to fetch fresh live data from PI360
+    try {
+      const reportRes = await axios.get(`https://pi360.net/site/api/endpoints/api_get_personality_report.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg%3D&action=get_report`, { headers });
+      const summaryRes = await axios.get(`https://pi360.net/site/api/endpoints/api_get_personality_report.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg%3D&action=get_ai_summary`, { headers });
+      liveReportData = reportRes.data;
+      liveSummaryData = summaryRes.data;
+      
+      // If the API didn't return an error message regarding no test found
+      if (liveReportData && !liveReportData.message?.includes("No personality test")) {
+        const combinedDataStr = JSON.stringify(liveReportData) + JSON.stringify(liveSummaryData);
+        const dataHash = crypto.createHash("sha256").update(combinedDataStr).digest("hex");
+        
+        // 3. Check if this exact dataset is already in our history
+        const exists = history.find(log => log.dataHash === dataHash);
+        
+        if (!exists) {
+          // 4. If new, save it to history!
+          const newLog = await PersonalityLog.create({
+            user: req.user._id,
+            reportData: liveReportData,
+            summaryData: liveSummaryData,
+            dataHash: dataHash
+          });
+          history.unshift(newLog); // Add to the top of the history list
+        }
+      }
+    } catch (apiErr) {
+      console.warn("Failed to reach PI360 live API, falling back to history", apiErr.message);
+    }
+
+    // 5. Return the history. (Include latest at top-level for backward compatibility)
+    if (history.length > 0) {
+      res.status(200).json({
+        report: history[0].reportData,
+        summary: history[0].summaryData,
+        history: history
+      });
+    } else {
+      res.status(200).json({
+        report: liveReportData,
+        summary: liveSummaryData,
+        history: []
+      });
+    }
   } catch (error) {
     console.error("Error fetching PI360 personality:", error.message);
     res.status(500);
