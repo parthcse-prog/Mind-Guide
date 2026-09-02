@@ -120,6 +120,7 @@ export const stopNeuralTTS = () => {
 export const speakWithNeuralTTS = async ({
   text,
   gender = "female",
+  counselorName = "",
   onStart = () => {},
   onEnd = () => {},
   onError = () => {},
@@ -182,14 +183,20 @@ export const speakWithNeuralTTS = async ({
   }
 
   // If Azure fails or is missing, try Kokoro TTS from MIET gateway
-  playKokoroTTS({ sanitizedText, gender, onStart, onEnd, onError });
+  playKokoroTTS({ sanitizedText, gender, counselorName, onStart, onEnd, onError });
 };
 
-const playKokoroTTS = async ({ sanitizedText, gender, onStart, onEnd, onError }) => {
+const playKokoroTTS = async ({ sanitizedText, gender, counselorName, onStart, onEnd, onError }) => {
   const playId = currentTTSId;
   try {
     const token = import.meta.env?.VITE_OPENAI_API_KEY || window?.OPENAI_API_KEY || "dgx_942ea91f275263b6ee47220c55583ba3e9ca8fa9f7904833";
-    const voiceId = gender === "male" ? "am_adam" : "bf_emma"; 
+    
+    // Character-specific voice mapping
+    let voiceId = gender === "male" ? "am_adam" : "bf_emma"; // Defaults
+    if (counselorName === "Dr. Alex") voiceId = "am_echo";
+    else if (counselorName === "Marcus Cole") voiceId = "bm_george";
+    else if (counselorName === "Ethan Rostova") voiceId = "am_liam";
+    else if (counselorName === "Maya Lin") voiceId = "af_sarah";
     
     // Chunk by sentences to avoid timeout on huge text
     const chunks = sanitizedText.match(/[^.!?]+[.!?]+/g) || [sanitizedText];

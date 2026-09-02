@@ -135,6 +135,7 @@ const ChatApp = () => {
         await speakWithNeuralTTS({
           text: botResponseText,
           gender: activeCounselor.gender,
+          counselorName: activeCounselor.name,
           onStart: () => setIsSpeaking(true),
           onEnd: () => setIsSpeaking(false),
           onError: () => setIsSpeaking(false),
