@@ -374,42 +374,6 @@ const handleResumeAnalyze = asyncHandler(async (req, res) => {
 
     const jdText = jobDescription.toLowerCase();
 
-    // Simple keyword extraction (ignoring common stop words)
-    const stopWords = new Set(['the', 'and', 'a', 'to', 'of', 'in', 'i', 'is', 'that', 'it', 'on', 'you', 'this', 'for', 'but', 'with', 'are', 'have', 'be', 'at', 'or', 'as', 'was', 'so', 'if', 'out', 'not', 'we', 'my', 'can', 'will', 'an', 'your', 'which', 'their', 'has', 'would', 'what', 'there', 'from', 'they', 'about', 'when', 'who', 'how', 'some', 'by', 'up', 'more', 'do', 'all', 'any', 'one', 'these', 'could', 'other', 'like', 'than', 'then', 'its', 'our', 'also', 'just', 'only', 'new', 'very', 'been', 'such', 'should', 'through', 'into', 'well', 'much', 'where', 'after', 'even', 'over', 'now', 'right', 'because', 'did', 'work', 'experience', 'team', 'years', 'skills', 'role', 'looking', 'join', 'working']);
-    
-    const extractKeywords = (text) => {
-      const words = text.replace(/[^a-z0-9+#]/g, ' ').split(/\s+/);
-      const uniqueWords = new Set();
-      words.forEach(w => {
-        if (w.length > 2 && !stopWords.has(w) && !Number(w)) {
-          uniqueWords.add(w);
-        }
-      });
-      return Array.from(uniqueWords);
-    };
-
-    const jdKeywords = extractKeywords(jdText);
-    const resumeWords = new Set(extractKeywords(resumeText));
-
-    const matching = [];
-    const missing = [];
-
-    jdKeywords.forEach(kw => {
-      if (resumeWords.has(kw)) {
-        matching.push(kw);
-      } else {
-        missing.push(kw);
-      }
-    });
-
-    // Take top 15 missing and matching to not overwhelm the UI
-    const finalMatching = matching.slice(0, 15);
-    const finalMissing = missing.slice(0, 15);
-
-    const percentage = jdKeywords.length > 0 
-      ? Math.round((matching.length / jdKeywords.length) * 100) 
-      : 0;
-
     // Fetch user profile and PI360 data to personalize the verdict
     const user = await User.findById(req.user._id);
     let personalityContext = "";
@@ -435,10 +399,7 @@ const handleResumeAnalyze = asyncHandler(async (req, res) => {
         const aiSumText = typeof summaryData === 'string' ? summaryData : (summaryData?.ai_summary || summaryData?.summary || "");
 
         if (traitStr || aiSumText) {
-          personalityContext = `\nSTUDENT PSYCHOLOGICAL PROFILE (PI360 Data):
-${traitStr ? `- Big 5 Traits: ${traitStr}` : ""}
-${aiSumText ? `- AI Personality Summary: ${aiSumText}` : ""}
-`;
+          personalityContext = `\nSTUDENT PSYCHOLOGICAL PROFILE (PI360 Data):\n${traitStr ? `- Big 5 Traits: ${traitStr}\n` : ""}${aiSumText ? `- AI Personality Summary: ${aiSumText}\n` : ""}`;
         }
       } catch (err) {
         console.warn("Could not fetch PI360 Personality data for resume analyzer:", err.message);
@@ -452,39 +413,73 @@ ${aiSumText ? `- AI Personality Summary: ${aiSumText}` : ""}
 - Existing Profile Skills: ${userSkills}
 ${personalityContext}`;
 
-    let verdict = "";
+    let analysisResult = {
+      percentage: 0,
+      verdict: "Analysis failed to parse context.",
+      matching: [],
+      missing: []
+    };
+
     try {
       const prompt = [
         {
           role: "system",
-          content: `You are an expert ATS and career coach. Your task is to provide a brief 2-3 sentence personalized verdict for a student analyzing their resume against a Job Description.
-          
-STUDENT PROFILE: ${userProfileStr}
+          content: `You are an expert ATS (Applicant Tracking System) and career coach. Your task is to semantically analyze a student's resume against a job description. 
+You must evaluate true semantic matches (e.g. "ReactJS" matches "React.js", "Managed team" matches "Leadership").
 
-MATCH STATS:
-- Score: ${percentage}%
-- Matching Keywords: ${finalMatching.join(", ")}
-- Missing Keywords: ${finalMissing.join(", ")}
-
-Write a highly personalized, encouraging, and actionable verdict that references their psychological traits and current skills from their profile, advising them on how they align with the job and what they should focus on next.`
+You must respond ONLY with a raw JSON object (no markdown formatting, no conversational text). 
+Use this exact JSON schema:
+{
+  "percentage": <integer 0-100 indicating ATS confidence score>,
+  "matching": ["skill1", "skill2", ... max 15],
+  "missing": ["skill1", "skill2", ... max 15],
+  "verdict": "<2-3 sentence highly personalized, encouraging verdict referencing their psychological traits/skills and evaluating the fit>"
+}`
+        },
+        {
+          role: "user",
+          content: `STUDENT PROFILE:\n${userProfileStr}\n\nRESUME TEXT:\n${resumeText.substring(0, 15000)}\n\nJOB DESCRIPTION:\n${jdText.substring(0, 10000)}`
         }
       ];
-      verdict = await callGatewayLLM(prompt, "qwen3-coder:30b");
-      // Clean quotes and markdown asterisks
-      verdict = verdict.replace(/^"|"$/g, '').replace(/\*\*/g, '').replace(/\*/g, '').trim();
+      
+      // Changed to use gpt-oss:20b specifically for this tool
+      const rawVerdict = await callGatewayLLM(prompt, "gpt-oss:20b");
+      
+      // 1. Smart Extraction: Look for markdown blocks first, fallback to brace matching
+      let jsonString = "";
+      const match = rawVerdict.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+      
+      if (match && match[1]) {
+        jsonString = match[1].trim();
+      } else {
+        const firstBrace = rawVerdict.indexOf('{');
+        const lastBrace = rawVerdict.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1) {
+          jsonString = rawVerdict.substring(firstBrace, lastBrace + 1);
+        } else {
+          throw new Error("No JSON object found in LLM response");
+        }
+      }
+      
+      // 2. Lenient Parsing prep: Fix common LLM mistakes like trailing commas
+      jsonString = jsonString.replace(/,\s*([\]}])/g, '$1');
+      const parsed = JSON.parse(jsonString);
+      
+      // 3. Schema Validation & Fallbacks (Vanilla JS Zod equivalent)
+      analysisResult = {
+        percentage: typeof parsed.percentage === 'number' ? parsed.percentage : (Number(parsed.percentage) || Number(parsed.score) || 0),
+        matching: Array.isArray(parsed.matching) ? parsed.matching.slice(0, 15) : (Array.isArray(parsed.matched) ? parsed.matched.slice(0, 15) : []),
+        missing: Array.isArray(parsed.missing) ? parsed.missing.slice(0, 15) : [],
+        verdict: typeof parsed.verdict === 'string' ? parsed.verdict : (parsed.summary || "Analysis complete.")
+      };
+      
+      // Ensure percentage is strictly bounded 0-100
+      analysisResult.percentage = Math.min(100, Math.max(0, analysisResult.percentage));
+      
     } catch (llmErr) {
-      console.warn("LLM failed to generate verdict, falling back to standard verdict.", llmErr.message);
-      if (percentage >= 80) verdict = "Excellent match! Your profile aligns strongly with the core requirements of this role.";
-      else if (percentage >= 50) verdict = "Good match. You have a solid foundation, but addressing the missing keywords could strengthen your application.";
-      else verdict = "Low match. Consider tailoring your resume to better highlight the specific skills mentioned in the job description.";
+      console.warn("LLM failed to generate or parse verdict, falling back:", llmErr.message);
+      analysisResult.verdict = "Low match. Consider tailoring your resume to better highlight the specific skills mentioned in the job description.";
     }
-
-    const analysisResult = {
-      percentage,
-      verdict,
-      matching: finalMatching,
-      missing: finalMissing
-    };
 
     res.status(200).json({ success: true, data: analysisResult });
   } catch (error) {
