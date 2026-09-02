@@ -133,8 +133,87 @@ export const speakWithNeuralTTS = async ({
     }
   }
 
-  // Fallback to Browser SpeechSynthesis Neural/System voices
-  fallbackWebSpeech({ sanitizedText, gender, onStart, onEnd, onError });
+  // If Azure fails or is missing, try Kokoro TTS from MIET gateway
+  playKokoroTTS({ sanitizedText, gender, onStart, onEnd, onError });
+};
+
+const playKokoroTTS = async ({ sanitizedText, gender, onStart, onEnd, onError }) => {
+  try {
+    const token = import.meta.env?.VITE_OPENAI_API_KEY || window?.OPENAI_API_KEY || "dgx_942ea91f275263b6ee47220c55583ba3e9ca8fa9f7904833";
+    const voiceId = gender === "male" ? "am_adam" : "bf_emma"; 
+    
+    // Chunk by sentences to avoid timeout on huge text
+    const chunks = sanitizedText.match(/[^.!?]+[.!?]+/g) || [sanitizedText];
+    
+    // Setup audio fallback triggers
+    window.currentAudioAnalyser = null; // Disable Web Audio API explicitly
+    
+    onStart();
+    
+    for (const chunk of chunks) {
+      if (!chunk.trim()) continue;
+      
+      const response = await fetch("https://ai-services.mietjmu.in/gateway/voice/tts", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          input: chunk.trim(),
+          voice: voiceId,
+          language: "en",
+          speed: 1.0
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Kokoro TTS returned ${response.status}`);
+      }
+      
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      
+      await new Promise((resolve, reject) => {
+        const audio = new Audio(url);
+        currentActiveAudio = audio;
+        
+        // Feed fake syllables sequentially so the 3D model doesn't freeze from conflicting morphs
+        const syllables = ["ba", "dee", "do", "wa", "me", "mo"];
+        let syllableIdx = 0;
+        
+        const flapperInterval = setInterval(() => {
+          window.currentSpokenWord = syllables[syllableIdx % syllables.length];
+          syllableIdx++;
+        }, 150); // Change shape every 150ms
+        
+        audio.onended = () => {
+          clearInterval(flapperInterval);
+          window.currentSpokenWord = "";
+          URL.revokeObjectURL(url);
+          resolve();
+        };
+        
+        audio.onerror = (e) => {
+          clearInterval(flapperInterval);
+          reject(e);
+        };
+        
+        audio.play().catch((err) => {
+          clearInterval(flapperInterval);
+          reject(err);
+        });
+      });
+    }
+    
+    window.currentSpokenWord = "";
+    onEnd();
+    
+  } catch (err) {
+    console.warn("Kokoro TTS failed, falling back to browser speech:", err);
+    window.currentAudioAnalyser = null;
+    fallbackWebSpeech({ sanitizedText, gender, onStart, onEnd, onError });
+  }
 };
 
 const fallbackWebSpeech = ({ sanitizedText, gender, onStart, onEnd, onError }) => {

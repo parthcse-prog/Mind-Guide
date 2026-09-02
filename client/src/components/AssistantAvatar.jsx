@@ -56,12 +56,12 @@ export const COUNSELOR_CONFIGS = {
     scale: 1.35,
   },
   "student life counselor": {
-    model: maleSdkPath,
+    model: model1Path,
     gender: "male",
-    name: "David Miller",
-    title: "Student Life Counselor",
-    position: [0, -2.2, 0],
-    scale: 1.4,
+    name: "Dr. Alex",
+    title: "Student life Counselor",
+    position: [0, -2.1, 0],
+    scale: 1.35,
   },
   "emotional support counselor": {
     model: maleAvatarPath,
@@ -187,85 +187,37 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
         if (!dict || !infl) return;
 
         if (isSpeaking) {
-          const word = (window.currentSpokenWord || "").toLowerCase().trim();
-          const pulse = (Math.sin(elapsed * 26) + 1) / 2;
-          const openPulse = (Math.sin(elapsed * 18) + 1) / 2;
-
-          let targetAA = 0, targetE = 0, targetI = 0, targetO = 0, targetU = 0;
-          let targetPP = 0, targetFF = 0, targetTH = 0, targetJaw = 0;
-
-          if (word.length > 0) {
-            const hasA = /[aáàâä]/.test(word);
-            const hasE = /[eéèêë]/.test(word);
-            const hasI = /[iíìîïy]/.test(word);
-            const hasO = /[oóòôö]/.test(word);
-            const hasU = /[uúùûüw]/.test(word);
-            const hasPBM = /[pbm]/.test(word);
-            const hasFV = /[fv]/.test(word);
-            const hasTH = /th/.test(word);
-
-            if (hasA) {
-              targetAA = 0.85 * pulse;
-              targetJaw = 0.7 * openPulse;
+          // UNIVERSAL JAW FLAPPER
+          // Iterates over ALL morph targets to guarantee we hit the correct mouth blendshape
+          const pulse = (Math.sin(elapsed * 25) + 1) / 2;
+          const isOPhase = Math.floor(elapsed * 4) % 2 === 0;
+          
+          Object.keys(dict).forEach((key) => {
+            const k = key.toLowerCase();
+            const idx = dict[key];
+            
+            // Universal Jaw / A shape
+            if (
+              k.includes("jaw") || 
+              k.includes("mouthopen") || 
+              k.includes("viseme_aa") || 
+              k.includes("vowel_a") || 
+              k === "a01" ||
+              k === "fcl_mth_a"
+            ) {
+              infl[idx] += ((0.8 * pulse) - infl[idx]) * 0.45;
             }
-            if (hasE) {
-              targetE = 0.75 * pulse;
-              targetJaw = Math.max(targetJaw, 0.35 * openPulse);
+            // Universal O shape (alternates to create speech illusion)
+            else if (k.includes("viseme_o") || k.includes("vowel_o") || k === "a04" || k === "fcl_mth_o") {
+              const target = isOPhase ? 0.7 * pulse : 0;
+              infl[idx] += (target - infl[idx]) * 0.45;
             }
-            if (hasI) {
-              targetI = 0.75 * pulse;
-              targetJaw = Math.max(targetJaw, 0.3 * openPulse);
+            // Universal E shape (alternates)
+            else if (k.includes("viseme_e") || k.includes("vowel_e") || k === "a02" || k === "fcl_mth_e") {
+              const target = !isOPhase ? 0.6 * pulse : 0;
+              infl[idx] += (target - infl[idx]) * 0.45;
             }
-            if (hasO) {
-              targetO = 0.9 * pulse;
-              targetJaw = Math.max(targetJaw, 0.5 * openPulse);
-            }
-            if (hasU) {
-              targetU = 0.85 * pulse;
-              targetJaw = Math.max(targetJaw, 0.35 * openPulse);
-            }
-
-            if (hasPBM) {
-              targetPP = 0.8;
-              targetJaw *= 0.1;
-            }
-            if (hasFV) {
-              targetFF = 0.75;
-            }
-            if (hasTH) {
-              targetTH = 0.7;
-            }
-
-            if (!hasA && !hasE && !hasI && !hasO && !hasU && !hasPBM) {
-              targetAA = 0.5 * pulse;
-              targetJaw = 0.4 * openPulse;
-            }
-          } else {
-            targetAA = 0.3 * pulse;
-            targetJaw = 0.2 * openPulse;
-          }
-
-          const lerp = (curr, target) => curr + (target - curr) * 0.45;
-
-          const idxAA = getMorphIdx(dict, ["viseme_aa", "vowel_a", "A01", "Fcl_MTH_A"]);
-          const idxE = getMorphIdx(dict, ["viseme_E", "vowel_e", "A02", "Fcl_MTH_E"]);
-          const idxI = getMorphIdx(dict, ["viseme_I", "vowel_i", "A03", "Fcl_MTH_I"]);
-          const idxO = getMorphIdx(dict, ["viseme_O", "vowel_o", "A04", "Fcl_MTH_O"]);
-          const idxU = getMorphIdx(dict, ["viseme_U", "vowel_u", "A05", "Fcl_MTH_U"]);
-          const idxPP = getMorphIdx(dict, ["viseme_PP", "mouthClose"]);
-          const idxFF = getMorphIdx(dict, ["viseme_FF", "mouthFunnel"]);
-          const idxTH = getMorphIdx(dict, ["viseme_TH"]);
-          const idxJaw = getMorphIdx(dict, ["jawOpen", "mouthOpen", "jaw_open", "MouthOpen"]);
-
-          if (idxAA !== undefined) infl[idxAA] = lerp(infl[idxAA], targetAA);
-          if (idxE !== undefined) infl[idxE] = lerp(infl[idxE], targetE);
-          if (idxI !== undefined) infl[idxI] = lerp(infl[idxI], targetI);
-          if (idxO !== undefined) infl[idxO] = lerp(infl[idxO], targetO);
-          if (idxU !== undefined) infl[idxU] = lerp(infl[idxU], targetU);
-          if (idxPP !== undefined) infl[idxPP] = lerp(infl[idxPP], targetPP);
-          if (idxFF !== undefined) infl[idxFF] = lerp(infl[idxFF], targetFF);
-          if (idxTH !== undefined) infl[idxTH] = lerp(infl[idxTH], targetTH);
-          if (idxJaw !== undefined) infl[idxJaw] = lerp(infl[idxJaw], targetJaw);
+          });
         } else {
           Object.keys(dict).forEach((key) => {
             if (key.startsWith("viseme_") || key === "jawOpen" || key === "mouthOpen") {

@@ -78,6 +78,9 @@ const ChatApp = () => {
   const { transcript, resetTranscript, browserSupportsSpeechRecognition } =
     useSpeechRecognition();
 
+  // We no longer need to poll window.speechSynthesis because 
+  // the NeuralTTS engine strictly controls the onStart and onEnd callbacks
+  /*
   useEffect(() => {
     const checkSpeaking = setInterval(() => {
       if (window.speechSynthesis) {
@@ -86,6 +89,7 @@ const ChatApp = () => {
     }, 200);
     return () => clearInterval(checkSpeaking);
   }, []);
+  */
 
   useEffect(() => {
     if (transcript) {
