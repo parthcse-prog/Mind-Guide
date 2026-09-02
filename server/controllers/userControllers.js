@@ -362,6 +362,21 @@ const handleResumeAnalyze = asyncHandler(async (req, res) => {
       return res.status(400).json({ success: false, message: "Job description is required." });
     }
 
+    // Hash the PDF buffer to check for duplicates
+    const crypto = require("crypto");
+    const ResumeLog = require("../model/ResumeLog");
+    
+    const fileHash = crypto.createHash('sha256').update(req.file.buffer).digest('hex');
+    
+    // Check if THIS user has already analyzed THIS exact PDF
+    const existingLog = await ResumeLog.findOne({ user: req.user._id, fileHash });
+    if (existingLog) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "This exact resume was uploaded before. Please upload a new or updated file." 
+      });
+    }
+
     // Extract text from PDF using local pdf-parse
     const pdfParse = require('pdf-parse');
     let resumeText = "";
@@ -480,6 +495,13 @@ Use this exact JSON schema:
       console.warn("LLM failed to generate or parse verdict, falling back:", llmErr.message);
       analysisResult.verdict = "Low match. Consider tailoring your resume to better highlight the specific skills mentioned in the job description.";
     }
+
+    // Save to tracking table to prevent future duplicates
+    await ResumeLog.create({
+      user: req.user._id,
+      fileHash,
+      fileName: req.file.originalname || "resume.pdf"
+    });
 
     res.status(200).json({ success: true, data: analysisResult });
   } catch (error) {
