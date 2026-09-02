@@ -215,10 +215,14 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
             const jawMultiplier = isWideMouth ? 1.0 : 0.7;
             const jawMax = isWideMouth ? 0.65 : 0.4;
             
-            // Map frequencies to shapes with strict limits to prevent unhinging the jaw
             targetJaw = Math.min(volume * jawMultiplier, jawMax); 
-            targetO = bass > treble ? Math.min(bass * jawMultiplier, jawMax) : 0; 
-            targetE = treble > bass ? Math.min(treble * jawMultiplier, jawMax) : 0; 
+            
+            // Relying strictly on raw FFT bass vs treble often just looks like a constant "O".
+            // Instead, we use the real-time volume to drive the jaw perfectly in sync with the audio,
+            // while smoothly cycling the O (pucker) and E (widen) shapes to simulate actual phonetic speech.
+            const shapeCycle = Math.floor(elapsed * 6) % 3;
+            targetO = shapeCycle === 0 ? targetJaw * 0.7 : 0; 
+            targetE = shapeCycle === 1 ? targetJaw * 0.8 : 0; 
           }
           
           Object.keys(dict).forEach((key) => {
