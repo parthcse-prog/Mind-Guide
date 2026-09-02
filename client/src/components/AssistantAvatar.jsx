@@ -209,10 +209,16 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
             treble = (treble / half) / 255.0;
             const volume = bass + treble;
             
+            // Ethan and Dr. Alex need wider mouth movements due to their model mesh density
+            const counselorName = config?.name || "";
+            const isWideMouth = counselorName === "Ethan Rostova" || counselorName === "Dr. Alex";
+            const jawMultiplier = isWideMouth ? 1.0 : 0.7;
+            const jawMax = isWideMouth ? 0.65 : 0.4;
+            
             // Map frequencies to shapes with strict limits to prevent unhinging the jaw
-            targetJaw = Math.min(volume * 0.7, 0.4); // Max jaw drop at 40%
-            targetO = bass > treble ? Math.min(bass * 0.7, 0.4) : 0; 
-            targetE = treble > bass ? Math.min(treble * 0.7, 0.4) : 0; 
+            targetJaw = Math.min(volume * jawMultiplier, jawMax); 
+            targetO = bass > treble ? Math.min(bass * jawMultiplier, jawMax) : 0; 
+            targetE = treble > bass ? Math.min(treble * jawMultiplier, jawMax) : 0; 
           }
           
           Object.keys(dict).forEach((key) => {
