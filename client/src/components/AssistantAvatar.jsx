@@ -142,14 +142,9 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
     if (loading) {
       currentAnim = actions["ThoughtfulHeadShake"] ? "ThoughtfulHeadShake" : "Idle";
     } else if (isSpeaking) {
-      const activeGestures = ["TalkingOne", "TalkingTwo", "TalkingThree", "DismissingGesture"].filter(
-        (name) => actions[name]
-      );
-      if (activeGestures.length > 0) {
-        currentAnim = activeGestures[Math.floor(Math.random() * activeGestures.length)];
-      } else {
-        currentAnim = "Idle";
-      }
+      // User specifically requested to disable abrupt looping hand gestures 
+      // and keep hands in a resting/clasped position. The natural Idle pose achieves this.
+      currentAnim = "Idle";
     }
 
     if (!actions[currentAnim]) {
@@ -275,6 +270,47 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
           infl[dict["eyeBlinkRight"]] = Math.min(Math.max(blinkVal, 0), 1.0);
         }
       });
+    }
+
+    // Procedural Head Lock: Keep head completely still and watching the front
+    const head = scene.getObjectByName("Head") || scene.getObjectByName("mixamorigHead") || scene.getObjectByName("J_Bip_C_Head");
+    const neck = scene.getObjectByName("Neck") || scene.getObjectByName("mixamorigNeck") || scene.getObjectByName("J_Bip_C_Neck");
+    
+    // Override any animation rotation to lock them staring straight ahead
+    if (head) head.rotation.set(0, 0, 0);
+    if (neck) neck.rotation.set(0, 0, 0);
+
+    // Procedural Hands Clasped at Waist (Steve Carell pose)
+    // LOWERED: Pushing shoulder Z-axis down to 1.5 radians (approx 85 degrees straight down)
+    const rightArm = scene.getObjectByName("RightArm") || scene.getObjectByName("mixamorigRightArm");
+    const rightForeArm = scene.getObjectByName("RightForeArm") || scene.getObjectByName("mixamorigRightForeArm");
+    const leftArm = scene.getObjectByName("LeftArm") || scene.getObjectByName("mixamorigLeftArm");
+    const leftForeArm = scene.getObjectByName("LeftForeArm") || scene.getObjectByName("mixamorigLeftForeArm");
+
+    const vroidRightArm = scene.getObjectByName("J_Bip_R_UpperArm");
+    const vroidRightForeArm = scene.getObjectByName("J_Bip_R_LowerArm");
+    const vroidLeftArm = scene.getObjectByName("J_Bip_L_UpperArm");
+    const vroidLeftForeArm = scene.getObjectByName("J_Bip_L_LowerArm");
+
+    // Apply to RPM / Mixamo rigged models
+    if (rightArm && rightForeArm && leftArm && leftForeArm) {
+      // Preserve the Idle animation's natural downward drop (X and Z)
+      // Only overwrite the Y-axis to twist the shoulders slightly inward towards the stomach
+      rightArm.rotation.y = -0.2; 
+      leftArm.rotation.y = 0.2;
+      
+      // Bend elbows slightly (approx 35 degrees) so only the fingers touch at the waist
+      rightForeArm.rotation.z = -0.6;
+      leftForeArm.rotation.z = 0.6;
+    }
+    
+    // Apply to VRoid rigged models
+    if (vroidRightArm && vroidRightForeArm && vroidLeftArm && vroidLeftForeArm) {
+      vroidRightArm.rotation.y = -0.2;
+      vroidLeftArm.rotation.y = 0.2;
+      
+      vroidRightForeArm.rotation.y = -0.6; // VRoid typically bends elbows on Y
+      vroidLeftForeArm.rotation.y = 0.6;
     }
   });
 
