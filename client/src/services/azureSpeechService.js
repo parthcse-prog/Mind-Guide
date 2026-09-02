@@ -42,9 +42,57 @@ export const sanitizeTextForSpeech = (text) => {
     .trim();
 };
 
+// GLOBAL WEB AUDIO API (For real-time audio-reactive lip sync)
+// Unlocked on the very first user interaction to bypass browser autoplay security
+let globalAudioCtx = null;
+let globalAnalyser = null;
+let globalAudioEl = null;
+let globalSourceNode = null;
+let audioInitialized = false;
+
+export const initGlobalAudio = () => {
+  if (audioInitialized) return;
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    globalAudioCtx = new AudioContextClass();
+    globalAnalyser = globalAudioCtx.createAnalyser();
+    globalAnalyser.fftSize = 256;
+    globalAnalyser.smoothingTimeConstant = 0.5;
+
+    globalAudioEl = new Audio();
+    globalAudioEl.crossOrigin = "anonymous";
+    
+    globalSourceNode = globalAudioCtx.createMediaElementSource(globalAudioEl);
+    globalSourceNode.connect(globalAnalyser);
+    globalAnalyser.connect(globalAudioCtx.destination);
+
+    window.globalAudioAnalyser = globalAnalyser;
+    window.globalAudioDataArray = new Uint8Array(globalAnalyser.frequencyBinCount);
+    
+    audioInitialized = true;
+  } catch (err) {
+    console.error("Failed to initialize Global Audio Context", err);
+  }
+};
+
+if (typeof window !== 'undefined') {
+  const unlockAudio = () => {
+    initGlobalAudio();
+    if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+      globalAudioCtx.resume();
+    }
+    document.removeEventListener('click', unlockAudio);
+    document.removeEventListener('touchstart', unlockAudio);
+  };
+  document.addEventListener('click', unlockAudio);
+  document.addEventListener('touchstart', unlockAudio);
+}
+
 let currentActiveAudio = null;
+let currentTTSId = 0; // Token to cancel queued sentences
 
 export const stopNeuralTTS = () => {
+  currentTTSId++; // Invalidates the current playback loop
   if (currentActiveAudio) {
     try {
       currentActiveAudio.pause();
@@ -138,6 +186,7 @@ export const speakWithNeuralTTS = async ({
 };
 
 const playKokoroTTS = async ({ sanitizedText, gender, onStart, onEnd, onError }) => {
+  const playId = currentTTSId;
   try {
     const token = import.meta.env?.VITE_OPENAI_API_KEY || window?.OPENAI_API_KEY || "dgx_942ea91f275263b6ee47220c55583ba3e9ca8fa9f7904833";
     const voiceId = gender === "male" ? "am_adam" : "bf_emma"; 
@@ -151,6 +200,7 @@ const playKokoroTTS = async ({ sanitizedText, gender, onStart, onEnd, onError })
     onStart();
     
     for (const chunk of chunks) {
+      if (playId !== currentTTSId) break;
       if (!chunk.trim()) continue;
       
       const response = await fetch("https://ai-services.mietjmu.in/gateway/voice/tts", {
@@ -175,38 +225,37 @@ const playKokoroTTS = async ({ sanitizedText, gender, onStart, onEnd, onError })
       const url = URL.createObjectURL(blob);
       
       await new Promise((resolve, reject) => {
-        const audio = new Audio(url);
-        currentActiveAudio = audio;
+        if (playId !== currentTTSId) {
+          resolve();
+          return;
+        }
+
+        // Ensure audio context is unlocked
+        if (!audioInitialized || !globalAudioEl) {
+           initGlobalAudio();
+        }
+        if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+           globalAudioCtx.resume();
+        }
+
+        globalAudioEl.src = url;
+        currentActiveAudio = globalAudioEl;
         
-        // Feed fake syllables sequentially so the 3D model doesn't freeze from conflicting morphs
-        const syllables = ["ba", "dee", "do", "wa", "me", "mo"];
-        let syllableIdx = 0;
-        
-        const flapperInterval = setInterval(() => {
-          window.currentSpokenWord = syllables[syllableIdx % syllables.length];
-          syllableIdx++;
-        }, 150); // Change shape every 150ms
-        
-        audio.onended = () => {
-          clearInterval(flapperInterval);
-          window.currentSpokenWord = "";
+        globalAudioEl.onended = () => {
           URL.revokeObjectURL(url);
           resolve();
         };
         
-        audio.onerror = (e) => {
-          clearInterval(flapperInterval);
+        globalAudioEl.onerror = (e) => {
           reject(e);
         };
         
-        audio.play().catch((err) => {
-          clearInterval(flapperInterval);
+        globalAudioEl.play().catch((err) => {
           reject(err);
         });
       });
     }
     
-    window.currentSpokenWord = "";
     onEnd();
     
   } catch (err) {

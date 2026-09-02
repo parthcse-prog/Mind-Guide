@@ -187,10 +187,33 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
         if (!dict || !infl) return;
 
         if (isSpeaking) {
-          // UNIVERSAL JAW FLAPPER
-          // Iterates over ALL morph targets to guarantee we hit the correct mouth blendshape
-          const pulse = (Math.sin(elapsed * 25) + 1) / 2;
-          const isOPhase = Math.floor(elapsed * 4) % 2 === 0;
+          // REAL-TIME AUDIO REACTIVE LIP SYNC
+          let targetJaw = 0;
+          let targetO = 0;
+          let targetE = 0;
+
+          if (window.globalAudioAnalyser && window.globalAudioDataArray) {
+            window.globalAudioAnalyser.getByteFrequencyData(window.globalAudioDataArray);
+            
+            let bass = 0;
+            let treble = 0;
+            const length = window.globalAudioDataArray.length;
+            const half = Math.floor(length / 2);
+            
+            for (let i = 0; i < half; i++) {
+              bass += window.globalAudioDataArray[i];
+              treble += window.globalAudioDataArray[i + half];
+            }
+            
+            bass = (bass / half) / 255.0; 
+            treble = (treble / half) / 255.0;
+            const volume = bass + treble;
+            
+            // Map frequencies to shapes with strict limits to prevent unhinging the jaw
+            targetJaw = Math.min(volume * 0.7, 0.4); // Max jaw drop at 40%
+            targetO = bass > treble ? Math.min(bass * 0.7, 0.4) : 0; 
+            targetE = treble > bass ? Math.min(treble * 0.7, 0.4) : 0; 
+          }
           
           Object.keys(dict).forEach((key) => {
             const k = key.toLowerCase();
@@ -205,17 +228,15 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
               k === "a01" ||
               k === "fcl_mth_a"
             ) {
-              infl[idx] += ((0.8 * pulse) - infl[idx]) * 0.45;
+              infl[idx] += (Math.min(targetJaw, 1.0) - infl[idx]) * 0.45;
             }
-            // Universal O shape (alternates to create speech illusion)
+            // Universal O shape
             else if (k.includes("viseme_o") || k.includes("vowel_o") || k === "a04" || k === "fcl_mth_o") {
-              const target = isOPhase ? 0.7 * pulse : 0;
-              infl[idx] += (target - infl[idx]) * 0.45;
+              infl[idx] += (Math.min(targetO, 1.0) - infl[idx]) * 0.45;
             }
-            // Universal E shape (alternates)
+            // Universal E shape
             else if (k.includes("viseme_e") || k.includes("vowel_e") || k === "a02" || k === "fcl_mth_e") {
-              const target = !isOPhase ? 0.6 * pulse : 0;
-              infl[idx] += (target - infl[idx]) * 0.45;
+              infl[idx] += (Math.min(targetE, 1.0) - infl[idx]) * 0.45;
             }
           });
         } else {
