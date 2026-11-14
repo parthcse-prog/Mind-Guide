@@ -275,7 +275,13 @@ const ChatApp = () => {
 
   return (
     <div className="h-[88vh] bg-gradient-to-br from-[#e2e7ff] via-[#faf8ff] to-[#f0dbff] flex relative w-full font-['Plus_Jakarta_Sans'] overflow-hidden">
-      {report && <ReportModal report={report} open={isReportModalOpen} />}
+      {report && (
+        <ReportModal
+          report={report}
+          open={isReportModalOpen}
+          onClose={() => setReportModalOpen(false)}
+        />
+      )}
 
       {/* Left Partition: Prominent 3D Robot Assistant */}
       <div className="hidden md:flex w-1/3 lg:w-2/5 h-full relative border-r border-white/40 bg-white/20 backdrop-blur-md flex-col items-center justify-between p-4 overflow-hidden">

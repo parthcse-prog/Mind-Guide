@@ -202,7 +202,13 @@ const handleReportUpload = asyncHandler(async (req, res) => {
   try {
     let fileUrl = "";
 
-    if (process.env.S3_BUCKET_NAME) {
+    const isAwsConfigured =
+      process.env.S3_BUCKET_NAME &&
+      process.env.S3_BUCKET_NAME !== "your_s3_bucket_name" &&
+      process.env.AWS_ACCESS_KEY_ID &&
+      process.env.AWS_ACCESS_KEY_ID !== "your_aws_access_key_id";
+
+    if (isAwsConfigured) {
       const params = {
         Bucket: process.env.S3_BUCKET_NAME,
         Key: `pdfs/${Date.now()}_${req.file.originalname}`,

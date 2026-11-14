@@ -10,7 +10,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
 
-const ReportModal = ({ report, open }) => {
+const ReportModal = ({ report, open, onClose }) => {
   const contentRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const userInfo = useSelector((state) => state.mindGuide.userInfo);
@@ -42,9 +42,10 @@ const ReportModal = ({ report, open }) => {
           formData.append("file", blob, "report.pdf");
           axios
             .post(
-              `http://localhost:3001/api/v1/user/uploadpdf/${counsellorType}`,
+              `/api/v1/user/uploadpdf/${encodeURIComponent(counsellorType || "General")}`,
               formData,
               {
+                withCredentials: true,
                 headers: {
                   "Content-Type": "multipart/form-data",
                 },
@@ -95,23 +96,37 @@ const ReportModal = ({ report, open }) => {
     }
   };
 
-  const downloadReport = () => {
-    const content = contentRef.current;
+  const handleCloseModal = () => {
+    if (uploading) return;
+    if (onClose) {
+      onClose();
+    }
+    navigate("../counselors");
+  };
 
-    if (content) {
+  const downloadReport = async () => {
+    const content = contentRef.current;
+    if (!content) return;
+
+    try {
+      toast.info("Generating PDF for download...");
       const pdfContent = content.cloneNode(true);
       const buttonsToRemove = pdfContent.querySelectorAll("button");
       buttonsToRemove.forEach((button) => button.remove());
 
       const pdfOptions = {
         margin: 10,
-        filename: "report.pdf",
+        filename: `${counsellorType || "Counselor"}_Report_${new Date().toISOString().slice(0, 10)}.pdf`,
         image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2 },
+        html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
       };
 
-      html2pdf().from(pdfContent).set(pdfOptions).save();
+      await html2pdf().from(pdfContent).set(pdfOptions).save();
+      toast.success("Report downloaded successfully!");
+    } catch (err) {
+      console.error("PDF download failed:", err);
+      toast.error("Failed to download PDF. Please try again.");
     }
   };
 
@@ -119,20 +134,16 @@ const ReportModal = ({ report, open }) => {
     <div>
       <Modal
         open={open}
+        onClose={handleCloseModal}
         center
         closeOnOverlayClick={false}
         closeIcon={
           uploading ? null : (
             <button
-              className="bg-red-700 px-2 py-1  rounded-xl font-bold text-white"
-              onClick={() => {
-                // Prevent closing if still uploading
-                if (!uploading) {
-                  navigate("../counselors");
-                }
-              }}
+              className="bg-red-700 px-3 py-1.5 rounded-xl font-bold text-white text-xs hover:bg-red-800 transition-colors"
+              onClick={handleCloseModal}
             >
-              Back
+              Close & Return
             </button>
           )
         }
