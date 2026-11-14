@@ -40,7 +40,7 @@ function App() {
               <Route path="tools" element={<Tools />} />
               <Route path="account/dashboard" element={<Dashboard />}>
                 <Route index element={<HeroDashBoard />} />
-                {/* <Route path="reports" element={<GetAllReports />} /> */}
+                <Route path="reports" element={<GetAllReports />} />
                 <Route path="getRoadmap" element={<GetRoadmap />} />
                 <Route path="jobBoard" element={<JobBoard />} />
                 <Route path="resume-analyzer" element={<ResumeAnalyzer />} />

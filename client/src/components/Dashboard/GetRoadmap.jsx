@@ -6,7 +6,7 @@ import { addUser } from "../../redux/mindGuideSlice";
 
 const GetRoadmap = () => {
   const [roadmapData, setRoadmapData] = useState([]);
-
+  const [showRecommendationsIndex, setShowRecommendationsIndex] = useState(null);
   const [loading, setLoading] = useState(true);
   const [unsavedChanges, setUnsavedChanges] = useState(false);
 
@@ -141,7 +141,67 @@ const GetRoadmap = () => {
                 />
                 <h3 className="text-base font-extrabold text-[#002531]">{item.Goal}</h3>
               </div>
+
+              <button
+                onClick={() =>
+                  setShowRecommendationsIndex(showRecommendationsIndex === index ? null : index)
+                }
+                className="text-xs font-bold px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-[#002531] transition-all flex items-center gap-1.5"
+              >
+                <span>{showRecommendationsIndex === index ? "Hide Resources" : "View Resources"}</span>
+                {item.recommendations && item.recommendations.length > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px]">
+                    {item.recommendations.length}
+                  </span>
+                )}
+              </button>
             </div>
+
+            {item.timeline && <p className="text-xs text-gray-500 font-semibold">Timeline: {item.timeline}</p>}
+
+            {showRecommendationsIndex === index && (
+              <div className="pt-3 border-t border-gray-100 flex flex-col gap-2.5">
+                <h4 className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                  <span>Recommended Courses & Learning Resources:</span>
+                </h4>
+                {item.recommendations && item.recommendations.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {item.recommendations.map((rec, rIdx) => {
+                      const isCoursera = (rec.link || "").toLowerCase().includes("coursera") || (rec.title || "").toLowerCase().includes("coursera");
+                      return (
+                        <a
+                          key={rIdx}
+                          href={rec.link || `https://www.coursera.org/search?query=${encodeURIComponent(rec.title || item.Goal)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-slate-50 to-blue-50/40 border border-blue-200/60 rounded-xl text-xs font-bold text-[#002531] hover:text-blue-700 hover:border-blue-400 hover:shadow-sm transition-all"
+                        >
+                          <FaExternalLinkAlt className="text-[11px] text-blue-600" />
+                          <span>{rec.title}</span>
+                          {isCoursera && (
+                            <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded font-semibold">
+                              Coursera
+                            </span>
+                          )}
+                        </a>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={`https://www.coursera.org/search?query=${encodeURIComponent(item.Goal)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-xs font-bold text-blue-800 hover:bg-blue-100 transition-all"
+                    >
+                      <FaExternalLinkAlt className="text-xs" />
+                      <span>Find Courses on Coursera</span>
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
 
 
           </div>
