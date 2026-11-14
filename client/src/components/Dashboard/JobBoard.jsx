@@ -222,12 +222,6 @@ const JobBoard = () => {
 
                   {/* Meta Chips */}
                   <div className="flex flex-wrap items-center gap-2 pt-1">
-                    {(job.isPi360 || job.originalSource === "PI360") && (
-                      <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-extrabold flex items-center gap-1 border border-emerald-200 shadow-xs">
-                        <span className="material-symbols-outlined text-sm text-emerald-600">verified</span>
-                        PI360 Opportunity
-                      </span>
-                    )}
                     <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold flex items-center gap-1">
                       <span className="material-symbols-outlined text-sm text-slate-500">
                         location_on
@@ -289,12 +283,6 @@ const JobBoard = () => {
                     <span className="text-[11px] font-semibold text-gray-400">
                       Posted {job.postedDate}
                     </span>
-                    {(job.originalSource === "PI360" || job.isPi360) && (
-                      <span className="text-[10px] font-bold text-emerald-700 flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[13px] text-emerald-600">verified</span>
-                        Source: PI360 Campus Opportunities {job.source && job.source !== "PI360" ? `(${job.source})` : ""}
-                      </span>
-                    )}
                     {job.originalSource === "Himalayas" && (
                       <a 
                         href="https://himalayas.app/" 
