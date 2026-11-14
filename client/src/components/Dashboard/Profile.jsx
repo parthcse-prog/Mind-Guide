@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { removeUser } from "../../redux/mindGuideSlice";
 import axios from "axios";
 import { toast } from "react-toastify";
+import badge from "../../assets/badge.png";
+import tick from "../../assets/tick.png";
 
 const Profile = () => {
   const userInfo = useSelector((state) => state.mindGuide.userInfo);
@@ -374,6 +376,83 @@ const Profile = () => {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Gamified Verified Skills & Badges */}
+      {((userInfo?.skills && userInfo.skills.length > 0) || (userInfo?.roadmap && userInfo.roadmap.some(r => r.isCompleted))) && (
+        <div className="bg-white/85 backdrop-blur-md rounded-3xl p-6 border border-white/60 shadow-sm flex flex-col gap-6">
+          <div className="flex items-center justify-between border-b pb-3">
+            <h3 className="text-lg font-bold text-[#002531] flex items-center gap-2">
+              <span className="material-symbols-outlined text-amber-500">military_tech</span>
+              Skill Badges & Verified Achievements
+            </h3>
+            <span className="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
+              Gamified Mastery
+            </span>
+          </div>
+
+          {/* Technical Skills Badges */}
+          <div>
+            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+              Technical Competencies
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {(userInfo.skills || [])
+                .filter((s) => s.type === "technical" || !s.type)
+                .map((skillObj, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50/50 to-indigo-50/30 rounded-2xl border border-blue-100 hover:border-blue-300 transition-all shadow-xs group"
+                  >
+                    <div className="w-10 h-10 shrink-0 flex items-center justify-center bg-white rounded-xl shadow-xs border border-blue-100 group-hover:scale-110 transition-transform">
+                      <img src={badge} alt="Technical Badge" className="h-7 w-7 object-contain" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs font-extrabold text-[#002531] truncate">
+                        {skillObj.skill}
+                      </span>
+                      <span className="text-[10px] text-blue-600 font-semibold uppercase tracking-wider">
+                        Verified Badge
+                      </span>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+
+          {/* Non-Technical / Behavioral Badges */}
+          {(userInfo.skills || []).some((s) => s.type === "non-technical") && (
+            <div>
+              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-teal-500"></span>
+                Professional & Soft Skills
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {userInfo.skills
+                  .filter((s) => s.type === "non-technical")
+                  .map((skillObj, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-3 bg-gradient-to-r from-emerald-50/50 to-teal-50/30 rounded-2xl border border-teal-100 hover:border-teal-300 transition-all shadow-xs group"
+                    >
+                      <div className="w-10 h-10 shrink-0 flex items-center justify-center bg-white rounded-xl shadow-xs border border-teal-100 group-hover:scale-110 transition-transform">
+                        <img src={tick} alt="Skill Verified" className="h-7 w-7 object-contain" />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-extrabold text-[#002531] truncate">
+                          {skillObj.skill}
+                        </span>
+                        <span className="text-[10px] text-emerald-600 font-semibold uppercase tracking-wider">
+                          Certified
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
             </div>
           )}
         </div>
