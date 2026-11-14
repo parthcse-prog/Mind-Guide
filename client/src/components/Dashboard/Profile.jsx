@@ -17,6 +17,25 @@ const Profile = () => {
   const [loadingPersonality, setLoadingPersonality] = React.useState(true);
   const [personalityError, setPersonalityError] = React.useState(null);
 
+  const isBadSummary = (summary) => {
+    if (!summary) return true;
+    if (typeof summary === 'object') {
+      if (summary.status === 'error') return true;
+      if (String(summary.response_code) === '500') return true;
+      if (summary.message && (summary.message.includes('not available right now') || summary.message.includes('Please try again later'))) return true;
+    }
+    const str = typeof summary === 'string' ? summary : JSON.stringify(summary);
+    return (
+      str.includes('not available right now') ||
+      str.includes('AI summary is not available') ||
+      str.includes('Please try again later') ||
+      str.includes('"response_code":"500"') ||
+      str.includes('"response_code": "500"') ||
+      str.includes('"response_code":500') ||
+      str.includes('response_code=500')
+    );
+  };
+
   React.useEffect(() => {
     if (userInfo?.email) {
       const fetchPersonality = async () => {
@@ -44,24 +63,17 @@ const Profile = () => {
             setPersonalityData(reportData?.data || reportData);
           }
 
-          const isSummaryError =
-            !summaryData ||
-            summaryData?.status === "error" ||
-            summaryData?.response_code === "500" ||
-            JSON.stringify(summaryData).includes("not available right now");
-
-          if (!isSummaryError) {
+          if (!isBadSummary(summaryData)) {
             setAiSummary(summaryData?.data || summaryData);
           } else {
             // Find older valid summary from history
             const olderValid = historyArr.find(
-              (h) =>
-                h.summaryData &&
-                h.summaryData.response_code !== "500" &&
-                !JSON.stringify(h.summaryData).includes("not available right now")
+              (h) => h.summaryData && !isBadSummary(h.summaryData)
             );
             if (olderValid) {
               setAiSummary(olderValid.summaryData?.data || olderValid.summaryData);
+            } else {
+              setAiSummary(null);
             }
           }
         } catch (err) {
@@ -84,23 +96,16 @@ const Profile = () => {
       setPersonalityData(selectedLog.reportData?.data || selectedLog.reportData);
       
       const sData = selectedLog.summaryData;
-      const isErr =
-        !sData ||
-        sData?.status === "error" ||
-        sData?.response_code === "500" ||
-        JSON.stringify(sData).includes("not available right now");
-
-      if (!isErr) {
+      if (!isBadSummary(sData)) {
         setAiSummary(sData?.data || sData);
       } else {
         const olderValid = personalityHistory.find(
-          (h) =>
-            h.summaryData &&
-            h.summaryData.response_code !== "500" &&
-            !JSON.stringify(h.summaryData).includes("not available right now")
+          (h) => h.summaryData && !isBadSummary(h.summaryData)
         );
         if (olderValid) {
           setAiSummary(olderValid.summaryData?.data || olderValid.summaryData);
+        } else {
+          setAiSummary(null);
         }
       }
     }
@@ -354,28 +359,45 @@ const Profile = () => {
               )}
 
               {/* AI Summary */}
-              {aiSummary && (
-                <div className="flex-1 flex flex-col gap-4 min-w-0">
-                  <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest">AI Summary</h4>
-                  <div className="bg-[#f0f7f4]/50 p-5 rounded-2xl border border-[#acecdc]/30 flex-1 flex items-start overflow-y-auto max-h-[300px]">
-                    <p className="text-sm text-[#002531]/80 leading-relaxed italic whitespace-pre-wrap break-words w-full">
-                      {(() => {
-                        const summaryText = typeof aiSummary === 'string' ? aiSummary : aiSummary.ai_summary || aiSummary.summary || aiSummary.text || "";
-                        if (!summaryText) return JSON.stringify(aiSummary);
-                        
-                        // Parse simple bold markdown **text**
-                        const parts = summaryText.split(/(\*\*.*?\*\*)/g);
-                        return parts.map((part, i) => {
+              {(() => {
+                const getEffectiveSummary = () => {
+                  if (aiSummary && !isBadSummary(aiSummary)) {
+                    return aiSummary;
+                  }
+                  // Fallback to any valid summary in history
+                  const fallback = personalityHistory.find(
+                    (h) => h?.summaryData && !isBadSummary(h.summaryData)
+                  );
+                  return fallback ? (fallback.summaryData?.data || fallback.summaryData) : null;
+                };
+
+                const effectiveSummary = getEffectiveSummary();
+                if (!effectiveSummary) return null;
+
+                const summaryText = typeof effectiveSummary === 'string'
+                  ? effectiveSummary
+                  : (effectiveSummary.ai_summary || effectiveSummary.summary || effectiveSummary.text || "");
+                if (!summaryText || isBadSummary(summaryText)) return null;
+
+                // Parse simple bold markdown **text**
+                const parts = summaryText.split(/(\*\*.*?\*\*)/g);
+
+                return (
+                  <div className="flex-1 flex flex-col gap-4 min-w-0">
+                    <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest">AI Summary</h4>
+                    <div className="bg-[#f0f7f4]/50 p-5 rounded-2xl border border-[#acecdc]/30 flex-1 flex items-start overflow-y-auto max-h-[300px]">
+                      <p className="text-sm text-[#002531]/80 leading-relaxed italic whitespace-pre-wrap break-words w-full">
+                        {parts.map((part, i) => {
                           if (part.startsWith('**') && part.endsWith('**')) {
                             return <strong key={i} className="font-bold text-[#002531]">{part.slice(2, -2)}</strong>;
                           }
                           return part;
-                        });
-                      })()}
-                    </p>
+                        })}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           )}
         </div>

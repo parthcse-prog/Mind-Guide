@@ -361,8 +361,23 @@ const handleGetPersonality = asyncHandler(async (req, res) => {
       liveSummaryData = summaryRes.data;
       
       // If the API didn't return an error message regarding no test found or failed AI summary
-      const isReportValid = liveReportData && !liveReportData.message?.includes("No personality test") && liveReportData.response_code !== "500";
-      const isSummaryValid = liveSummaryData && liveSummaryData.response_code !== "500" && !liveSummaryData.message?.includes("AI summary is not available");
+      const isReportValid = liveReportData && !liveReportData.message?.includes("No personality test") && String(liveReportData.response_code) !== "500";
+      
+      const isSummaryBad = (s) => {
+        if (!s) return true;
+        if (String(s.response_code) === "500" || s.status === "error") return true;
+        const str = typeof s === "string" ? s : JSON.stringify(s);
+        return (
+          str.includes("not available right now") ||
+          str.includes("AI summary is not available") ||
+          str.includes("Please try again later") ||
+          str.includes('"response_code":"500"') ||
+          str.includes('"response_code": "500"') ||
+          str.includes('"response_code":500')
+        );
+      };
+
+      const isSummaryValid = !isSummaryBad(liveSummaryData);
 
       if (isReportValid && isSummaryValid) {
         const combinedDataStr = JSON.stringify(liveReportData) + JSON.stringify(liveSummaryData);
@@ -386,25 +401,40 @@ const handleGetPersonality = asyncHandler(async (req, res) => {
       console.warn("Failed to reach PI360 live API, falling back to history", apiErr.message);
     }
 
+    const isSummaryBad = (s) => {
+      if (!s) return true;
+      if (String(s.response_code) === "500" || s.status === "error") return true;
+      const str = typeof s === "string" ? s : JSON.stringify(s);
+      return (
+        str.includes("not available right now") ||
+        str.includes("AI summary is not available") ||
+        str.includes("Please try again later") ||
+        str.includes('"response_code":"500"') ||
+        str.includes('"response_code": "500"') ||
+        str.includes('"response_code":500')
+      );
+    };
+
+    // Find the most recent history entry that had a valid summary
+    const validSummaryLog = history.find(
+      (log) => log.summaryData && !isSummaryBad(log.summaryData)
+    );
+
+    const fallbackSummary = validSummaryLog 
+      ? validSummaryLog.summaryData 
+      : (!isSummaryBad(liveSummaryData) ? liveSummaryData : null);
+
     // 5. Return the history. (Include latest valid summary at top-level for backward compatibility)
     if (history.length > 0) {
-      // Find the most recent history entry that had a valid summary
-      const validSummaryLog = history.find(
-        (log) =>
-          log.summaryData &&
-          log.summaryData.response_code !== "500" &&
-          !JSON.stringify(log.summaryData).includes("not available right now")
-      );
-
       res.status(200).json({
         report: history[0].reportData,
-        summary: validSummaryLog ? validSummaryLog.summaryData : history[0].summaryData,
+        summary: fallbackSummary,
         history: history
       });
     } else {
       res.status(200).json({
         report: liveReportData,
-        summary: liveSummaryData,
+        summary: fallbackSummary,
         history: []
       });
     }
@@ -474,7 +504,10 @@ const handleResumeAnalyze = asyncHandler(async (req, res) => {
           traitStr = Object.entries(extractedTraits).map(([t, v]) => `${t}: ${typeof v === 'object' ? v.score : v}`).join(", ");
         }
 
-        const aiSumText = typeof summaryData === 'string' ? summaryData : (summaryData?.ai_summary || summaryData?.summary || "");
+        let aiSumText = typeof summaryData === 'string' ? summaryData : (summaryData?.ai_summary || summaryData?.summary || "");
+        if (aiSumText && (aiSumText.includes("AI summary is not available") || aiSumText.includes("500") || aiSumText.includes("Please try again later"))) {
+          aiSumText = "";
+        }
 
         if (traitStr || aiSumText) {
           personalityContext = `\nSTUDENT PSYCHOLOGICAL PROFILE (PI360 Data):\n${traitStr ? `- Big 5 Traits: ${traitStr}\n` : ""}${aiSumText ? `- AI Personality Summary: ${aiSumText}\n` : ""}`;
