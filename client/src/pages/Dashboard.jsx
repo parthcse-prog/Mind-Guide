@@ -7,11 +7,11 @@ const Dashboard = () => {
       icon: "dashboard",
       link: "",
     },
-    {
-      title: "Reports",
-      icon: "description",
-      link: "./reports",
-    },
+    // {
+    //   title: "Reports",
+    //   icon: "description",
+    //   link: "./reports",
+    // },
     {
       title: "Roadmap",
       icon: "map",
