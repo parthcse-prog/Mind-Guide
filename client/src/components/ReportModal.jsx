@@ -205,7 +205,7 @@ const ReportModal = ({ report, open, onClose }) => {
                 className="bg-gray-400 py-2 rounded-lg px-2 text-white"
                 disabled={uploading}
               >
-                Create Roadmap 🚀
+                Create Roadmap
               </button>
             )}
           </div>

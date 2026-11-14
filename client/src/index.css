@@ -3,6 +3,16 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --brand-navy: #002531;
+  --brand-dark: #1a3b47;
+  --brand-teal: #acecdc;
+  --brand-teal-hover: #8ee4d0;
+  --brand-accent: #4648d4;
+  --surface-soft: #f0f7f4;
+  --surface-light: #f9f9ff;
+}
+
 * {
   padding: 0;
   margin: 0;
@@ -12,6 +22,7 @@
 html,
 body {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 #secOne {
   background-image: url("https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");

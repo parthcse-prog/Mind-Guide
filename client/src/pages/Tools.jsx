@@ -32,6 +32,7 @@ const Tools = () => {
             {/* Icon Overlay */}
             <div className="absolute top-4 left-4 bg-white/90 p-3 rounded-lg shadow-md">
               <svg
+                aria-hidden="true"
                 className="h-6 w-6 text-[#1a3b47]"
                 fill="none"
                 stroke="currentColor"
@@ -55,6 +56,7 @@ const Tools = () => {
                   Text Tone Analyzer
                 </h3>
                 <svg
+                  aria-hidden="true"
                   className="h-5 w-5 text-slate-300"
                   fill="none"
                   stroke="currentColor"
@@ -75,10 +77,10 @@ const Tools = () => {
             </div>
 
             <button
-              className="w-full bg-slate-300 text-slate-500 font-bold py-4 rounded-lg cursor-not-allowed uppercase tracking-wide text-sm"
+              className="w-full bg-slate-200 text-slate-500 font-semibold py-3.5 rounded-lg cursor-not-allowed text-sm"
               disabled
             >
-              Not Available
+              Not available
             </button>
           </div>
         </article>
@@ -100,6 +102,7 @@ const Tools = () => {
             {/* Icon Overlay */}
             <div className="absolute top-4 left-4 bg-white/90 p-3 rounded-lg shadow-md">
               <svg
+                aria-hidden="true"
                 className="h-6 w-6 text-[#1a3b47]"
                 fill="none"
                 stroke="currentColor"
@@ -123,6 +126,7 @@ const Tools = () => {
                   Personality Test
                 </h3>
                 <svg
+                  aria-hidden="true"
                   className="h-5 w-5 text-slate-300"
                   fill="none"
                   stroke="currentColor"
@@ -143,10 +147,10 @@ const Tools = () => {
             </div>
 
             <button
-              className="w-full bg-slate-300 text-slate-500 font-bold py-4 rounded-lg cursor-not-allowed uppercase tracking-wide text-sm"
+              className="w-full bg-slate-200 text-slate-500 font-semibold py-3.5 rounded-lg cursor-not-allowed text-sm"
               disabled
             >
-              Not Available
+              Not available
             </button>
           </div>
         </article>

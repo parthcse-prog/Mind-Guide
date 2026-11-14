@@ -10,6 +10,7 @@ const Footer = () => {
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 bg-white/10 rounded-full flex items-center justify-center">
               <svg
+                aria-hidden="true"
                 className="h-4 w-4 text-teal-300"
                 fill="none"
                 stroke="currentColor"
@@ -29,13 +30,13 @@ const Footer = () => {
             </span>
           </div>
           <p className="text-slate-400 text-xs leading-relaxed">
-            Empowering your mental well-being through professional analysis and guidance.
+            AI career guidance, verified growth roadmaps, and student performance analytics.
           </p>
         </div>
 
         {/* Column 2: Quick Links */}
         <div>
-          <h4 className="font-bold mb-3 uppercase tracking-wider text-teal-300 text-xs">
+          <h4 className="font-bold mb-3 text-teal-300 text-xs">
             Quick Links
           </h4>
           <ul className="flex flex-col gap-1.5 text-slate-300 text-xs">
@@ -54,7 +55,7 @@ const Footer = () => {
 
         {/* Column 3: Contact Details */}
         <div>
-          <h4 className="font-bold mb-3 uppercase tracking-wider text-teal-300 text-xs">
+          <h4 className="font-bold mb-3 text-teal-300 text-xs">
             Contact
           </h4>
           <ul className="flex flex-col gap-1.5 text-slate-300 text-xs">
@@ -70,7 +71,7 @@ const Footer = () => {
 
         {/* Column 4: Social / Github */}
         <div>
-          <h4 className="font-bold mb-3 uppercase tracking-wider text-teal-300 text-xs">
+          <h4 className="font-bold mb-3 text-teal-300 text-xs">
             Follow Us
           </h4>
           <a
@@ -80,6 +81,7 @@ const Footer = () => {
             className="inline-flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors text-xs"
           >
             <svg
+              aria-hidden="true"
               className="w-4 h-4"
               fill="currentColor"
               viewBox="0 0 24 24"
@@ -94,7 +96,7 @@ const Footer = () => {
 
       <div className="max-w-[1366px] mx-auto px-6 md:px-12 pt-5 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex flex-col items-center md:items-start gap-3">
-          <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Developed By</span>
+          <span className="text-[10px] text-slate-400 font-bold">Developed By</span>
           <div className="flex items-center gap-4 bg-white py-2 px-6 rounded-xl shadow-inner">
             <img src={logoDark} alt="MIET Logo" className="h-10 object-contain mix-blend-multiply" />
           </div>

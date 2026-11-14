@@ -428,7 +428,7 @@ const Profile = () => {
                 .map((skillObj, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50/50 to-indigo-50/30 rounded-2xl border border-blue-100 hover:border-blue-300 transition-all shadow-xs group"
+                    className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-2xl border border-blue-100 hover:border-blue-300 transition-colors shadow-xs group"
                   >
                     <div className="w-10 h-10 shrink-0 flex items-center justify-center bg-white rounded-xl shadow-xs border border-blue-100 group-hover:scale-110 transition-transform">
                       <img src={badge} alt="Technical Badge" className="h-7 w-7 object-contain" />
@@ -459,7 +459,7 @@ const Profile = () => {
                   .map((skillObj, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-3 p-3 bg-gradient-to-r from-emerald-50/50 to-teal-50/30 rounded-2xl border border-teal-100 hover:border-teal-300 transition-all shadow-xs group"
+                      className="flex items-center gap-3 p-3 bg-emerald-50/50 rounded-2xl border border-teal-100 hover:border-teal-300 transition-colors shadow-xs group"
                     >
                       <div className="w-10 h-10 shrink-0 flex items-center justify-center bg-white rounded-xl shadow-xs border border-teal-100 group-hover:scale-110 transition-transform">
                         <img src={tick} alt="Skill Verified" className="h-7 w-7 object-contain" />
@@ -508,7 +508,7 @@ const Profile = () => {
                 {sec.items.map((item, itemIdx) => (
                   <div
                     key={itemIdx}
-                    className="bg-gray-50/80 p-4 rounded-2xl border border-gray-100 flex flex-col justify-between gap-2 hover:bg-gray-100/80 transition-all"
+                    className="bg-gray-50/80 p-4 rounded-2xl border border-gray-100 flex flex-col justify-between gap-2 hover:bg-gray-100/80 transition-colors"
                   >
                     <div>
                       <h4 className="text-sm font-bold text-[#002531]">
@@ -551,7 +551,7 @@ const Profile = () => {
             {basicInfo.map(([key, val]) => (
               <div
                 key={key}
-                className="bg-gray-50/80 p-3.5 rounded-2xl border border-gray-100 flex flex-col gap-1 transition-all hover:bg-gray-100/80"
+                className="bg-gray-50/80 p-3.5 rounded-2xl border border-gray-100 flex flex-col gap-1 transition-colors hover:bg-gray-100/80"
               >
                 <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                   {key.replace(/_/g, " ")}
@@ -569,7 +569,7 @@ const Profile = () => {
       <div className="pt-4 flex flex-col gap-4">
         <button
           onClick={handleLogout}
-          className="w-full py-3.5 bg-[#002531] hover:bg-[#1a3b47] text-white rounded-full font-bold text-base flex items-center justify-center gap-3 transition-all active:scale-95 shadow-md group font-['Manrope']"
+          className="w-full py-3.5 bg-[#002531] hover:bg-[#1a3b47] text-white rounded-full font-bold text-base flex items-center justify-center gap-3 transition-colors active:scale-95 shadow-md group font-['Manrope']"
         >
           <span className="material-symbols-outlined group-hover:rotate-180 transition-transform duration-500">
             logout

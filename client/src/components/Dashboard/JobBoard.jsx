@@ -81,7 +81,7 @@ const JobBoard = () => {
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 bg-[#acecdc]/20 text-[#acecdc] rounded-full text-xs font-bold uppercase tracking-wider border border-[#acecdc]/30 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 motion-safe:animate-ping"></span>
               Live India Job Feed
             </span>
           </div>
@@ -215,7 +215,7 @@ const JobBoard = () => {
                     <div
                       className={`px-3 py-1 rounded-full text-xs font-extrabold border shrink-0 flex items-center gap-1 ${badgeBg}`}
                     >
-                      <span>🎯</span>
+                      <span className="material-symbols-outlined text-[13px]">track_changes</span>
                       <span>{displayMatch}% Match</span>
                     </div>
                   </div>

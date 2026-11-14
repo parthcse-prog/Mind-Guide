@@ -91,9 +91,9 @@ class AvatarErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-indigo-900/30 to-purple-900/30 rounded-3xl p-6 text-center backdrop-blur-md border border-white/20">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg mb-3 animate-pulse">
-            <span className="material-symbols-outlined text-white text-4xl">person</span>
+        <div className="w-full h-full flex flex-col items-center justify-center bg-[#1a3b47]/80 rounded-3xl p-6 text-center backdrop-blur-md border border-white/20">
+          <div className="w-20 h-20 rounded-full bg-[#002531] border border-[#acecdc]/30 flex items-center justify-center shadow-lg mb-3 motion-safe:animate-pulse">
+            <span className="material-symbols-outlined text-[#acecdc] text-4xl">person</span>
           </div>
           <span className="text-sm font-semibold text-white/90">
             {this.props.counselorConfig?.name || "Counselor Avatar"}
