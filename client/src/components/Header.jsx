@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import headIcon from "../assets/finallogo.png";
+import headIcon from "../assets/Saarthi.ai Brain Network Logo.png";
 import { useSelector, useDispatch } from "react-redux";
 import { removeUser } from "../redux/mindGuideSlice";
 import axios from "axios";
