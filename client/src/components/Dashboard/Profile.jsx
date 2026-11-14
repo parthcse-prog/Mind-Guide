@@ -439,7 +439,7 @@ const Profile = () => {
           Logout
         </button>
         <p className="text-center text-xs text-[#72787b]">
-          Version 2.4.1 (Stable) • Integrated PI360 Mind Guide Account
+          Version 2.4.1 (Stable) • Integrated PI360 Saarthi.ai Account
         </p>
       </div>
     </div>

@@ -31,9 +31,9 @@ const Header = () => {
         {/* Brand Logo & Title */}
         <div className="flex items-center gap-2 md:gap-3">
           <Link to="/" className="flex items-center gap-2 md:gap-3 shrink-0">
-            <img src={headIcon} alt="Mind Guide Logo" className="h-12 sm:h-16 md:h-20 w-auto object-contain" />
+            <img src={headIcon} alt="Saarthi.ai Logo" className="h-12 sm:h-16 md:h-20 w-auto object-contain" />
             <h1 className="hidden sm:block text-lg md:text-2xl font-extrabold tracking-tight text-white hover:text-teal-300 transition-colors">
-              Mind Guide
+              Saarthi.ai
             </h1>
           </Link>
         </div>

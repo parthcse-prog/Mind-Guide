@@ -224,7 +224,7 @@ const handleCreateRoadmap = asyncHandler(async (req, res) => {
           const mailOptions = {
             from: `${process.env.USERNAME}`,
             to: req.user.email,
-            subject: "Mind Guide Session Report",
+            subject: "Saarthi.ai Session Report",
             html: `
             <!DOCTYPE html>
             <html lang="en">
@@ -232,7 +232,7 @@ const handleCreateRoadmap = asyncHandler(async (req, res) => {
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Download Your Mind Guide Session Report</title>
+                <title>Download Your Saarthi.ai Session Report</title>
                 <style>
                     body {
                         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -288,14 +288,14 @@ const handleCreateRoadmap = asyncHandler(async (req, res) => {
       
             <body>
                 <div class="container">
-                    <h1>Your Mind Guide Session Report</h1>
+                    <h1>Your Saarthi.ai Session Report</h1>
                     <p>Dear ${req.user.name},</p>
                     <p>Your latest session report is now available for download:</p>
                     <a href=#{} target="_blank">Download Report</a>
                     <p>If you encounter any issues, please do not hesitate to contact us.</p>
       
                     <div class="footer">
-                        <p>Thank you for choosing Mind Guide.</p>
+                        <p>Thank you for choosing Saarthi.ai.</p>
                         <p><a href="#">Visit our Website</a></p>
                     </div>
                 </div>

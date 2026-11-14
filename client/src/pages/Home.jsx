@@ -44,7 +44,7 @@ const Home = () => {
             </div>
             <div className="space-y-4 text-[#41484b] leading-relaxed">
               <p className="text-lg md:text-xl leading-relaxed">
-                Welcome to our Mind Guide App, where we empower students on their
+                Welcome to our Saarthi.ai App, where we empower students on their
                 educational journey by harnessing the power of AI. Our mission is to
                 provide students with personalized guidance and counseling across a
                 multitude of fields, helping them navigate the complexities of
@@ -75,7 +75,7 @@ const Home = () => {
             <div className="relative w-full max-w-lg aspect-[4/3] rounded-[32px] overflow-hidden shadow-xl border border-gray-100">
               <img
                 src="https://images.unsplash.com/photo-1573495804664-b1c0849525af?q=80&w=2069&auto=format&fit=crop"
-                alt="About Mind Guide"
+                alt="About Saarthi.ai"
                 className="w-full h-full object-cover"
               />
             </div>

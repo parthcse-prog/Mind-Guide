@@ -154,7 +154,7 @@ const ReportModal = ({ report, open, onClose }) => {
           ref={contentRef}
         >
           <div className="bg-slate-800 text-white text-3xl px-2 py-10 rounded-lg mb-3">
-            Mind Guide: Your Personalized AI Counsellor
+            Saarthi.ai: Your Personalized AI Counsellor
           </div>
           <div className="flex font-medium justify-between text-lg">
             <div className="flex flex-col  gap-1 ">

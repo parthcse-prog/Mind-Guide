@@ -25,7 +25,7 @@ const Footer = () => {
               </svg>
             </div>
             <span className="text-lg font-extrabold tracking-tight">
-              Mind Guide
+              Saarthi.ai
             </span>
           </div>
           <p className="text-slate-400 text-xs leading-relaxed">
@@ -100,7 +100,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="text-center md:text-right text-slate-400 text-[11px] max-w-sm">
-          <p>© 2026 Mind Guide & MIET. All professional assessments are for guidance purposes only.</p>
+          <p>© 2026 Saarthi.ai & MIET. All professional assessments are for guidance purposes only.</p>
         </div>
       </div>
     </footer>
