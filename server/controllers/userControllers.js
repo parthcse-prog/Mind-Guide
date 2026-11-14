@@ -360,8 +360,11 @@ const handleGetPersonality = asyncHandler(async (req, res) => {
       liveReportData = reportRes.data;
       liveSummaryData = summaryRes.data;
       
-      // If the API didn't return an error message regarding no test found
-      if (liveReportData && !liveReportData.message?.includes("No personality test")) {
+      // If the API didn't return an error message regarding no test found or failed AI summary
+      const isReportValid = liveReportData && !liveReportData.message?.includes("No personality test") && liveReportData.response_code !== "500";
+      const isSummaryValid = liveSummaryData && liveSummaryData.response_code !== "500" && !liveSummaryData.message?.includes("AI summary is not available");
+
+      if (isReportValid && isSummaryValid) {
         const combinedDataStr = JSON.stringify(liveReportData) + JSON.stringify(liveSummaryData);
         const dataHash = crypto.createHash("sha256").update(combinedDataStr).digest("hex");
         
@@ -383,11 +386,19 @@ const handleGetPersonality = asyncHandler(async (req, res) => {
       console.warn("Failed to reach PI360 live API, falling back to history", apiErr.message);
     }
 
-    // 5. Return the history. (Include latest at top-level for backward compatibility)
+    // 5. Return the history. (Include latest valid summary at top-level for backward compatibility)
     if (history.length > 0) {
+      // Find the most recent history entry that had a valid summary
+      const validSummaryLog = history.find(
+        (log) =>
+          log.summaryData &&
+          log.summaryData.response_code !== "500" &&
+          !JSON.stringify(log.summaryData).includes("not available right now")
+      );
+
       res.status(200).json({
         report: history[0].reportData,
-        summary: history[0].summaryData,
+        summary: validSummaryLog ? validSummaryLog.summaryData : history[0].summaryData,
         history: history
       });
     } else {

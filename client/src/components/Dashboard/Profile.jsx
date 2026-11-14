@@ -42,8 +42,25 @@ const Profile = () => {
             setPersonalityData(reportData?.data || reportData);
           }
 
-          if (summaryData?.status !== 'error') {
+          const isSummaryError =
+            !summaryData ||
+            summaryData?.status === "error" ||
+            summaryData?.response_code === "500" ||
+            JSON.stringify(summaryData).includes("not available right now");
+
+          if (!isSummaryError) {
             setAiSummary(summaryData?.data || summaryData);
+          } else {
+            // Find older valid summary from history
+            const olderValid = historyArr.find(
+              (h) =>
+                h.summaryData &&
+                h.summaryData.response_code !== "500" &&
+                !JSON.stringify(h.summaryData).includes("not available right now")
+            );
+            if (olderValid) {
+              setAiSummary(olderValid.summaryData?.data || olderValid.summaryData);
+            }
           }
         } catch (err) {
           console.error("Failed to fetch personality data:", err);
@@ -63,7 +80,27 @@ const Profile = () => {
     if (personalityHistory.length > 0 && personalityHistory[selectedHistoryIndex]) {
       const selectedLog = personalityHistory[selectedHistoryIndex];
       setPersonalityData(selectedLog.reportData?.data || selectedLog.reportData);
-      setAiSummary(selectedLog.summaryData?.data || selectedLog.summaryData);
+      
+      const sData = selectedLog.summaryData;
+      const isErr =
+        !sData ||
+        sData?.status === "error" ||
+        sData?.response_code === "500" ||
+        JSON.stringify(sData).includes("not available right now");
+
+      if (!isErr) {
+        setAiSummary(sData?.data || sData);
+      } else {
+        const olderValid = personalityHistory.find(
+          (h) =>
+            h.summaryData &&
+            h.summaryData.response_code !== "500" &&
+            !JSON.stringify(h.summaryData).includes("not available right now")
+        );
+        if (olderValid) {
+          setAiSummary(olderValid.summaryData?.data || olderValid.summaryData);
+        }
+      }
     }
   }, [selectedHistoryIndex, personalityHistory]);
 
