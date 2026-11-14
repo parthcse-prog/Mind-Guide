@@ -163,9 +163,11 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
     };
   }, [isSpeaking, loading, actions]);
 
-  // High-precision viseme lip-sync animation loop (commit 5c9e9918)
-  useFrame(({ clock }) => {
+  // High-precision viseme lip-sync & interactive gaze animation loop
+  useFrame(({ clock, pointer, mouse }) => {
     const elapsed = clock.getElapsedTime();
+    const ptrX = pointer?.x ?? mouse?.x ?? 0;
+    const ptrY = pointer?.y ?? mouse?.y ?? 0;
     const { mouthMeshes, eyeMeshes } = meshesRef.current;
 
     const getMorphIdx = (dict, keys) => {
@@ -272,45 +274,97 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
       });
     }
 
-    // Procedural Head Lock: Keep head completely still and watching the front
+    // 1. Interactive Cursor & Gaze Tracking: Eyes/Head follow the student's mouse smoothly
     const head = scene.getObjectByName("Head") || scene.getObjectByName("mixamorigHead") || scene.getObjectByName("J_Bip_C_Head");
     const neck = scene.getObjectByName("Neck") || scene.getObjectByName("mixamorigNeck") || scene.getObjectByName("J_Bip_C_Neck");
     
-    // Override any animation rotation to lock them staring straight ahead
-    if (head) head.rotation.set(0, 0, 0);
-    if (neck) neck.rotation.set(0, 0, 0);
+    // Smooth target gaze angles (safely clamped within natural human neck range)
+    const targetHeadY = Math.max(Math.min(ptrX * 0.28, 0.32), -0.32);
+    const targetHeadX = Math.max(Math.min(-ptrY * 0.22, 0.24), -0.24);
 
-    // Procedural Hands Clasped at Waist (Steve Carell pose)
-    // LOWERED: Pushing shoulder Z-axis down to 1.5 radians (approx 85 degrees straight down)
+    if (head) {
+      head.rotation.y += (targetHeadY - head.rotation.y) * 0.08;
+      head.rotation.x += (targetHeadX - head.rotation.x) * 0.08;
+
+      if (isSpeaking) {
+        // Conversational empathetic nod (1-2 degrees) synced to voice cadence
+        const speechNod = Math.sin(elapsed * 2.2) * 0.022;
+        head.rotation.x += speechNod;
+      }
+    }
+
+    if (neck) {
+      neck.rotation.y += (targetHeadY * 0.35 - neck.rotation.y) * 0.08;
+      neck.rotation.x += (targetHeadX * 0.35 - neck.rotation.x) * 0.08;
+    }
+
+    // 2. Ambient Spine Breathing (Natural respiratory life so models never feel frozen)
+    const spine = scene.getObjectByName("Spine") || scene.getObjectByName("mixamorigSpine") || scene.getObjectByName("J_Bip_C_Spine");
+    if (spine) {
+      const breathCycle = Math.sin(elapsed * 1.5) * 0.012;
+      spine.rotation.x = breathCycle;
+    }
+
+    // 3. Hands & Arms: Anchored strictly at waist level (hands NEVER go up)
     const rightArm = scene.getObjectByName("RightArm") || scene.getObjectByName("mixamorigRightArm");
     const rightForeArm = scene.getObjectByName("RightForeArm") || scene.getObjectByName("mixamorigRightForeArm");
     const leftArm = scene.getObjectByName("LeftArm") || scene.getObjectByName("mixamorigLeftArm");
     const leftForeArm = scene.getObjectByName("LeftForeArm") || scene.getObjectByName("mixamorigLeftForeArm");
+    const rightHand = scene.getObjectByName("RightHand") || scene.getObjectByName("mixamorigRightHand");
+    const leftHand = scene.getObjectByName("LeftHand") || scene.getObjectByName("mixamorigLeftHand");
 
     const vroidRightArm = scene.getObjectByName("J_Bip_R_UpperArm");
     const vroidRightForeArm = scene.getObjectByName("J_Bip_R_LowerArm");
     const vroidLeftArm = scene.getObjectByName("J_Bip_L_UpperArm");
     const vroidLeftForeArm = scene.getObjectByName("J_Bip_L_LowerArm");
+    const vroidRightHand = scene.getObjectByName("J_Bip_R_Hand");
+    const vroidLeftHand = scene.getObjectByName("J_Bip_L_Hand");
+
+    // Micro-cadence when speaking: hands stay strictly anchored down at waist level
+    let armTwistR = -0.2;
+    let armTwistL = 0.2;
+    let foreArmBendR = -0.58;
+    let foreArmBendL = 0.58;
+    let handTiltR = 0;
+    let handTiltL = 0;
+
+    if (isSpeaking) {
+      // Controlled, poised micro-articulation strictly at waist height (never raises hands up)
+      const cadence = Math.sin(elapsed * 2.3) * 0.035;
+      const wristSway = Math.cos(elapsed * 1.6) * 0.025;
+
+      armTwistR = -0.2 + cadence * 0.2;
+      armTwistL = 0.2 - cadence * 0.2;
+      foreArmBendR = -0.58 + cadence * 0.4;
+      foreArmBendL = 0.58 - cadence * 0.4;
+      handTiltR = -0.04 + wristSway;
+      handTiltL = 0.04 - wristSway;
+    }
 
     // Apply to RPM / Mixamo rigged models
     if (rightArm && rightForeArm && leftArm && leftForeArm) {
-      // Preserve the Idle animation's natural downward drop (X and Z)
-      // Only overwrite the Y-axis to twist the shoulders slightly inward towards the stomach
-      rightArm.rotation.y = -0.2; 
-      leftArm.rotation.y = 0.2;
-      
-      // Bend elbows slightly (approx 35 degrees) so only the fingers touch at the waist
-      rightForeArm.rotation.z = -0.6;
-      leftForeArm.rotation.z = 0.6;
+      rightArm.rotation.y = armTwistR; 
+      leftArm.rotation.y = armTwistL;
+      rightForeArm.rotation.z = foreArmBendR;
+      leftForeArm.rotation.z = foreArmBendL;
+
+      if (rightHand && leftHand) {
+        rightHand.rotation.z = handTiltR;
+        leftHand.rotation.z = handTiltL;
+      }
     }
     
     // Apply to VRoid rigged models
     if (vroidRightArm && vroidRightForeArm && vroidLeftArm && vroidLeftForeArm) {
-      vroidRightArm.rotation.y = -0.2;
-      vroidLeftArm.rotation.y = 0.2;
-      
-      vroidRightForeArm.rotation.y = -0.6; // VRoid typically bends elbows on Y
-      vroidLeftForeArm.rotation.y = 0.6;
+      vroidRightArm.rotation.y = armTwistR;
+      vroidLeftArm.rotation.y = armTwistL;
+      vroidRightForeArm.rotation.y = foreArmBendR;
+      vroidLeftForeArm.rotation.y = foreArmBendL;
+
+      if (vroidRightHand && vroidLeftHand) {
+        vroidRightHand.rotation.z = handTiltR;
+        vroidLeftHand.rotation.z = handTiltL;
+      }
     }
   });
 
@@ -350,9 +404,25 @@ const AssistantAvatar = ({
 }) => {
   const normType = (counselorType || "").toLowerCase().trim();
   const config = COUNSELOR_CONFIGS[normType] || COUNSELOR_CONFIGS["academic counselor"];
+  const [interactiveMsg, setInteractiveMsg] = React.useState(null);
+
+  const handleAvatarClick = () => {
+    setInteractiveMsg(`${config.name} is listening to you`);
+    setTimeout(() => setInteractiveMsg(null), 2500);
+  };
 
   return (
-    <div className={`${size} relative overflow-hidden bg-transparent flex items-center justify-center`}>
+    <div 
+      onClick={handleAvatarClick}
+      title="Click to interact with 3D counselor"
+      className={`${size} relative overflow-hidden bg-transparent flex items-center justify-center cursor-pointer select-none group`}
+    >
+      {/* Interactive Counselor Status Pill */}
+      <div className="absolute top-3 left-3 z-10 px-2.5 py-1 bg-black/40 backdrop-blur-md rounded-full text-[10px] text-teal-300 font-semibold flex items-center gap-1.5 border border-white/10 pointer-events-none transition-all shadow-xs">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 motion-safe:animate-pulse"></span>
+        <span className="truncate max-w-[180px]">{interactiveMsg || `${config.name} • Active Gaze`}</span>
+      </div>
+
       <Suspense fallback={<LoadingAvatarFallback />}>
         <AvatarErrorBoundary counselorConfig={config}>
           <Canvas
