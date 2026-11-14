@@ -350,20 +350,104 @@ const fetchRemotiveJobs = async (region) => {
 
 
 /**
+ * Live online web fetch from PI360 Campus Job Opportunities API
+ * https://pi360.net/site/api/endpoints/api_job_opportunities.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg&rs=jobopportunity
+ */
+const fetchPi360Jobs = async () => {
+  try {
+    const res = await axios.get(
+      "https://pi360.net/site/api/endpoints/api_job_opportunities.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg&rs=jobopportunity&limit=25",
+      { timeout: 7000 }
+    );
+
+    const list = res.data?.list || [];
+    // Dummy match percentages between 85% and 97% to highlight top matching campus opportunities
+    const dummyMatches = [96, 94, 92, 95, 91, 89, 93, 88, 90, 87, 85, 97];
+
+    return list.map((j, index) => {
+      let skills = ["Talent Acquisition", "Screening", "Communication", "HR Operations", "Coordination"];
+      if (j.Skills) {
+        const techMatch = j.Skills.match(/Technical Skills:\s*([\s\S]*?)(?:Behavioral Skills:|$)/i);
+        if (techMatch && techMatch[1]) {
+          const parsed = techMatch[1]
+            .split("\n")
+            .map((s) => s.replace(/^[?•\-\*\s]+/, "").trim())
+            .filter((s) => s.length > 2 && s.length < 40);
+          if (parsed.length > 0) skills = parsed.slice(0, 5);
+        } else {
+          const lines = j.Skills.split("\n")
+            .map((s) => s.replace(/^[?•\-\*\s]+/, "").trim())
+            .filter((s) => s.length > 2 && s.length < 40 && !s.includes(":") && !s.toLowerCase().includes("responsibilities"));
+          if (lines.length > 0) skills = lines.slice(0, 5);
+        }
+      }
+      if (skills.length < 3) {
+        skills.push("Client Management", "Recruitment");
+      }
+
+      const isIntern =
+        (j.Job_Title || "").toLowerCase().includes("intern") ||
+        (j.Experience || "").toLowerCase().includes("intern");
+
+      const matchPct = dummyMatches[index % dummyMatches.length];
+
+      return {
+        id: `PI360-${j.Job_ID || index}`,
+        title: j.Job_Title || "Job Opportunity",
+        company: j.Company && j.Company !== "NA" ? j.Company : "PI360 Partner Company",
+        logo: `https://logo.clearbit.com/${(j.Company || "pi360").toLowerCase().replace(/[^a-z]/g, "")}.com`,
+        location: j.Location && j.Location !== "NA" ? j.Location : "All India / Campus Partner",
+        region: "All India",
+        type: isIntern ? "Internship" : "Full-Time",
+        experience: j.Experience && j.Experience !== "NA" ? j.Experience : "0 to 2 Yrs (Fresher)",
+        stipendSalary:
+          j.Salary && j.Salary !== "NA"
+            ? j.Salary
+            : isIntern
+            ? "₹20,000 - ₹35,000 / month"
+            : "₹4.5 - ₹8.0 LPA",
+        requiredSkills: skills,
+        applyUrl: j.Weblink && j.Weblink !== "NA" ? j.Weblink : "https://pi360.net/",
+        postedDate: "Campus Verified",
+        originalSource: "PI360",
+        source: j.Source || "PI360",
+        matchPercentage: matchPct,
+        matchingSkillsCount: skills.length,
+        missingSkills: [],
+        isPi360: true,
+      };
+    });
+  } catch (err) {
+    console.warn("PI360 job opportunities fetch error:", err.message);
+    return [];
+  }
+};
+
+/**
  * Fetch and filter jobs real-time with skill matching algorithm
  */
 const fetchRealtimeIndiaJobs = async ({ userSkills = [], region = "All India", userType = "all" }) => {
   const normalizedUserSkills = userSkills.map((s) => (typeof s === "string" ? s.toLowerCase() : s.skill ? s.skill.toLowerCase() : "").trim());
 
-  // 1. Fetch live online jobs from web APIs
+  // 1. Fetch PI360 campus job opportunities
+  const pi360Jobs = await fetchPi360Jobs();
+
+  // Filter PI360 jobs by type if specified
+  const filteredPi360Jobs = pi360Jobs.filter((job) => {
+    if (userType === "internship" && job.type.toLowerCase() !== "internship") return false;
+    if (userType === "fulltime" && job.type.toLowerCase() !== "full-time") return false;
+    return true;
+  });
+
+  // 2. Fetch live online jobs from web APIs
   const onlineJobs = await fetchOnlineJobs(region);
   const himalayasJobs = await fetchHimalayasJobs(region);
   const remotiveJobs = await fetchRemotiveJobs(region);
 
-  // 2. Combine online live jobs with regional Indian engineering database
+  // 3. Combine online live jobs with regional Indian engineering database
   const combinedList = [...onlineJobs, ...himalayasJobs, ...remotiveJobs, ...BASE_JOB_DATABASE];
 
-  // 3. Filter jobs based on Region, Job Type, and Experience Level (no senior roles)
+  // 4. Filter jobs based on Region, Job Type, and Experience Level (no senior roles)
   let filteredJobs = combinedList.filter((job) => {
     // Region match
     const matchRegion =
@@ -441,8 +525,12 @@ const fetchRealtimeIndiaJobs = async ({ userSkills = [], region = "All India", u
     };
   });
 
-  // Sort by highest match percentage first
-  return processedJobs.sort((a, b) => b.matchPercentage - a.matchPercentage);
+  // Sort PI360 jobs by dummy match percentage, and other jobs by match percentage
+  const sortedPi360 = filteredPi360Jobs.sort((a, b) => b.matchPercentage - a.matchPercentage);
+  const sortedOther = processedJobs.sort((a, b) => b.matchPercentage - a.matchPercentage);
+
+  // Return PI360 jobs at the top, followed by other matching opportunities
+  return [...sortedPi360, ...sortedOther];
 };
 
 module.exports = {
