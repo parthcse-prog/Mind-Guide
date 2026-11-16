@@ -261,49 +261,115 @@ const handleGetAllReports = asyncHandler(async (req, res) => {
   }
 });
 const handleGetSkills = asyncHandler(async (req, res) => {
-  // Make API request to fetch short heading based on the provided roadmap
-  // Example:
-  // console.log("heading started");
-  // console.log("goalsss!!!!!!------------>");
-  // const { email } = req.user;
   const { email } = req.user;
   const user = await User.findOne({ email });
-  const getroadmap = user.roadmap;
-  const goals = getroadmap.map((item) => item.Goal);
-  console.log("goals: ", goals);
-  // console.log(typeof getroadmap);
-  // console.log(getroadmap);
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  const getroadmap = user.roadmap || [];
+  const goals = getroadmap.map((item) => item.Goal).filter(Boolean);
+
+  if (goals.length === 0) {
+    return res.status(200).json(user);
+  }
 
   const Heading = [
     {
       role: "system",
-      content: `given this is goals -> ${goals} go through this  goals   and split the goals into two categories one should have non technical skill that the goal is aiming to provide and in second category  out of it  provide me striclty   containing  techinal skill name  of  what this  goals is aiming to provide and strictly make sure to only add technical skills topic name strictly only and note that the tecnical skill name should  be in less bare minimum words.and if there is no technical skills then send me empty. The desired skill topic should reflect the main thing that  goals is trying to achieve and that technical skill name should be revelant in realm of development only and after splitting into two i want you to send me in strictly below format and dont add anything other than the format specified below very strictly. 
-      [{
-        "skill": "name of the skill",
-        "type": "technical Or nontechnical",
-      }] in json format only.
-      `,
+      content: `You are an AI skills analyst and talent profiler.
+Given the student's completed roadmap goals below, analyze and extract the concrete skills acquired.
+Split each skill into:
+- "technical": domain technologies, programming languages, cloud/DB, tools, or hard technical competencies.
+- "non-technical": professional soft skills, agile workflows, communication, problem-solving, or methodologies.
+
+Roadmap Goals:
+${JSON.stringify(goals)}
+
+Respond ONLY with a strictly valid JSON array of objects (no markdown code fences, no extra commentary):
+[
+  {
+    "skill": "Name of Skill",
+    "type": "technical"
+  },
+  {
+    "skill": "Name of Skill",
+    "type": "non-technical"
+  }
+]`,
     },
   ];
-  // console.log("Heading:", response.choices[0].message.content);
-  // console.log(response.choices[0].message.content);
-  try {
-    let skill = await callGatewayLLM(Heading);
 
-    skill = JSON.parse(skill);
-    const user = await User.findOne({ email });
-    skill.forEach((element) => {
-      user.skills.push(element);
+  try {
+    let rawSkill = "";
+    try {
+      rawSkill = await callGatewayLLM(Heading, "llama3.1:8b");
+    } catch (llmErr) {
+      console.warn("Primary LLM call in handleGetSkills failed, attempting fallback to gpt-oss:20b:", llmErr.message);
+      rawSkill = await callGatewayLLM(Heading, "gpt-oss:20b");
+    }
+
+    // Robust JSON extraction (strip code fences / search for array bounds)
+    let jsonString = rawSkill;
+    const match = rawSkill.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (match && match[1]) {
+      jsonString = match[1].trim();
+    } else {
+      const firstBracket = rawSkill.indexOf('[');
+      const lastBracket = rawSkill.lastIndexOf(']');
+      if (firstBracket !== -1 && lastBracket !== -1) {
+        jsonString = rawSkill.substring(firstBracket, lastBracket + 1);
+      }
+    }
+
+    let parsed = JSON.parse(jsonString);
+    if (!Array.isArray(parsed)) {
+      if (parsed && Array.isArray(parsed.skills)) {
+        parsed = parsed.skills;
+      } else {
+        parsed = [];
+      }
+    }
+
+    if (!user.skills) user.skills = [];
+    const existingSkillNames = new Set(
+      user.skills.map((s) => (typeof s === "string" ? s : s.skill).toLowerCase().trim())
+    );
+
+    parsed.forEach((element) => {
+      const skillName = typeof element === "string" ? element.trim() : (element.skill || "").trim();
+      let skillType = typeof element === "object" && element.type ? element.type.toLowerCase().trim() : "technical";
+
+      if (skillType.includes("non")) {
+        skillType = "non-technical";
+      } else {
+        skillType = "technical";
+      }
+
+      if (skillName && !existingSkillNames.has(skillName.toLowerCase())) {
+        existingSkillNames.add(skillName.toLowerCase());
+        user.skills.push({
+          skill: skillName,
+          type: skillType,
+        });
+      }
     });
-    user.roadmap = [];
+
+    // Mark roadmap items as completed instead of wiping user progress
+    if (Array.isArray(user.roadmap)) {
+      user.roadmap.forEach((item) => {
+        item.isCompleted = true;
+      });
+    }
+
     await user.save();
     res.cookie("token", user.createJWT(), {
       expires: new Date(Date.now() + 604800000),
     });
-    res.json(user);
+    return res.status(200).json(user);
   } catch (error) {
-    console.log("error happened while saving skills", error);
-    res.json("Error while saving User skills!!!");
+    console.error("Error while extracting and saving user skills:", error);
+    return res.status(500).json({ error: "Failed to parse and save skills from roadmap" });
   }
 });
 

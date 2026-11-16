@@ -1,4 +1,4 @@
-import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import ChatApp from "./pages/ChatApp";
@@ -38,6 +38,7 @@ function App() {
               {/* Add a dynamic route to capture the counselor type */}
               <Route path="counselors/chat/:type" element={<ChatApp />} />
               <Route path="tools" element={<Tools />} />
+              <Route path="profile" element={<Navigate to="/account/dashboard/profile" replace />} />
               <Route path="account/dashboard" element={<Dashboard />}>
                 <Route index element={<HeroDashBoard />} />
                 <Route path="reports" element={<GetAllReports />} />

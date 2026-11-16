@@ -3,6 +3,8 @@ import axios from "axios";
 import { FaExternalLinkAlt } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { addUser } from "../../redux/mindGuideSlice";
+import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
 import Mermaid from "react-mermaid2";
 
 const GetRoadmap = () => {
@@ -63,17 +65,26 @@ const GetRoadmap = () => {
     setPanPosition({ x: 0, y: 0 });
   };
 
+  const [syncingSkills, setSyncingSkills] = useState(false);
+  const [syncSuccess, setSyncSuccess] = useState(false);
+
   const completedTasksCount = roadmapData.filter((item) => item.isCompleted).length;
   const totalTasksCount = roadmapData.length;
   const progress = totalTasksCount === 0 ? 0 : Math.round((completedTasksCount / totalTasksCount) * 100);
 
   const handleExtractSkill = async () => {
     try {
+      setSyncingSkills(true);
       await axios.get("/api/v1/user/getSkills");
       const { data } = await axios.get("/api/v1/user/getUserProfile");
       dispatch(addUser(data));
+      setSyncSuccess(true);
+      toast.success("Skills & Verified Badges synchronized to your Profile!");
     } catch (err) {
-      console.log(err);
+      console.error("Error syncing skills:", err);
+      toast.error(err.response?.data?.error || "Failed to sync skills from roadmap. Please try again.");
+    } finally {
+      setSyncingSkills(false);
     }
   };
 
@@ -402,14 +413,46 @@ const GetRoadmap = () => {
       )}
 
       {progress === 100 && (
-        <div className="bg-emerald-500 text-white p-6 rounded-3xl shadow-md text-center flex flex-col items-center gap-3">
-          <h3 className="text-lg font-extrabold">🎉 Congratulations! You completed your roadmap!</h3>
-          <button
-            onClick={handleExtractSkill}
-            className="bg-white text-emerald-800 px-6 py-2.5 rounded-xl text-xs font-bold shadow transition-all hover:bg-gray-100"
-          >
-            Sync Extracted Skills to Profile
-          </button>
+        <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-6 rounded-3xl shadow-lg text-center flex flex-col items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-2xl text-amber-300">military_tech</span>
+            <h3 className="text-lg font-extrabold font-['Manrope']">Congratulations! You completed your roadmap!</h3>
+          </div>
+          <p className="text-xs text-emerald-100 max-w-md">
+            Your learning milestones are complete. Sync your acquired competencies into verified badges on your Profile.
+          </p>
+          <div className="flex items-center gap-3 flex-wrap justify-center mt-1">
+            <button
+              onClick={handleExtractSkill}
+              disabled={syncingSkills}
+              className="bg-white hover:bg-emerald-50 text-emerald-900 px-6 py-2.5 rounded-xl text-xs font-extrabold shadow transition-all active:scale-95 disabled:opacity-60 flex items-center gap-2"
+            >
+              {syncingSkills ? (
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-emerald-900 border-t-transparent rounded-full animate-spin"></span>
+                  <span>Extracting Skills with AI...</span>
+                </>
+              ) : syncSuccess ? (
+                <>
+                  <span className="material-symbols-outlined text-sm text-emerald-600">check_circle</span>
+                  <span>Synced Successfully!</span>
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-sm text-emerald-700">sync</span>
+                  <span>Sync Extracted Skills to Profile</span>
+                </>
+              )}
+            </button>
+
+            <Link
+              to="/account/dashboard/profile"
+              className="px-5 py-2.5 rounded-xl text-xs font-bold bg-white/15 hover:bg-white/25 text-white border border-white/30 backdrop-blur-sm transition-all flex items-center gap-1.5"
+            >
+              <span>View Badges in Profile</span>
+              <span className="material-symbols-outlined text-sm">arrow_forward</span>
+            </Link>
+          </div>
         </div>
       )}
     </div>

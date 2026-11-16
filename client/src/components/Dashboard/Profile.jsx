@@ -424,30 +424,35 @@ const Profile = () => {
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {(userInfo.skills || [])
-                .filter((s) => s.type === "technical" || !s.type)
-                .map((skillObj, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-2xl border border-blue-100 hover:border-blue-300 transition-colors shadow-xs group"
-                  >
-                    <div className="w-10 h-10 shrink-0 flex items-center justify-center bg-white rounded-xl shadow-xs border border-blue-100 group-hover:scale-110 transition-transform">
-                      <img src={badge} alt="Technical Badge" className="h-7 w-7 object-contain" />
+                .filter((s) => typeof s === "string" || s.type === "technical" || s.type === "tech" || !s.type)
+                .map((skillObj, index) => {
+                  const skillName = typeof skillObj === "string" ? skillObj : skillObj.skill;
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-2xl border border-blue-100 hover:border-blue-300 transition-colors shadow-xs group"
+                    >
+                      <div className="w-10 h-10 shrink-0 flex items-center justify-center bg-white rounded-xl shadow-xs border border-blue-100 group-hover:scale-110 transition-transform">
+                        <img src={badge} alt="Technical Badge" className="h-7 w-7 object-contain" />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-extrabold text-[#002531] truncate">
+                          {skillName}
+                        </span>
+                        <span className="text-[10px] text-blue-600 font-semibold uppercase tracking-wider">
+                          Verified Badge
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-xs font-extrabold text-[#002531] truncate">
-                        {skillObj.skill}
-                      </span>
-                      <span className="text-[10px] text-blue-600 font-semibold uppercase tracking-wider">
-                        Verified Badge
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           </div>
 
           {/* Non-Technical / Behavioral Badges */}
-          {(userInfo.skills || []).some((s) => s.type === "non-technical") && (
+          {(userInfo.skills || []).some(
+            (s) => typeof s === "object" && (s.type === "non-technical" || s.type === "nontechnical" || s.type === "soft")
+          ) && (
             <div>
               <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-teal-500"></span>
@@ -455,25 +460,30 @@ const Profile = () => {
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {userInfo.skills
-                  .filter((s) => s.type === "non-technical")
-                  .map((skillObj, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 p-3 bg-emerald-50/50 rounded-2xl border border-teal-100 hover:border-teal-300 transition-colors shadow-xs group"
-                    >
-                      <div className="w-10 h-10 shrink-0 flex items-center justify-center bg-white rounded-xl shadow-xs border border-teal-100 group-hover:scale-110 transition-transform">
-                        <img src={tick} alt="Skill Verified" className="h-7 w-7 object-contain" />
+                  .filter(
+                    (s) => typeof s === "object" && (s.type === "non-technical" || s.type === "nontechnical" || s.type === "soft")
+                  )
+                  .map((skillObj, index) => {
+                    const skillName = typeof skillObj === "string" ? skillObj : skillObj.skill;
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 p-3 bg-emerald-50/50 rounded-2xl border border-teal-100 hover:border-teal-300 transition-colors shadow-xs group"
+                      >
+                        <div className="w-10 h-10 shrink-0 flex items-center justify-center bg-white rounded-xl shadow-xs border border-teal-100 group-hover:scale-110 transition-transform">
+                          <img src={tick} alt="Skill Verified" className="h-7 w-7 object-contain" />
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-xs font-extrabold text-[#002531] truncate">
+                            {skillName}
+                          </span>
+                          <span className="text-[10px] text-emerald-600 font-semibold uppercase tracking-wider">
+                            Certified
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-extrabold text-[#002531] truncate">
-                          {skillObj.skill}
-                        </span>
-                        <span className="text-[10px] text-emerald-600 font-semibold uppercase tracking-wider">
-                          Certified
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             </div>
           )}
