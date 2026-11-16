@@ -3,19 +3,27 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Sample Job Descriptions for quick 1-click testing
+// Unified Sample Job Descriptions across Technical & Business domains
 const SAMPLE_JDS = [
   {
-    role: "Full Stack Engineer (React & Node)",
+    role: "Full Stack Engineer (Tech)",
+    category: "Software & Engineering",
     text: "We are seeking a Full Stack Software Engineer proficient in React.js, Node.js, Express, MongoDB/PostgreSQL, and REST APIs. Experience with Docker, Git version control, CI/CD pipelines, and cloud deployment (AWS/GCP) is strongly preferred. Candidates must demonstrate measurable project impact, clean code practices, and strong team collaboration."
   },
   {
-    role: "Frontend Developer (React & UI/UX)",
-    text: "Looking for a creative Frontend Engineer with deep expertise in React.js, modern JavaScript (ES6+), Tailwind CSS, component state management, and responsive UI design. Familiarity with Next.js, web accessibility, and performance optimization is a plus. Must have a strong portfolio demonstrating user-centric web applications."
+    role: "Growth & Digital Marketing (Non-Tech)",
+    category: "Marketing & Growth",
+    text: "Seeking a Growth Marketing Specialist experienced in performance marketing, SEO/SEM, conversion rate optimization (CRO), and campaign analytics. Proficiency with Google Analytics, HubSpot/Salesforce, Meta Ads Manager, and email automation funnels is required. Must demonstrate quantifiable revenue impact, customer acquisition cost (CAC) reduction, and cross-functional leadership."
   },
   {
-    role: "Backend & Cloud Developer",
-    text: "Seeking a Backend Engineer proficient in Node.js/Python, database design (SQL & NoSQL), Redis caching, Docker containerization, and microservices architecture. Experience with system design, API security, and scalable cloud infrastructure is required. Strong algorithmic problem solving skills expected."
+    role: "Financial & Business Analyst (Non-Tech)",
+    category: "Finance & Strategy",
+    text: "Looking for an analytical Financial & Business Analyst proficient in financial modeling (DCF/LBO), variance analysis, budgeting, and corporate valuation. Strong mastery of advanced Excel/VBA, Power BI/Tableau, and ERP systems (SAP/Oracle) required. Candidates should have a keen eye for cost optimization, revenue forecasting, and executive stakeholder presentations."
+  },
+  {
+    role: "HR & Talent Operations (Non-Tech)",
+    category: "People & Operations",
+    text: "Seeking a proactive Human Resources & Talent Operations Specialist skilled in full-lifecycle recruitment, employee onboarding workflows, HRMS platforms (Workday/BambooHR), and labor compliance. Experience designing performance appraisal frameworks, boosting employee retention metrics, and facilitating cross-departmental culture initiatives is strongly desired."
   }
 ];
 
@@ -224,8 +232,10 @@ const ResumeAnalyzer = () => {
 
   const pillars = result?.fourPillars || {
     atsParseability: result?.percentage || 0,
+    coreCompetencies: result?.percentage || 0,
     technicalAlignment: result?.percentage || 0,
     quantifiableImpact: Math.max(0, (result?.percentage || 0) - 15),
+    behavioralCultureFit: result?.percentage || 0,
     psychologicalRoleFit: result?.percentage || 0
   };
 
@@ -443,6 +453,11 @@ const ResumeAnalyzer = () => {
                     }`}>
                       {result.percentage >= 75 ? "Highly Competitive" : result.percentage >= 50 ? "Solid Foundation" : "Gaps Detected"}
                     </span>
+                    {result.roleCategory && (
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        {result.roleCategory}
+                      </span>
+                    )}
                     <span className="text-[11px] font-semibold text-slate-400">
                       Evaluated by AI Recruiter Engine
                     </span>
@@ -475,17 +490,17 @@ const ResumeAnalyzer = () => {
                     </div>
                   </div>
 
-                  {/* Pillar 2: Technical Alignment */}
+                  {/* Pillar 2: Core Competencies */}
                   <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col">
-                    <span className="text-[11px] font-semibold text-slate-500">Tech Alignment</span>
+                    <span className="text-[11px] font-semibold text-slate-500">Core Competencies</span>
                     <div className="flex items-baseline justify-between mt-1">
-                      <span className="text-lg font-black text-[#002531]">{pillars.technicalAlignment}%</span>
-                      <span className="text-[10px] font-bold text-slate-400">Skills</span>
+                      <span className="text-lg font-black text-[#002531]">{pillars.coreCompetencies || pillars.technicalAlignment}%</span>
+                      <span className="text-[10px] font-bold text-slate-400">Domain</span>
                     </div>
                     <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-2">
                       <div 
                         className="bg-emerald-600 h-full rounded-full transition-all duration-500" 
-                        style={{ width: `${pillars.technicalAlignment}%` }}
+                        style={{ width: `${pillars.coreCompetencies || pillars.technicalAlignment}%` }}
                       ></div>
                     </div>
                   </div>
@@ -505,17 +520,17 @@ const ResumeAnalyzer = () => {
                     </div>
                   </div>
 
-                  {/* Pillar 4: Psychological Fit */}
+                  {/* Pillar 4: Behavioral & Role Fit */}
                   <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col">
-                    <span className="text-[11px] font-semibold text-slate-500">Role & Cultural Fit</span>
+                    <span className="text-[11px] font-semibold text-slate-500">Behavioral & Role Fit</span>
                     <div className="flex items-baseline justify-between mt-1">
-                      <span className="text-lg font-black text-[#002531]">{pillars.psychologicalRoleFit}%</span>
+                      <span className="text-lg font-black text-[#002531]">{pillars.behavioralCultureFit || pillars.psychologicalRoleFit}%</span>
                       <span className="text-[10px] font-bold text-slate-400">PI360</span>
                     </div>
                     <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-2">
                       <div 
                         className="bg-amber-500 h-full rounded-full transition-all duration-500" 
-                        style={{ width: `${pillars.psychologicalRoleFit}%` }}
+                        style={{ width: `${pillars.behavioralCultureFit || pillars.psychologicalRoleFit}%` }}
                       ></div>
                     </div>
                   </div>

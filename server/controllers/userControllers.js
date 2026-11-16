@@ -546,31 +546,35 @@ ${personalityContext}`;
       const prompt = [
         {
           role: "system",
-          content: `You are an elite Silicon Valley ATS (Applicant Tracking System) Auditor, Technical Recruiter, and Career Coach.
-Your task is to comprehensively audit a student's resume against a target job description with recruiter-grade depth.
+          content: `You are an executive ATS (Applicant Tracking System) Auditor, Talent Assessment Specialist, and Executive Recruiter.
+Your task is to comprehensively audit a candidate's resume against a target job description with recruiter-grade depth.
+This engine is UNIFIED and evaluates BOTH technical roles (software, engineering, data, cloud) AND non-technical/business roles (marketing, sales, HR, finance, operations, management, design).
+
+Evaluate the candidate across the 4 Universal Recruiter Pillars and 5 Core Dimensions.
 
 You must respond ONLY with a raw JSON object (strictly valid JSON, no markdown codeblocks, no preamble, no commentary).
 Use this exact JSON schema:
 {
-  "percentage": <integer 0-100 overall match score>,
+  "percentage": <integer 0-100 overall match score against the JD>,
+  "roleCategory": "<Identified role category: e.g. 'Software & Engineering' or 'Data & Analytics' or 'Marketing & Growth' or 'Finance & Accounting' or 'Human Resources & Talent' or 'Operations & Management' or 'Product & Design'>",
   "fourPillars": {
-    "atsParseability": <integer 0-100 indicating formatting clarity, section headers, readability>,
-    "technicalAlignment": <integer 0-100 hard technical stack overlap with JD requirements>,
-    "quantifiableImpact": <integer 0-100 use of metrics, %, $, scale, and Google X-Y-Z formula in projects>,
-    "psychologicalRoleFit": <integer 0-100 behavioral, communication, problem-solving, and culture fit with role>
+    "atsParseability": <integer 0-100 formatting clarity, single-column machine readability, section hierarchy, contact hygiene>,
+    "coreCompetencies": <integer 0-100 direct alignment with role domain requirements: programming/tech stack for technical roles; functional methodologies, domain concepts, and strategies for non-tech roles>,
+    "quantifiableImpact": <integer 0-100 measurable outcomes, metrics, %, $, scale, volume, and Google X-Y-Z formula in projects/experience>,
+    "behavioralCultureFit": <integer 0-100 communication, leadership, collaboration, problem-solving, and culture fit with role requirements based on student profile and PI360 traits>
   },
   "radarMetrics": [
-    { "subject": "Tech Stack", "candidate": <0-100>, "benchmark": <70-95> },
+    { "subject": "Domain Expertise", "candidate": <0-100>, "benchmark": <70-95> },
+    { "subject": "Tools & Platforms", "candidate": <0-100>, "benchmark": <70-95> },
     { "subject": "Problem Solving", "candidate": <0-100>, "benchmark": <70-95> },
-    { "subject": "Quantifiable Impact", "candidate": <0-100>, "benchmark": <70-95> },
-    { "subject": "DevOps & Tooling", "candidate": <0-100>, "benchmark": <70-95> },
-    { "subject": "Culture & Leadership", "candidate": <0-100>, "benchmark": <70-95> }
+    { "subject": "Quantifiable Delivery", "candidate": <0-100>, "benchmark": <70-95> },
+    { "subject": "Leadership & Collab", "candidate": <0-100>, "benchmark": <70-95> }
   ],
   "bulletOptimizations": [
     {
-      "original": "<A weak or typical bullet point extracted or inferred from the student's resume>",
-      "improved": "<A powerful rewrite using Google's X-Y-Z formula: Accomplished [X], as measured by [Y], by doing [Z]>",
-      "impactType": "<e.g., 'Missing Quantifiable Metrics' or 'Passive Voice to Action Driver' or 'Unclear Tech Stack Impact'>"
+      "original": "<A weak, passive, or metric-deficient bullet point extracted or inferred from the candidate's resume>",
+      "improved": "<A high-impact rewrite using Google's X-Y-Z formula: Accomplished [X], as measured by [Y], by doing [Z]>",
+      "impactType": "<e.g., 'Missing Quantifiable Metrics' or 'Passive Voice to Action Driver' or 'Unclear Business/Technical Outcome'>"
     }
   ],
   "atsChecks": [
@@ -579,14 +583,14 @@ Use this exact JSON schema:
     { "title": "Quantifiable Metrics", "passed": <true/false>, "note": "<short 1-sentence audit note>" },
     { "title": "Core Keyword Density", "passed": <true/false>, "note": "<short 1-sentence audit note>" }
   ],
-  "matching": ["skill1", "skill2", ... max 12 detected matches],
-  "missing": ["skill1", "skill2", ... max 12 critical missing skills],
+  "matching": ["skill1", "skill2", ... max 12 detected matching hard/soft skills, tools, or domain terms],
+  "missing": ["skill1", "skill2", ... max 12 critical missing skills, tools, or domain terms required by JD],
   "actionableTips": [
-    "<High-leverage action tip 1>",
-    "<High-leverage action tip 2>",
-    "<High-leverage action tip 3>"
+    "<High-leverage action tip 1 tailored to the role>",
+    "<High-leverage action tip 2 tailored to the role>",
+    "<High-leverage action tip 3 tailored to the role>"
   ],
-  "verdict": "<2-3 sentence personalized recruiter assessment referencing their strengths, psychological fit, and specific gap closures needed>"
+  "verdict": "<2-3 sentence personalized recruiter assessment referencing their strengths, domain fit, and specific gap closures needed>"
 }`
         },
         {
@@ -631,19 +635,24 @@ Use this exact JSON schema:
       const boundedScore = Math.min(100, Math.max(0, baseScore));
 
       const parsedPillars = parsed.fourPillars || {};
+      const coreScore = Number(parsedPillars.coreCompetencies) || Number(parsedPillars.technicalAlignment) || boundedScore;
+      const behavScore = Number(parsedPillars.behavioralCultureFit) || Number(parsedPillars.psychologicalRoleFit) || Math.min(92, boundedScore + 5);
+
       const fourPillars = {
         atsParseability: Math.min(100, Math.max(0, Number(parsedPillars.atsParseability) || Math.min(95, boundedScore + 8))),
-        technicalAlignment: Math.min(100, Math.max(0, Number(parsedPillars.technicalAlignment) || boundedScore)),
+        coreCompetencies: Math.min(100, Math.max(0, coreScore)),
+        technicalAlignment: Math.min(100, Math.max(0, coreScore)), // backward compatibility
         quantifiableImpact: Math.min(100, Math.max(0, Number(parsedPillars.quantifiableImpact) || Math.max(45, boundedScore - 12))),
-        psychologicalRoleFit: Math.min(100, Math.max(0, Number(parsedPillars.psychologicalRoleFit) || Math.min(92, boundedScore + 5)))
+        behavioralCultureFit: Math.min(100, Math.max(0, behavScore)),
+        psychologicalRoleFit: Math.min(100, Math.max(0, behavScore)) // backward compatibility
       };
 
       const defaultRadar = [
-        { subject: "Tech Stack", candidate: fourPillars.technicalAlignment, benchmark: 85 },
+        { subject: "Domain Expertise", candidate: fourPillars.coreCompetencies, benchmark: 85 },
+        { subject: "Tools & Platforms", candidate: Math.max(40, boundedScore - 8), benchmark: 80 },
         { subject: "Problem Solving", candidate: Math.min(100, boundedScore + 4), benchmark: 80 },
-        { subject: "Quantifiable Impact", candidate: fourPillars.quantifiableImpact, benchmark: 80 },
-        { subject: "DevOps & Tooling", candidate: Math.max(35, boundedScore - 15), benchmark: 75 },
-        { subject: "Culture & Leadership", candidate: fourPillars.psychologicalRoleFit, benchmark: 75 }
+        { subject: "Quantifiable Delivery", candidate: fourPillars.quantifiableImpact, benchmark: 80 },
+        { subject: "Leadership & Collab", candidate: fourPillars.behavioralCultureFit, benchmark: 75 }
       ];
 
       const radarMetrics = Array.isArray(parsed.radarMetrics) && parsed.radarMetrics.length >= 3 
@@ -683,6 +692,7 @@ Use this exact JSON schema:
 
       analysisResult = {
         percentage: boundedScore,
+        roleCategory: parsed.roleCategory || "Professional Role",
         fourPillars,
         radarMetrics,
         bulletOptimizations,
@@ -691,7 +701,7 @@ Use this exact JSON schema:
         missing: Array.isArray(parsed.missing) ? parsed.missing.slice(0, 15) : [],
         actionableTips: Array.isArray(parsed.actionableTips) && parsed.actionableTips.length > 0 
           ? parsed.actionableTips.slice(0, 4) 
-          : ["Incorporate the missing skills directly into your project descriptions", "Quantify project accomplishments using Google's X-Y-Z formula", "Align your resume headers strictly with ATS standard naming"],
+          : ["Incorporate the missing skills directly into your experience or project descriptions", "Quantify accomplishments using Google's X-Y-Z formula", "Align your resume headers strictly with ATS standard naming"],
         verdict: typeof parsed.verdict === 'string' ? parsed.verdict : (parsed.summary || "Analysis complete."),
         modelUsed
       };
