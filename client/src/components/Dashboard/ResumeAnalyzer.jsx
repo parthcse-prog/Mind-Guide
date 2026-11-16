@@ -210,7 +210,7 @@ const ResumeAnalyzer = () => {
 
       if (response.data.success) {
         setResult(response.data.data);
-        toast.success("LLaMA 3.1 Recruiter Audit Complete!");
+        toast.success("Resume Audit Complete!");
       } else {
         toast.error("Analysis failed. Please try again.");
       }
@@ -238,7 +238,7 @@ const ResumeAnalyzer = () => {
           <div className="flex items-center gap-2 mb-1">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#4648d4]/10 text-[#4648d4] border border-[#4648d4]/20">
               <span className="w-2 h-2 rounded-full bg-[#4648d4] animate-pulse"></span>
-              Powered by Meta LLaMA 3.1 • DGX Accelerated
+              Neural ATS Engine • Institutional Intelligence
             </span>
           </div>
           <h2 className="text-2xl md:text-3xl font-extrabold text-[#002531] tracking-tight">
@@ -347,12 +347,12 @@ const ResumeAnalyzer = () => {
             {loading ? (
               <div className="flex items-center gap-3">
                 <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div>
-                <span>LLaMA 3.1 Running Neural Audit...</span>
+                <span>Running Resume Audit...</span>
               </div>
             ) : (
               <>
                 <span className="material-symbols-outlined text-xl">auto_awesome</span>
-                <span>Audit Resume with LLaMA 3.1</span>
+                <span>Audit Resume</span>
               </>
             )}
           </button>
@@ -382,7 +382,7 @@ const ResumeAnalyzer = () => {
                 <span className="material-symbols-outlined text-2xl absolute text-[#4648d4]">psychology</span>
               </div>
               <div>
-                <h4 className="font-bold text-lg text-[#002531]">LLaMA 3.1 Neural Audit in Progress</h4>
+                <h4 className="font-bold text-lg text-[#002531]">Resume Audit in Progress</h4>
                 <p className="text-xs text-slate-500 mt-1 max-w-sm">
                   Parsing resume semantics, evaluating keyword vectors, and generating Google X-Y-Z impact rewrites...
                 </p>
@@ -444,7 +444,7 @@ const ResumeAnalyzer = () => {
                       {result.percentage >= 75 ? "Highly Competitive" : result.percentage >= 50 ? "Solid Foundation" : "Gaps Detected"}
                     </span>
                     <span className="text-[11px] font-semibold text-slate-400">
-                      Evaluated by {result.modelUsed || "Meta LLaMA 3.1"}
+                      Evaluated by AI Recruiter Engine
                     </span>
                   </div>
                   <p className="text-xs md:text-sm text-[#002531]/85 font-medium leading-relaxed mt-1">
@@ -597,7 +597,7 @@ const ResumeAnalyzer = () => {
                           <div className="flex items-center justify-between">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
                               <span className="material-symbols-outlined text-xs">verified</span>
-                              LLaMA 3.1 Optimized (Google Formula)
+                              AI Optimized (Google Formula)
                             </span>
                             <button
                               type="button"

@@ -539,14 +539,14 @@ ${personalityContext}`;
       missing: [],
       actionableTips: [],
       verdict: "Analysis failed to parse context.",
-      modelUsed: "Llama 3.1 (8B Instruct)"
+      modelUsed: "AI Recruiter Engine"
     };
 
     try {
       const prompt = [
         {
           role: "system",
-          content: `You are an elite Silicon Valley ATS (Applicant Tracking System) Auditor, Technical Recruiter, and Career Coach powered by Meta Llama 3.1.
+          content: `You are an elite Silicon Valley ATS (Applicant Tracking System) Auditor, Technical Recruiter, and Career Coach.
 Your task is to comprehensively audit a student's resume against a target job description with recruiter-grade depth.
 
 You must respond ONLY with a raw JSON object (strictly valid JSON, no markdown codeblocks, no preamble, no commentary).
@@ -597,13 +597,13 @@ Use this exact JSON schema:
       
       // Primary model: llama3.1:8b, fallback to gpt-oss:20b
       let rawVerdict = "";
-      let modelUsed = "Llama 3.1 (8B Instruct)";
+      let modelUsed = "AI Recruiter Engine";
       try {
         rawVerdict = await callGatewayLLM(prompt, "llama3.1:8b");
       } catch (llamaErr) {
-        console.warn("Llama 3.1:8b call encountered error, attempting fallback:", llamaErr.message);
+        console.warn("Primary LLM call encountered error, attempting fallback:", llamaErr.message);
         rawVerdict = await callGatewayLLM(prompt, "gpt-oss:20b");
-        modelUsed = "GPT-OSS (20B Fallback)";
+        modelUsed = "AI Recruiter Engine";
       }
       
       // 1. Smart Extraction: Look for markdown blocks first, fallback to brace matching
