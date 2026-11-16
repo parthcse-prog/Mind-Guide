@@ -24,7 +24,10 @@ const protect = asyncHandler(async (req, res, next) => {
   }
 });
 const protectCookie = asyncHandler(async (req, res, next) => {
-  const token = req.cookies?.token;
+  let token = req.cookies?.token;
+  if (!token && req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+    token = req.headers.authorization.split(" ")[1];
+  }
   if (!token) {
     res.status(401);
     throw new Error("Not Authenticated");
@@ -34,8 +37,8 @@ const protectCookie = asyncHandler(async (req, res, next) => {
     req.user = await UserModel.findById(decoded._id).select("-password");
     next();
   } catch (error) {
-    res.status(500);
-    throw new Error("Internal Server Error");
+    res.status(401);
+    throw new Error("Not authorized, token failed");
   }
 });
 module.exports = { protect, protectCookie };

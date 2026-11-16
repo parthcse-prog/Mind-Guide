@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../model/User");
+const ChatSession = require("../model/ChatSession");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const axios = require("axios");
@@ -15,72 +16,65 @@ async function getChatGPTResponse(messages) {
   return await callGatewayLLM(messages);
 }
 
-const getChat = asyncHandler(async (req, res) => {
-  const counselorType = req.params.counselorType;
+// Reusable helper to build personalized student counselor messages with PI360 context
+async function buildInitialCounselorMessages(user, counselorType) {
+  const pi360 = user?.pi360Data?.student?.[0] || user?.pi360Data?.data || user?.pi360Data || {};
+  const name = user?.name || pi360.Name || pi360.name || "Student";
+  const rollNumber = pi360.RollNumber || "N/A";
+  const branch = pi360.Branch || pi360.Program || pi360.Course || "Engineering";
+  const batch = pi360.Batch || "N/A";
+  const academicPercentage = pi360.OverallAcademicPercentage || "N/A";
+  const skills = user?.skills?.map((s) => s.skill).join(", ") || "N/A";
+
+  let cvSummary = "";
   try {
-    const user = await User.findById(req.user._id);
-
-    // Extract student profile data (PI360 info, education, skills, branch, etc.)
-    const pi360 = user?.pi360Data?.student?.[0] || user?.pi360Data?.data || user?.pi360Data || {};
-    const name = user?.name || pi360.Name || pi360.name || "Student";
-    const rollNumber = pi360.RollNumber || "N/A";
-    const branch = pi360.Branch || pi360.Program || pi360.Course || "Engineering";
-    const batch = pi360.Batch || "N/A";
-    const academicPercentage = pi360.OverallAcademicPercentage || "N/A";
-    const skills = user?.skills?.map((s) => s.skill).join(", ") || "N/A";
-
-    // Extract CV sections if available
-    let cvSummary = "";
-    try {
-      const cvDrafts = pi360.cv_drafts || pi360.ResumeDrafts;
-      if (Array.isArray(cvDrafts) && cvDrafts.length > 0) {
-        const latest = cvDrafts[cvDrafts.length - 1];
-        const content = typeof latest.Content === "string" ? JSON.parse(latest.Content) : latest.Content;
-        if (content?.sections) {
-          cvSummary = content.sections
-            .map((s) => `${s.title}: ${s.items.map((i) => i.title || i.role || i.company).join("; ")}`)
-            .join(" | ");
-        }
+    const cvDrafts = pi360.cv_drafts || pi360.ResumeDrafts;
+    if (Array.isArray(cvDrafts) && cvDrafts.length > 0) {
+      const latest = cvDrafts[cvDrafts.length - 1];
+      const content = typeof latest.Content === "string" ? JSON.parse(latest.Content) : latest.Content;
+      if (content?.sections) {
+        cvSummary = content.sections
+          .map((s) => `${s.title}: ${s.items.map((i) => i.title || i.role || i.company).join("; ")}`)
+          .join(" | ");
       }
-    } catch (e) {
-      console.warn("Could not parse CV summary for counselor prompt:", e);
     }
+  } catch (e) {
+    console.warn("Could not parse CV summary for counselor prompt:", e);
+  }
 
-    let personalityContext = "";
-    if (user?.pi360Token) {
-      try {
-        const headers = { Authorization: `Bearer ${user.pi360Token}` };
-        const reportRes = await axios.get(`https://pi360.net/site/api/endpoints/api_get_personality_report.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg%3D&action=get_report`, { headers });
-        const summaryRes = await axios.get(`https://pi360.net/site/api/endpoints/api_get_personality_report.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg%3D&action=get_ai_summary`, { headers });
-        
-        const reportData = reportRes.data?.data || reportRes.data;
-        const summaryData = summaryRes.data?.data || summaryRes.data;
-        
-        // Safely extract Big 5 Traits
-        let extractedTraits = {};
-        if (reportData?.key_metrics?.trait_scores) extractedTraits = reportData.key_metrics.trait_scores;
-        else if (reportData?.trait_scores) extractedTraits = reportData.trait_scores;
-        
-        let traitStr = "";
-        if (Object.keys(extractedTraits).length > 0) {
-          traitStr = Object.entries(extractedTraits).map(([t, v]) => `${t}: ${typeof v === 'object' ? v.score : v}`).join(", ");
-        }
+  let personalityContext = "";
+  if (user?.pi360Token) {
+    try {
+      const headers = { Authorization: `Bearer ${user.pi360Token}` };
+      const reportRes = await axios.get(`https://pi360.net/site/api/endpoints/api_get_personality_report.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg%3D&action=get_report`, { headers });
+      const summaryRes = await axios.get(`https://pi360.net/site/api/endpoints/api_get_personality_report.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg%3D&action=get_ai_summary`, { headers });
+      
+      const reportData = reportRes.data?.data || reportRes.data;
+      const summaryData = summaryRes.data?.data || summaryRes.data;
+      
+      let extractedTraits = {};
+      if (reportData?.key_metrics?.trait_scores) extractedTraits = reportData.key_metrics.trait_scores;
+      else if (reportData?.trait_scores) extractedTraits = reportData.trait_scores;
+      
+      let traitStr = "";
+      if (Object.keys(extractedTraits).length > 0) {
+        traitStr = Object.entries(extractedTraits).map(([t, v]) => `${t}: ${typeof v === 'object' ? v.score : v}`).join(", ");
+      }
 
-        // Extract AI summary
-        const aiSumText = typeof summaryData === 'string' ? summaryData : (summaryData?.ai_summary || summaryData?.summary || "");
+      const aiSumText = typeof summaryData === 'string' ? summaryData : (summaryData?.ai_summary || summaryData?.summary || "");
 
-        if (traitStr || aiSumText) {
-          personalityContext = `\nSTUDENT PSYCHOLOGICAL PROFILE (PI360 Data):
+      if (traitStr || aiSumText) {
+        personalityContext = `\nSTUDENT PSYCHOLOGICAL PROFILE (PI360 Data):
 ${traitStr ? `- Big 5 Traits: ${traitStr}` : ""}
 ${aiSumText ? `- AI Personality Summary: ${aiSumText}` : ""}
 `;
-        }
-      } catch (err) {
-        console.warn("Could not fetch PI360 Personality data for counselor prompt:", err.message);
       }
+    } catch (err) {
+      console.warn("Could not fetch PI360 Personality data for counselor prompt:", err.message);
     }
+  }
 
-    const studentContextPrompt = `You are a personalized, expert ${counselorType} for student ${name}.
+  const studentContextPrompt = `You are a personalized, expert ${counselorType} for student ${name}.
 STUDENT PROFILE CONTEXT:
 - Name: ${name}
 - Roll Number: ${rollNumber}
@@ -93,26 +87,234 @@ GUIDELINES:
 2. Ask relevant, focused questions one by one.
 3. Be supportive, practical, and highly targeted to help ${name} achieve optimal academic, career, and personal growth.`;
 
-    messages = [
-      {
-        role: "system",
-        content: studentContextPrompt,
-      },
-      {
-        role: "assistant",
-        content: `Hello ${name}! I am your ${counselorType}. I have reviewed your academic profile in ${branch} (Batch ${batch}). How can I assist you with your goals today?`,
-      },
-    ];
+  return [
+    {
+      role: "system",
+      content: studentContextPrompt,
+    },
+    {
+      role: "assistant",
+      content: `Hello ${name}! I am your ${counselorType}. I have reviewed your academic profile in ${branch} (Batch ${batch}). How can I assist you with your goals today?`,
+    },
+  ];
+}
+
+const getChat = asyncHandler(async (req, res) => {
+  const counselorType = req.params.counselorType;
+  try {
+    const user = await User.findById(req.user._id);
+    const initialMessages = await buildInitialCounselorMessages(user, counselorType);
+
+    // Create a new persistent chat session in MongoDB
+    const session = await ChatSession.create({
+      user: user._id,
+      counselorType,
+      title: `New ${counselorType.charAt(0).toUpperCase() + counselorType.slice(1)} Session`,
+      messages: initialMessages,
+      lastActivity: new Date(),
+    });
 
     if (user) {
       user.sessionHistory.push({ date: new Date(), status: "started" });
       await user.save();
     }
 
-    res.status(200).json(messages);
+    res.setHeader("X-Session-Id", session._id.toString());
+    const responseData = initialMessages.map(m => ({ role: m.role, content: m.content }));
+    res.status(200).json(Object.assign(responseData, { sessionId: session._id.toString() }));
   } catch (err) {
     console.error("Error in getting chat", err);
     res.status(500).send("Internal Server Error");
+  }
+});
+
+// GET /api/v1/chat/sessions - Fetch all past chat sessions for current user
+const getUserChatSessions = asyncHandler(async (req, res) => {
+  try {
+    const { counselorType } = req.query;
+    const filter = { user: req.user._id, isArchived: { $ne: true } };
+    if (counselorType) {
+      filter.counselorType = new RegExp(`^${counselorType}$`, "i");
+    }
+
+    const sessions = await ChatSession.find(filter)
+      .sort({ lastActivity: -1 })
+      .select("_id title counselorType lastActivity createdAt messages")
+      .lean();
+
+    const formatted = sessions.map((s) => {
+      const userMsgCount = s.messages.filter((m) => m.role === "user").length;
+      const lastUserOrBotMsg = [...s.messages].reverse().find((m) => m.role !== "system");
+      return {
+        _id: s._id,
+        title: s.title,
+        counselorType: s.counselorType,
+        lastActivity: s.lastActivity || s.createdAt,
+        createdAt: s.createdAt,
+        messageCount: userMsgCount,
+        preview: lastUserOrBotMsg?.content ? lastUserOrBotMsg.content.substring(0, 85) : "",
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      count: formatted.length,
+      data: formatted,
+    });
+  } catch (err) {
+    console.error("Error fetching user chat sessions:", err);
+    res.status(500).json({ success: false, message: "Failed to fetch chat sessions" });
+  }
+});
+
+// GET /api/v1/chat/sessions/:id - Fetch full messages for a specific session
+const getChatSessionById = asyncHandler(async (req, res) => {
+  try {
+    const session = await ChatSession.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+
+    if (!session) {
+      return res.status(404).json({ success: false, message: "Chat session not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: session,
+    });
+  } catch (err) {
+    console.error("Error fetching chat session by id:", err);
+    res.status(500).json({ success: false, message: "Failed to fetch chat session" });
+  }
+});
+
+// POST /api/v1/chat/sessions - Start a new persistent session
+const createChatSession = asyncHandler(async (req, res) => {
+  try {
+    const counselorType = req.body.counselorType || req.query.counselorType || "academic counselor";
+    const user = await User.findById(req.user._id);
+    const initialMessages = await buildInitialCounselorMessages(user, counselorType);
+
+    const title = req.body.title || `New ${counselorType.charAt(0).toUpperCase() + counselorType.slice(1)} Session`;
+    const session = await ChatSession.create({
+      user: req.user._id,
+      counselorType,
+      title,
+      messages: initialMessages,
+      lastActivity: new Date(),
+    });
+
+    if (user) {
+      user.sessionHistory.push({ date: new Date(), status: "started" });
+      await user.save();
+    }
+
+    res.status(201).json({
+      success: true,
+      data: session,
+    });
+  } catch (err) {
+    console.error("Error creating chat session:", err);
+    res.status(500).json({ success: false, message: "Failed to create chat session" });
+  }
+});
+
+// POST /api/v1/chat/sessions/:id/messages - Append user/assistant messages to session & auto-title
+const appendChatSessionMessage = asyncHandler(async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userMessage, assistantMessage, messages } = req.body;
+
+    const session = await ChatSession.findOne({ _id: id, user: req.user._id });
+    if (!session) {
+      return res.status(404).json({ success: false, message: "Chat session not found" });
+    }
+
+    let messagesToAdd = [];
+    if (Array.isArray(messages) && messages.length > 0) {
+      messagesToAdd = messages;
+    } else {
+      if (userMessage) messagesToAdd.push(userMessage);
+      if (assistantMessage) messagesToAdd.push(assistantMessage);
+    }
+
+    for (const m of messagesToAdd) {
+      if (m && m.role && m.content) {
+        session.messages.push({
+          role: m.role,
+          content: m.content,
+          timestamp: m.timestamp || new Date(),
+        });
+      }
+    }
+
+    // Auto-generate title if currently default
+    if (session.title.startsWith("New ") || session.title.includes("Counseling Session")) {
+      const firstUserMsg = session.messages.find((m) => m.role === "user");
+      if (firstUserMsg && firstUserMsg.content) {
+        const cleanPrompt = firstUserMsg.content.trim().replace(/[\r\n]+/g, " ");
+        const words = cleanPrompt.split(" ");
+        session.title = words.slice(0, 6).join(" ") + (words.length > 6 ? "..." : "");
+      }
+    }
+
+    session.lastActivity = new Date();
+    await session.save();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        _id: session._id,
+        title: session.title,
+        lastActivity: session.lastActivity,
+        messages: session.messages,
+      },
+    });
+  } catch (err) {
+    console.error("Error appending message to session:", err);
+    res.status(500).json({ success: false, message: "Failed to save message to session" });
+  }
+});
+
+// PATCH /api/v1/chat/sessions/:id - Rename a session
+const renameChatSession = asyncHandler(async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title } = req.body;
+    if (!title || !title.trim()) {
+      return res.status(400).json({ success: false, message: "Title is required" });
+    }
+
+    const session = await ChatSession.findOneAndUpdate(
+      { _id: id, user: req.user._id },
+      { title: title.trim(), lastActivity: new Date() },
+      { new: true }
+    );
+
+    if (!session) {
+      return res.status(404).json({ success: false, message: "Chat session not found" });
+    }
+
+    res.status(200).json({ success: true, data: session });
+  } catch (err) {
+    console.error("Error renaming chat session:", err);
+    res.status(500).json({ success: false, message: "Failed to rename chat session" });
+  }
+});
+
+// DELETE /api/v1/chat/sessions/:id - Delete a session
+const deleteChatSession = asyncHandler(async (req, res) => {
+  try {
+    const { id } = req.params;
+    const session = await ChatSession.findOneAndDelete({ _id: id, user: req.user._id });
+    if (!session) {
+      return res.status(404).json({ success: false, message: "Chat session not found" });
+    }
+    res.status(200).json({ success: true, message: "Session deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting chat session:", err);
+    res.status(500).json({ success: false, message: "Failed to delete chat session" });
   }
 });
 const handleSendChat = asyncHandler(async (req, res) => {
@@ -383,6 +585,12 @@ const handleRoadmapUpdation = asyncHandler(async (req, res) => {
 });
 module.exports = {
   getChat,
+  getUserChatSessions,
+  getChatSessionById,
+  createChatSession,
+  appendChatSessionMessage,
+  renameChatSession,
+  deleteChatSession,
   handleSendChat,
   handleCreateReport,
   handleCreateRoadmap,
