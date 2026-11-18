@@ -14,10 +14,10 @@ const Home = () => {
 
         <div className="max-w-3xl space-y-4 z-10">
           <h1 className="text-5xl md:text-7xl font-extrabold text-[#002531] font-['Manrope'] leading-tight tracking-tight">
-            Unlock your Potential
+            Your Personalized Guide
           </h1>
           <p className="text-xl md:text-2xl text-[#41484b] font-normal leading-relaxed">
-            Discover the power of education with Mind-Guide.
+            Ask anything — explore career paths, resume audits, and roadmaps with Saarthi.ai.
             <br />
             Empowering students to achieve their dreams.
           </p>
