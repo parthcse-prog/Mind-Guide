@@ -462,6 +462,7 @@ const AssistantAvatar = ({
   isSpeaking = false,
   loading = false,
   counselorType = "academic counselor",
+  hideStatusPill = false,
 }) => {
   const normType = (counselorType || "").toLowerCase().trim();
   const config = COUNSELOR_CONFIGS[normType] || COUNSELOR_CONFIGS["academic counselor"];
@@ -479,10 +480,12 @@ const AssistantAvatar = ({
       className={`${size} relative overflow-hidden bg-transparent flex items-center justify-center cursor-pointer select-none group`}
     >
       {/* Interactive Counselor Status Pill */}
-      <div className="absolute top-3 left-3 z-10 px-2.5 py-1 bg-black/40 backdrop-blur-md rounded-full text-[10px] text-teal-300 font-semibold flex items-center gap-1.5 border border-white/10 pointer-events-none transition-all shadow-xs">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 motion-safe:animate-pulse"></span>
-        <span className="truncate max-w-[180px]">{interactiveMsg || `${config.name} • Active Gaze`}</span>
-      </div>
+      {!hideStatusPill && (
+        <div className="absolute top-3 left-3 z-10 px-2.5 py-1 bg-black/40 backdrop-blur-md rounded-full text-[10px] text-teal-300 font-semibold flex items-center gap-1.5 border border-white/10 pointer-events-none transition-all shadow-xs">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 motion-safe:animate-pulse"></span>
+          <span className="truncate max-w-[180px]">{interactiveMsg || `${config.name} • Active Gaze`}</span>
+        </div>
+      )}
 
       <Suspense fallback={<LoadingAvatarFallback />}>
         <AvatarErrorBoundary counselorConfig={config}>

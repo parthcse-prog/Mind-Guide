@@ -27,6 +27,8 @@ import {
   faRobot,
   faCompass,
   faLightbulb,
+  faRotate,
+  faArrowRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { motion, useAnimation, AnimatePresence } from "framer-motion";
 import AssistantAvatar, { COUNSELOR_CONFIGS } from "../components/AssistantAvatar";
@@ -57,10 +59,46 @@ const formatRelativeTime = (dateStr) => {
 
 // Available avatars for the selector (FontAwesome icons, clean metadata)
 const AVAILABLE_AVATARS = [
-  { id: "saarthi", name: "Alex", role: "Life & Youth", icon: faBrain },
-  { id: "maya", name: "Maya", role: "Mental Health", icon: faSpa },
-  { id: "ethan", name: "Ethan", role: "Relationships", icon: faHeart },
-  { id: "marcus", name: "Marcus", role: "Confidence", icon: faBolt },
+  {
+    id: "saarthi",
+    name: "Alex",
+    fullName: "Dr. Alex (Saarthi)",
+    role: "Chief Life & Youth Guide",
+    description: "Your all-around mentor for life choices, self-doubt, identity, and direction.",
+    icon: faBrain,
+    badgeBg: "bg-sky-50",
+    iconColor: "text-sky-800",
+  },
+  {
+    id: "maya",
+    name: "Maya",
+    fullName: "Maya Lin",
+    role: "Mental Health & Calm Guide",
+    description: "Navigate stress, anxiety, emotional burnout, and find grounded inner calm.",
+    icon: faSpa,
+    badgeBg: "bg-teal-50",
+    iconColor: "text-teal-700",
+  },
+  {
+    id: "ethan",
+    name: "Ethan",
+    fullName: "Ethan Rostova",
+    role: "Relationships & Youth Confidant",
+    description: "Confidential guidance for dating, breakups, friendships, and family dynamics.",
+    icon: faHeart,
+    badgeBg: "bg-rose-50",
+    iconColor: "text-rose-700",
+  },
+  {
+    id: "marcus",
+    name: "Marcus",
+    fullName: "Marcus Cole",
+    role: "Confidence & Ambition Mentor",
+    description: "Conquer imposter syndrome, build bold self-confidence, and unlock your true drive.",
+    icon: faBolt,
+    badgeBg: "bg-amber-50",
+    iconColor: "text-amber-700",
+  },
 ];
 
 // Starter prompt ideas for "Ask Me Anything"
@@ -93,6 +131,14 @@ const ChatApp = () => {
 
   const initialAvatar = (type || "saarthi").toLowerCase().trim();
   const [selectedAvatarId, setSelectedAvatarId] = useState(initialAvatar);
+  const [hasChosenAvatar, setHasChosenAvatar] = useState(Boolean(type));
+
+  const handleSelectAvatar = (avId) => {
+    stopNeuralTTS();
+    setIsSpeaking(false);
+    setSelectedAvatarId(avId);
+    setHasChosenAvatar(true);
+  };
 
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
@@ -338,6 +384,7 @@ const ChatApp = () => {
       const updatedMessages = [...messages, userMessage];
       setMessages(updatedMessages);
 
+      const userName = userInfo?.name || "Friend";
       const systemInstruction = {
         role: "system",
         content: `You are Saarthi.ai (सारथी - your trusted companion and personal guide), developed by MIET.
@@ -415,7 +462,8 @@ Tone & Approach:
     } catch (err) {
       setLoading(false);
       setIsSpeaking(false);
-      toast.error("Failed to generate response");
+      console.error("Chat generation error:", err);
+      toast.error(err.message || "Failed to generate response");
     }
   };
 
@@ -533,6 +581,52 @@ Tone & Approach:
     setTotalMessages(messages.length);
   }, [messages]);
 
+  if (!hasChosenAvatar) {
+    return (
+      <div className="min-h-[88vh] bg-slate-50 flex items-center justify-center px-4 py-8 font-['Manrope'] text-slate-800">
+        <div className="max-w-4xl w-full space-y-6">
+          <div className="text-center space-y-1">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+              Choose an Avatar
+            </h1>
+            <p className="text-xs text-slate-500">
+              Select an avatar to start your conversation.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {AVAILABLE_AVATARS.map((av) => (
+              <button
+                key={av.id}
+                type="button"
+                onClick={() => handleSelectAvatar(av.id)}
+                className="flex flex-col items-center bg-white rounded-2xl border border-slate-200 shadow-xs hover:shadow-xl hover:border-teal-600 transition-all overflow-hidden cursor-pointer group text-center"
+              >
+                {/* Literal 3D Avatar Viewport */}
+                <div className="w-full h-64 bg-[#122b35] relative flex items-center justify-center pointer-events-none">
+                  <AssistantAvatar
+                    size="w-full h-full"
+                    counselorType={av.id}
+                    loading={false}
+                    isSpeaking={false}
+                    hideStatusPill={true}
+                  />
+                </div>
+
+                {/* Name Only - No specifications */}
+                <div className="py-3 px-2 w-full bg-white group-hover:bg-slate-50 transition-colors border-t border-slate-100">
+                  <span className="text-sm font-bold text-slate-900 group-hover:text-teal-800 transition-colors block truncate">
+                    {av.fullName}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-[88vh] bg-slate-50 flex relative w-full font-['Manrope'] overflow-hidden">
       {report && (
@@ -599,33 +693,20 @@ Tone & Approach:
           />
         </div>
 
-        {/* Clean Avatar Selector Bar */}
-        <div className="z-10 bg-black/20 p-2 rounded-xl border border-white/10">
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 custom-scrollbar">
-            {AVAILABLE_AVATARS.map((av) => {
-              const isSelected = selectedAvatarId === av.id;
-              return (
-                <button
-                  key={av.id}
-                  onClick={() => {
-                    if (selectedAvatarId !== av.id) {
-                      stopNeuralTTS();
-                      setIsSpeaking(false);
-                      setSelectedAvatarId(av.id);
-                    }
-                  }}
-                  className={`shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
-                    isSelected
-                      ? "bg-teal-500 text-[#0c242c]"
-                      : "bg-white/5 hover:bg-white/10 text-white/70"
-                  }`}
-                >
-                  <FontAwesomeIcon icon={av.icon} className="text-xs" />
-                  <span>{av.name}</span>
-                </button>
-              );
-            })}
-          </div>
+        {/* Switch Companion Button */}
+        <div className="z-10 pt-1">
+          <button
+            type="button"
+            onClick={() => {
+              stopNeuralTTS();
+              setIsSpeaking(false);
+              setHasChosenAvatar(false);
+            }}
+            className="w-full py-2 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-white/80 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 border border-white/10 transition-colors cursor-pointer"
+          >
+            <FontAwesomeIcon icon={faRotate} className="text-xs text-teal-400" />
+            <span>Switch Companion</span>
+          </button>
         </div>
       </div>
 

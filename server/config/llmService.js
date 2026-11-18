@@ -12,41 +12,53 @@ const axios = require("axios");
  * }
  */
 async function callGatewayLLM(messages, model = "llama3.1:8b") {
-  const token = process.env.OPENAI_API_KEY;
+  const token = process.env.OPENAI_API_KEY || "dgx_942ea91f275263b6ee47220c55583ba3e9ca8fa9f7904833";
   const endpoint = process.env.LLM_GATEWAY_URL || "https://ai-services.mietjmu.in/gateway/llm/chat";
 
-  try {
-    const response = await axios.post(
-      endpoint,
-      {
-        model: model,
-        messages: messages,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+  // Ensure clean messages format for ai-services
+  const cleanMessages = (Array.isArray(messages) ? messages : [])
+    .filter((m) => m && m.role && m.content)
+    .map((m) => ({ role: m.role, content: String(m.content).trim() }));
+
+  const modelsToTry = [model, model !== "gpt-oss:20b" ? "gpt-oss:20b" : "llama3.1:8b"];
+
+  let lastError = null;
+  for (const currentModel of modelsToTry) {
+    try {
+      const response = await axios.post(
+        endpoint,
+        {
+          model: currentModel,
+          messages: cleanMessages,
         },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          timeout: 45000,
+        }
+      );
+
+      const resData = response.data;
+
+      if (resData?.message?.content) {
+        return resData.message.content;
+      } else if (resData?.data?.response) {
+        return resData.data.response;
+      } else if (resData?.response) {
+        return resData.response;
+      } else if (typeof resData === "string") {
+        return resData;
       }
-    );
-
-    const resData = response.data;
-
-    if (resData?.message?.content) {
-      return resData.message.content;
-    } else if (resData?.data?.response) {
-      return resData.data.response;
-    } else if (resData?.response) {
-      return resData.response;
-    } else if (typeof resData === "string") {
-      return resData;
-    } else {
-      throw new Error(`Unexpected gateway LLM response format: ${JSON.stringify(resData)}`);
+    } catch (error) {
+      lastError = error;
+      console.warn(`callGatewayLLM failed with model ${currentModel}:`, error?.response?.data || error.message);
     }
-  } catch (error) {
-    console.error("Error in callGatewayLLM:", error?.response?.data || error.message);
-    throw error;
   }
+
+  console.error("All gateway LLM models failed. Last error:", lastError?.response?.data || lastError?.message);
+  throw lastError || new Error("Failed to communicate with AI Services");
 }
 
 module.exports = { callGatewayLLM };
