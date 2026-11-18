@@ -3,7 +3,6 @@ import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import ChatApp from "./pages/ChatApp";
 import Tools from "./pages/Tools";
-import Counselors from "./pages/Counselors";
 import ScrollToTop from "./components/ScrollToTop";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -17,8 +16,6 @@ import GetAllReports from "./components/Dashboard/GetAllReports.jsx";
 import GetRoadmap from "./components/Dashboard/GetRoadmap.jsx";
 import Profile from "./components/Dashboard/Profile.jsx";
 import HeroDashBoard from "./components/Dashboard/HeroDashBoard.jsx";
-import JobBoard from "./components/Dashboard/JobBoard.jsx";
-import ResumeAnalyzer from "./components/Dashboard/ResumeAnalyzer.jsx";
 import { ThemeProvider } from "./context/ThemeContext";
 
 axios.defaults.baseURL = "http://localhost:3001";
@@ -37,8 +34,7 @@ function App() {
               <Route path="about" element={<Home />} />
               <Route path="overview" element={<Home />} />
               <Route path="chat" element={<ChatApp />} />
-              <Route path="counselors" element={<Counselors />} />
-              {/* Add a dynamic route to capture the counselor type */}
+              <Route path="counselors" element={<Navigate to="/chat" replace />} />
               <Route path="counselors/chat/:type" element={<ChatApp />} />
               <Route path="tools" element={<Tools />} />
               <Route path="profile" element={<Navigate to="/account/dashboard/profile" replace />} />
@@ -46,8 +42,6 @@ function App() {
                 <Route index element={<HeroDashBoard />} />
                 <Route path="reports" element={<GetAllReports />} />
                 <Route path="getRoadmap" element={<GetRoadmap />} />
-                <Route path="jobBoard" element={<JobBoard />} />
-                <Route path="resume-analyzer" element={<ResumeAnalyzer />} />
                 <Route path="profile" element={<Profile />} />
               </Route>
             </Route>

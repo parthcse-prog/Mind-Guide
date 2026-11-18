@@ -8,9 +8,8 @@ import {
   faUser,
   faEnvelope,
   faCakeCandles,
-  faFingerprint,
+  faHourglassHalf,
   faGlobe,
-  faShieldHalved,
   faCircleCheck,
   faPen,
   faCheck,
@@ -27,6 +26,30 @@ const Profile = () => {
   const [isEditingDob, setIsEditingDob] = useState(false);
   const [dob, setDob] = useState(userInfo?.dob || "15 August 2003");
   const [loadingDob, setLoadingDob] = useState(false);
+
+  const calculateAge = (dobString) => {
+    if (!dobString) return "—";
+    const parsedDate = new Date(dobString);
+    if (!isNaN(parsedDate.getTime())) {
+      const today = new Date();
+      let age = today.getFullYear() - parsedDate.getFullYear();
+      const monthDiff = today.getMonth() - parsedDate.getMonth();
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < parsedDate.getDate())
+      ) {
+        age--;
+      }
+      return age >= 0 ? `${age} years` : "—";
+    }
+    const yearMatch = dobString.match(/\b(19\d{2}|20\d{2})\b/);
+    if (yearMatch) {
+      const currentYear = new Date().getFullYear();
+      const age = currentYear - parseInt(yearMatch[1], 10);
+      return `${age} years`;
+    }
+    return "—";
+  };
 
   const handleLogout = async () => {
     try {
@@ -72,11 +95,6 @@ const Profile = () => {
       : userInfo?.pic && !userInfo.pic.includes("534528741775")
       ? userInfo.pic
       : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop";
-
-  const googleId =
-    userInfo?.googleId ||
-    userInfo?._id ||
-    "114829375829104820194";
 
   const locale = userInfo?.locale || "en-IN (English)";
 
@@ -161,7 +179,7 @@ const Profile = () => {
                 <button
                   type="button"
                   onClick={() => setIsEditingDob(!isEditingDob)}
-                  className="text-teal-700 hover:text-teal-900 font-semibold"
+                  className="text-teal-700 hover:text-teal-900 font-semibold cursor-pointer"
                 >
                   <FontAwesomeIcon icon={isEditingDob ? faXmark : faPen} className="mr-1" />
                   {isEditingDob ? "Cancel" : "Edit"}
@@ -174,13 +192,13 @@ const Profile = () => {
                     type="text"
                     value={dob}
                     onChange={(e) => setDob(e.target.value)}
-                    placeholder="e.g. 15 August 2003"
+                    placeholder="e.g. 07 October 1999"
                     className="p-1.5 text-xs border border-teal-500 rounded-lg outline-hidden w-full font-semibold bg-white"
                   />
                   <button
                     onClick={handleSaveDob}
                     disabled={loadingDob}
-                    className="px-3 py-1.5 bg-teal-700 hover:bg-teal-800 text-white rounded-lg text-xs font-semibold shrink-0"
+                    className="px-3 py-1.5 bg-teal-700 hover:bg-teal-800 text-white rounded-lg text-xs font-semibold shrink-0 cursor-pointer"
                   >
                     <FontAwesomeIcon icon={faCheck} />
                   </button>
@@ -190,6 +208,17 @@ const Profile = () => {
                   {dob}
                 </p>
               )}
+            </div>
+          </div>
+
+          {/* Calculated Age */}
+          <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/60 flex items-start gap-3">
+            <FontAwesomeIcon icon={faHourglassHalf} className="text-teal-700 text-sm mt-0.5" />
+            <div className="space-y-0.5 overflow-hidden">
+              <span className="text-slate-400 font-medium">Age</span>
+              <p className="text-sm font-semibold text-slate-900">
+                {calculateAge(dob)}
+              </p>
             </div>
           </div>
 
@@ -204,35 +233,13 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Google ID */}
-          <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/60 flex items-start gap-3">
-            <FontAwesomeIcon icon={faFingerprint} className="text-teal-700 text-sm mt-0.5" />
-            <div className="space-y-0.5 overflow-hidden">
-              <span className="text-slate-400 font-medium">Google ID</span>
-              <p className="text-xs font-mono font-semibold text-slate-800 truncate">
-                {googleId}
-              </p>
-            </div>
-          </div>
-
           {/* Locale */}
-          <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/60 flex items-start gap-3">
+          <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/60 flex items-start gap-3 sm:col-span-2">
             <FontAwesomeIcon icon={faGlobe} className="text-teal-700 text-sm mt-0.5" />
             <div className="space-y-0.5 overflow-hidden">
               <span className="text-slate-400 font-medium">Locale</span>
               <p className="text-sm font-semibold text-slate-900">
                 {locale}
-              </p>
-            </div>
-          </div>
-
-          {/* Security */}
-          <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/60 flex items-start gap-3">
-            <FontAwesomeIcon icon={faShieldHalved} className="text-teal-700 text-sm mt-0.5" />
-            <div className="space-y-0.5 overflow-hidden">
-              <span className="text-slate-400 font-medium">Security</span>
-              <p className="text-sm font-semibold text-slate-900">
-                OAuth 2.0 Single Sign-On
               </p>
             </div>
           </div>
@@ -242,7 +249,7 @@ const Profile = () => {
           <span>Saarthi.ai with MIET Jammu</span>
           <button
             onClick={handleLogout}
-            className="text-slate-600 hover:text-red-700 font-semibold flex items-center gap-1.5 transition-colors"
+            className="text-slate-600 hover:text-red-700 font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <FontAwesomeIcon icon={faRightFromBracket} />
             <span>Sign out</span>

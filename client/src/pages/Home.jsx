@@ -3,7 +3,6 @@ import { useSelector } from "react-redux";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faComments,
-  faUserGroup,
   faTableColumns,
   faArrowRight,
   faCircleQuestion,
@@ -72,61 +71,42 @@ const Home = () => {
           </div>
 
           {/* Quick Hub Navigation Cards */}
-          <div className="pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button
               onClick={() => navigate("/chat")}
-              className="flex items-center justify-between p-4 bg-teal-800 hover:bg-teal-900 text-white rounded-xl shadow-xs hover:shadow-md transition-all text-left cursor-pointer group"
+              className="flex items-center justify-between p-5 bg-teal-800 hover:bg-teal-900 text-white rounded-xl shadow-xs hover:shadow-md transition-all text-left cursor-pointer group"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-teal-700/60 flex items-center justify-center text-teal-200">
-                  <FontAwesomeIcon icon={faComments} className="text-lg" />
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-lg bg-teal-700/60 flex items-center justify-center text-teal-200">
+                  <FontAwesomeIcon icon={faComments} className="text-xl" />
                 </div>
                 <div>
-                  <span className="block text-sm font-bold">Start Chat</span>
-                  <span className="text-xs text-teal-200">Talk to Saarthi companions</span>
+                  <span className="block text-base font-bold">Start Chat</span>
+                  <span className="text-xs text-teal-200">Ask Dr. Alex, Maya, Ethan or Marcus</span>
                 </div>
               </div>
               <FontAwesomeIcon
                 icon={faArrowRight}
-                className="text-xs text-teal-300 group-hover:translate-x-1 transition-transform"
-              />
-            </button>
-
-            <button
-              onClick={() => navigate("/counselors")}
-              className="flex items-center justify-between p-4 bg-white hover:bg-slate-50 text-slate-800 rounded-xl border border-slate-200 shadow-xs hover:shadow-md transition-all text-left cursor-pointer group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
-                  <FontAwesomeIcon icon={faUserGroup} className="text-base" />
-                </div>
-                <div>
-                  <span className="block text-sm font-bold text-slate-900">Explore Guides</span>
-                  <span className="text-xs text-slate-500">Choose your companion</span>
-                </div>
-              </div>
-              <FontAwesomeIcon
-                icon={faArrowRight}
-                className="text-xs text-slate-400 group-hover:translate-x-1 transition-transform"
+                className="text-sm text-teal-300 group-hover:translate-x-1.5 transition-transform"
               />
             </button>
 
             <button
               onClick={() => navigate("/account/dashboard/profile")}
-              className="flex items-center justify-between p-4 bg-white hover:bg-slate-50 text-slate-800 rounded-xl border border-slate-200 shadow-xs hover:shadow-md transition-all text-left cursor-pointer group"
+              className="flex items-center justify-between p-5 bg-white hover:bg-slate-50 text-slate-800 rounded-xl border border-slate-200 shadow-xs hover:shadow-md transition-all text-left cursor-pointer group"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
-                  <FontAwesomeIcon icon={faTableColumns} className="text-base" />
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <FontAwesomeIcon icon={faTableColumns} className="text-lg" />
                 </div>
                 <div>
-                  <span className="block text-sm font-bold text-slate-900">Google Profile</span>
-                  <span className="text-xs text-slate-500">View account & settings</span>
+                  <span className="block text-base font-bold text-slate-900">View Profile</span>
+                  <span className="text-xs text-slate-500">View account details & settings</span>
                 </div>
               </div>
               <FontAwesomeIcon
                 icon={faArrowRight}
-                className="text-xs text-slate-400 group-hover:translate-x-1 transition-transform"
+                className="text-sm text-slate-400 group-hover:translate-x-1.5 transition-transform"
               />
             </button>
           </div>
@@ -156,20 +136,13 @@ const Home = () => {
               Whatever is on your mind, Saarthi serves as your versatile companion to explore ideas, reflect on decisions, and seek thoughtful guidance. Combining conversational companions with intelligent reasoning, Saarthi is here to support you at every turn.
             </p>
 
-            <div className="pt-2 flex flex-wrap gap-2.5">
+            <div className="pt-2">
               <button
                 onClick={() => navigate("/chat")}
-                className="px-5 py-2.5 bg-teal-800 hover:bg-teal-900 text-white rounded-lg text-xs font-semibold flex items-center gap-2 cursor-pointer transition-colors"
+                className="px-6 py-2.5 bg-teal-800 hover:bg-teal-900 text-white rounded-lg text-xs font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-xs"
               >
                 <FontAwesomeIcon icon={faComments} />
                 <span>Open Chat Session</span>
-              </button>
-              <button
-                onClick={() => navigate("/counselors")}
-                className="px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold flex items-center gap-2 cursor-pointer transition-colors"
-              >
-                <FontAwesomeIcon icon={faUserGroup} />
-                <span>Meet the Companions</span>
               </button>
             </div>
           </div>

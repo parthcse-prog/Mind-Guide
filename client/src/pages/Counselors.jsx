@@ -7,13 +7,20 @@ import {
   faHeart,
   faBrain,
   faBolt,
-  faHandHoldingHeart,
-  faRobot,
   faArrowLeft,
   faArrowRight,
 } from "@fortawesome/free-solid-svg-icons";
 
 const counselors = [
+  {
+    type: "Dr. Alex (Saarthi)",
+    counselorKey: "saarthi",
+    title: "Chief Life & Youth Guide",
+    description: "Your all-around mentor for life choices, self-doubt, identity, and direction.",
+    icon: faBrain,
+    badgeBg: "bg-sky-50",
+    iconColor: "text-sky-800",
+  },
   {
     type: "Maya Lin",
     counselorKey: "maya",
@@ -33,15 +40,6 @@ const counselors = [
     iconColor: "text-rose-700",
   },
   {
-    type: "Dr. Alex (Saarthi)",
-    counselorKey: "saarthi",
-    title: "Chief Life & Youth Guide",
-    description: "Your all-around mentor for life choices, self-doubt, identity, and direction.",
-    icon: faBrain,
-    badgeBg: "bg-sky-50",
-    iconColor: "text-sky-800",
-  },
-  {
     type: "Marcus Cole",
     counselorKey: "marcus",
     title: "Confidence & Ambition Mentor",
@@ -49,24 +47,6 @@ const counselors = [
     icon: faBolt,
     badgeBg: "bg-amber-50",
     iconColor: "text-amber-700",
-  },
-  {
-    type: "Luna",
-    counselorKey: "luna",
-    title: "Empathy, Loneliness & Healing",
-    description: "A deeply caring soul for feeling understood, self-worth, and emotional healing.",
-    icon: faHandHoldingHeart,
-    badgeBg: "bg-indigo-50",
-    iconColor: "text-indigo-700",
-  },
-  {
-    type: "Timy Robot",
-    counselorKey: "timy",
-    title: "Habit Design & Clear Thinking",
-    description: "Practical breakdowns to stop overthinking, beat procrastination, and build daily flow.",
-    icon: faRobot,
-    badgeBg: "bg-emerald-50",
-    iconColor: "text-emerald-700",
   },
 ];
 
@@ -105,12 +85,12 @@ const Counselors = () => {
           Choose Your Saarthi Companion
         </h1>
         <p className="text-slate-600 text-sm md:text-base">
-          Specialized guidance for mental health, relationships, youth dilemmas, and finding clarity.
+          Specialized guidance for life direction, mental well-being, relationships, and confidence.
         </p>
       </div>
 
-      {/* Counselors Grid */}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {/* Counselors Grid (4 Balanced Cards) */}
+      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {counselors.map((counselor, index) => (
           <div
             key={index}

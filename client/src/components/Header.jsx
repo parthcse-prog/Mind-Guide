@@ -9,7 +9,6 @@ import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faComments,
-  faUserGroup,
   faTableColumns,
   faRightFromBracket,
   faRightToBracket,
@@ -100,18 +99,6 @@ const Header = () => {
               <span>Chat</span>
             </Link>
           )}
-
-          <Link
-            to="/counselors"
-            className={`py-1.5 px-3 rounded-xl flex items-center gap-2 transition-colors ${
-              isLinkActive("/counselors")
-                ? "bg-white/15 text-white font-semibold"
-                : "text-white/75 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <FontAwesomeIcon icon={faUserGroup} className="text-xs text-teal-400" />
-            <span>Guides</span>
-          </Link>
 
           {userInfo && (
             <Link

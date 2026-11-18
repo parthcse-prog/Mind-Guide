@@ -61,8 +61,6 @@ const AVAILABLE_AVATARS = [
   { id: "maya", name: "Maya", role: "Mental Health", icon: faSpa },
   { id: "ethan", name: "Ethan", role: "Relationships", icon: faHeart },
   { id: "marcus", name: "Marcus", role: "Confidence", icon: faBolt },
-  { id: "luna", name: "Luna", role: "Empathy", icon: faWandMagicSparkles },
-  { id: "timy", name: "Timy", role: "Clarity", icon: faRobot },
 ];
 
 // Starter prompt ideas for "Ask Me Anything"
@@ -342,17 +340,17 @@ const ChatApp = () => {
 
       const systemInstruction = {
         role: "system",
-        content: `You are Saarthi.ai (सारथी - your trusted friend, confidant, and life guide), designed with care by MIET.
-Active Guide Persona: ${activeCounselor.name} (${activeCounselor.title}).
-You specialize in supporting youth and students through:
-- Mental health, emotional stress, anxiety, burnout, and inner calm
-- Relationships, dating, friendship dynamics, breakups, and healthy boundaries
-- Youth dilemmas, career uncertainty, feeling stuck or comparing oneself, habits, and self-worth
-- Open everyday life conversations and thoughtful advice.
+        content: `You are Saarthi.ai (सारथी - your trusted companion and personal guide), developed by MIET.
+Active Companion Persona: ${activeCounselor.name} (${activeCounselor.title}).
+You are speaking with ${userName}.
+
+Your mission:
+- Open "Ask Me Anything" on any question, curiosities, everyday situations, learning, and life decisions.
+- Thoughtful advice, perspective, emotional clarity, and practical guidance.
 
 Tone & Approach:
 - Sincere warmth, deep empathy, non-judgmental validation.
-- Direct, clear, insightful, actionable advice. Avoid robotic jargon.
+- Direct, clear, insightful, actionable answers. Avoid robotic jargon.
 - Format cleanly with markdown.`,
       };
 

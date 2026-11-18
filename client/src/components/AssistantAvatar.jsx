@@ -1,7 +1,6 @@
 import React, { Suspense, useEffect, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useGLTF, useAnimations, OrbitControls } from "@react-three/drei";
-import timyRobotPath from "../assets/timy_robot.glb";
 import femaleVroidPath from "../assets/NewCharacters/avatars/vroid.glb";
 import femaleMpfbPath from "../assets/NewCharacters/avatars/mpfb.glb";
 import femaleBrunetteTPath from "../assets/NewCharacters/avatars/brunette-t.glb";
@@ -58,28 +57,6 @@ export const COUNSELOR_CONFIGS = {
     scale: 1.4,
     tagline: "Overcoming self-doubt, ambition & finding your path",
     voice: "en-US-GuyNeural",
-  },
-  "luna": {
-    id: "luna",
-    model: femaleVroidPath,
-    gender: "female",
-    name: "Luna",
-    title: "Empathy & Self-Discovery Soul",
-    position: [0, -2.1, 0],
-    scale: 1.35,
-    tagline: "Loneliness, identity, healing & creative self-expression",
-    voice: "en-US-JennyNeural",
-  },
-  "timy": {
-    id: "timy",
-    model: timyRobotPath,
-    gender: "male",
-    name: "Timy Robot",
-    title: "Habit & Clear-Thinking Copilot",
-    position: [0, -1.8, 0],
-    scale: 1.25,
-    tagline: "Breaking overthinking, building habits & practical clarity",
-    voice: "en-US-TonyNeural",
   },
   // Backward compatibility mappings
   "alex": {
@@ -148,11 +125,11 @@ export const COUNSELOR_CONFIGS = {
     scale: 1.35,
   },
   "emotional support counselor": {
-    id: "luna",
-    model: femaleVroidPath,
+    id: "maya",
+    model: femaleBrunetteTPath,
     gender: "female",
-    name: "Luna",
-    title: "Empathy & Self-Discovery Soul",
+    name: "Maya Lin",
+    title: "Mental Health & Calm Guide",
     position: [0, -2.1, 0],
     scale: 1.35,
   },
@@ -468,7 +445,6 @@ try {
   useGLTF.preload(maleAvatarPath);
   useGLTF.preload(femaleBrunetteTPath);
   useGLTF.preload(maleSdkPath);
-  useGLTF.preload(timyRobotPath);
   useGLTF.preload(animationsPath);
 } catch (e) {
   console.warn("Avatar model preload warning:", e);

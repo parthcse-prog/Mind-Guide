@@ -1,35 +1,32 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faTableColumns,
+  faFileLines,
+  faRoute,
+  faUser,
+} from "@fortawesome/free-solid-svg-icons";
 
 const Dashboard = () => {
   const options = [
     {
       title: "Dashboard",
-      icon: "dashboard",
+      icon: faTableColumns,
       link: "",
     },
     {
       title: "Reports",
-      icon: "description",
+      icon: faFileLines,
       link: "./reports",
     },
     {
       title: "Roadmap",
-      icon: "map",
+      icon: faRoute,
       link: "./getRoadmap",
     },
     {
-      title: "Job Board",
-      icon: "work",
-      link: "./jobBoard",
-    },
-    {
-      title: "Resume Analyzer",
-      icon: "document_scanner",
-      link: "./resume-analyzer",
-    },
-    {
       title: "Profile",
-      icon: "person",
+      icon: faUser,
       link: "./profile",
     },
   ];
@@ -38,14 +35,17 @@ const Dashboard = () => {
   const currentTab = location.pathname.split("/")[3];
 
   return (
-    <div className="flex min-h-screen bg-[#f9f9ff] text-[#111c2c] font-['Plus_Jakarta_Sans']">
+    <div className="flex min-h-screen bg-slate-50 text-slate-800 font-sans">
       {/* Sidebar Navigation */}
-      <aside className="w-72 bg-gradient-to-b from-[#1a3b47] to-[#002531] text-white p-6 flex flex-col gap-3 sticky top-0 h-screen font-['Manrope'] shadow-xl">
-        <div className="mb-4 px-2">
-          <h2 className="text-xl font-bold tracking-tight text-white/90">Navigation</h2>
+      <aside className="w-64 bg-[#0c242c] text-white p-5 flex flex-col gap-2 sticky top-0 h-screen shadow-md border-r border-slate-800/50">
+        <div className="mb-4 px-2 pt-2">
+          <span className="text-xs uppercase font-bold tracking-wider text-teal-400 block mb-1">
+            Overview
+          </span>
+          <h2 className="text-lg font-bold tracking-tight text-white">Navigation</h2>
         </div>
 
-        <nav className="flex flex-col gap-2">
+        <nav className="flex flex-col gap-1.5">
           {options.map((option, i) => {
             const isActive =
               (!currentTab && option.link === "") ||
@@ -55,36 +55,23 @@ const Dashboard = () => {
               <Link
                 key={i}
                 to={option.link}
-                className={`flex items-center gap-4 px-4 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-95 ${
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                   isActive
-                    ? "bg-[#1a3b47] text-white shadow-md border border-white/10"
-                    : "text-[#85a5b3] hover:bg-white/5 hover:text-white"
+                    ? "bg-white/15 text-white shadow-xs border border-white/10"
+                    : "text-slate-300 hover:bg-white/5 hover:text-white"
                 }`}
               >
-                <span className="material-symbols-outlined text-2xl">
-                  {option.icon}
-                </span>
+                <FontAwesomeIcon icon={option.icon} className="text-sm text-teal-400 w-4" />
                 <span>{option.title}</span>
               </Link>
             );
           })}
         </nav>
-
-        {/* Progress Milestone Badge */}
-        {/* <div className="mt-auto p-4 rounded-xl bg-white/5 border border-white/10">
-          <p className="text-xs text-[#85a5b3] mb-2 uppercase tracking-wider font-bold">
-            Your Progress
-          </p>
-          <div className="h-2 w-full bg-white/20 rounded-full overflow-hidden mb-2">
-            <div className="h-full bg-[#afefdf] w-[70%] rounded-full"></div>
-          </div>
-          <p className="text-xs text-white/90 font-medium">70% to next milestone</p>
-        </div> */}
       </aside>
 
       {/* Main Outlet Area */}
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
-        <div className="max-w-[1100px] mx-auto">
+      <main className="flex-1 p-6 md:p-8 overflow-y-auto">
+        <div className="max-w-[1000px] mx-auto">
           <Outlet />
         </div>
       </main>
