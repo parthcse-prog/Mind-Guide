@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { removeUser, addUser } from "../../redux/mindGuideSlice";
 import axios from "axios";
@@ -15,9 +15,13 @@ import {
   faCheck,
   faXmark,
   faRightFromBracket,
+  faAward,
+  faRotate,
 } from "@fortawesome/free-solid-svg-icons";
 import googleIcon from "../../assets/google.png";
 import mietLogo from "../../assets/MIET Logos/miet-logo-dark.png";
+import badge from "../../assets/badge.png";
+import tick from "../../assets/tick.png";
 
 const Profile = () => {
   const userInfo = useSelector((state) => state.mindGuide.userInfo);
@@ -26,6 +30,37 @@ const Profile = () => {
   const [isEditingDob, setIsEditingDob] = useState(false);
   const [dob, setDob] = useState(userInfo?.dob || "15 August 2003");
   const [loadingDob, setLoadingDob] = useState(false);
+  const [syncingSkills, setSyncingSkills] = useState(false);
+
+  useEffect(() => {
+    const refreshProfile = async () => {
+      try {
+        const { data } = await axios.get("/api/v1/user/getUserProfile");
+        if (data) {
+          dispatch(addUser(data));
+          if (data.dob) setDob(data.dob);
+        }
+      } catch (err) {
+        console.warn("Could not refresh profile:", err.message);
+      }
+    };
+    refreshProfile();
+  }, [dispatch]);
+
+  const handleSyncSkills = async () => {
+    try {
+      setSyncingSkills(true);
+      await axios.get("/api/v1/user/getSkills");
+      const { data } = await axios.get("/api/v1/user/getUserProfile");
+      if (data) dispatch(addUser(data));
+      toast.success("Skills & Verified Badges synchronized to your Profile!");
+    } catch (err) {
+      console.error("Error syncing skills:", err);
+      toast.error("Failed to sync skills from roadmap.");
+    } finally {
+      setSyncingSkills(false);
+    }
+  };
 
   const calculateAge = (dobString) => {
     if (!dobString) return "—";
@@ -145,6 +180,115 @@ const Profile = () => {
           </div>
         </div>
       </section>
+
+      {/* Skill Badges & Verified Achievements Card */}
+      {((userInfo?.skills && userInfo.skills.length > 0) ||
+        (userInfo?.roadmap && userInfo.roadmap.some((r) => r.isCompleted))) && (
+        <section className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/90 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-200 shadow-2xs">
+                <FontAwesomeIcon icon={faAward} className="text-lg" />
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <span>Skill Badges & Verified Achievements</span>
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Earned through completed Saarthi roadmap milestones & verified by MIET Jammu
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <span className="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">
+                {(userInfo?.skills?.length || 0)} Badges Earned
+              </span>
+              <button
+                type="button"
+                onClick={handleSyncSkills}
+                disabled={syncingSkills}
+                className="text-xs font-semibold text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-3 py-1 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                title="Synchronize latest roadmap competencies"
+              >
+                <FontAwesomeIcon
+                  icon={faRotate}
+                  className={syncingSkills ? "animate-spin text-teal-600" : "text-teal-600"}
+                />
+                <span>{syncingSkills ? "Syncing..." : "Sync Badges"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Technical Competencies */}
+          {(userInfo?.skills || []).filter((s) => s.type === "technical" || !s.type).length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Technical Competencies
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {(userInfo.skills || [])
+                  .filter((s) => s.type === "technical" || !s.type)
+                  .map((skillObj, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50/50 to-indigo-50/30 rounded-2xl border border-blue-100 hover:border-blue-300 transition-all shadow-2xs group"
+                    >
+                      <div className="w-11 h-11 shrink-0 flex items-center justify-center bg-white rounded-xl shadow-xs border border-blue-100 group-hover:scale-110 transition-transform">
+                        <img src={badge} alt="Technical Badge" className="h-8 w-8 object-contain" />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-extrabold text-slate-900 truncate" title={typeof skillObj === "string" ? skillObj : skillObj.skill}>
+                          {typeof skillObj === "string" ? skillObj : skillObj.skill}
+                        </span>
+                        <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">
+                          Verified Badge
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Professional & Soft Skills */}
+          {(userInfo?.skills || []).some((s) => s.type === "non-technical") && (
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Professional & Applied Skills
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {userInfo.skills
+                  .filter((s) => s.type === "non-technical")
+                  .map((skillObj, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-3 bg-gradient-to-r from-emerald-50/50 to-teal-50/30 rounded-2xl border border-emerald-100 hover:border-emerald-300 transition-all shadow-2xs group"
+                    >
+                      <div className="w-11 h-11 shrink-0 flex items-center justify-center bg-white rounded-xl shadow-xs border border-emerald-100 group-hover:scale-110 transition-transform">
+                        <img src={tick} alt="Skill Verified" className="h-8 w-8 object-contain" />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-extrabold text-slate-900 truncate" title={typeof skillObj === "string" ? skillObj : skillObj.skill}>
+                          {typeof skillObj === "string" ? skillObj : skillObj.skill}
+                        </span>
+                        <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">
+                          Certified Skill
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Verified Google Account Attributes */}
       <section className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/90 shadow-xs space-y-6">

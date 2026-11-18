@@ -314,164 +314,84 @@ const handleCreateReport = asyncHandler(async (req, res) => {
   }
 });
 const handleCreateRoadmap = asyncHandler(async (req, res) => {
-  const { roadmap } = req.body;
-  let roadmapPrompt = [];
+  const { roadmap, chat, messages: reqMessages } = req.body;
+  let chatHistory = reqMessages || chat || [];
+
   try {
-    roadmapPrompt = [
-      ...messages,
+    // If not passed in body, fetch user's most recent active conversation session
+    if (!chatHistory || chatHistory.length === 0) {
+      const latestSession = await ChatSession.findOne({ user: req.user._id })
+        .sort({ lastActivity: -1 })
+        .lean();
+      if (latestSession && Array.isArray(latestSession.messages)) {
+        chatHistory = latestSession.messages;
+      }
+    }
+
+    const cleanChat = chatHistory
+      .filter((m) => m && m.role && m.content)
+      .map((m) => ({ role: m.role, content: String(m.content).trim() }));
+
+    const roadmapPrompt = [
+      ...cleanChat,
       {
         role: "system",
-        content: `Pretend you are an expert helpful AI career counsellor.`,
-      },
+        content: `You are Saarthi.ai's expert Growth and Development Mentor.
+Based on the conversation and the user's goals, aspirations, challenges, and current situation, create a comprehensive, day-by-day structured action roadmap.
+Return a STRICT JSON array of roadmap objects. Follow this exact schema with NO extra commentary or explanation:
+[
+  {
+    "Goal": "Actionable goal description (e.g. Master React fundamentals)",
+    "timeline": "Day 1 - Day 3",
+    "recommendations": [
       {
-        role: "system",
-        content: `Create a precise list of all the specific goals associated with a definitive timeline such that the output gives us a detailed step by step recommendation of that goals and recommendations.
-          You MUST link the student's Personality & AI Analysis data (from the STUDENT PROFILE CONTEXT earlier) to this roadmap. Transform it from a generic technical guide into a highly personalized development framework designed around how the student learns, collaborates, and performs under pressure based on their specific Big 5 traits and AI Summary.
-          should contains all goals from the roadmap for days wise days tasks based on the user goal.
-          Keep in mind to not include any explanations with specific entries and follow this format without any deviation. Also dont include a weekly based planner in the timeline. make sure to use a day-wise planner.
-          dont give any explanation just provide the roadmap in the following format.
-          [{
-            "Goal": "goal to be done",
-            "timeline": "timeline based on that goal",
-            "recommendations": [{
-              "title": "title of the recommendation course",
-              "link" : "link of the recommended course"
-            }],
-            "isCompleted":false in boolean
-          }]`,
+        "title": "Resource or practice module title",
+        "link": "https://developer.mozilla.org"
+      }
+    ],
+    "isCompleted": false
+  }
+]`,
       },
     ];
-    const responseText = await callGatewayLLM(roadmapPrompt);
 
-    console.log(responseText);
-    const roadmapData = JSON.parse(responseText);
-    console.log("roadmapGenerate: ", roadmapData);
-    // Decode the JWT token to get the user's I
-    console.log(req.user);
-    User.findOneAndUpdate(
-      { email: req.user.email }, // Replace with actual user email
-      { $set: { roadmap: roadmapData } }, // Update the roadmap field
-      { new: true } // To return the updated user object
-    )
-      .then((updatedUser) => {
-        if (updatedUser) {
-          console.log("User roadmap updated successfully:", updatedUser);
-          const transporter = nodemailer.createTransport({
-            // Configure your email service provider
-            host: "smtp.gmail.com",
-            port: 465,
-            secure: true,
-            auth: {
-              user: process.env.Email,
-              pass: process.env.PASS,
-            },
-            tls: {
-              rejectUnauthorized: false,
-            },
-          });
-          const mailOptions = {
-            from: `${process.env.USERNAME}`,
-            to: req.user.email,
-            subject: "Saarthi.ai Session Report",
-            html: `
-            <!DOCTYPE html>
-            <html lang="en">
-      
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Download Your Saarthi.ai Session Report</title>
-                <style>
-                    body {
-                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                        margin: 0;
-                        padding: 0;
-                        background-color: #f0f0f0;
-                        color: #333;
-                    }
-      
-                    .container {
-                        max-width: 600px;
-                        margin: 20px auto;
-                        padding: 20px;
-                        background-color: #ffffff;
-                        border-radius: 10px;
-                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-                        text-align: center;
-                    }
-      
-                    h1 {
-                        color: #2a5298;
-                    }
-      
-                    p {
-                        color: #666;
-                        line-height: 1.5;
-                        margin: 10px 0;
-                    }
-      
-                    a {
-                        display: inline-block;
-                        padding: 10px 20px;
-                        margin-top: 20px;
-                        background-color: #007bff;
-                        color: #ffffff;
-                        text-decoration: none;
-                        border-radius: 5px;
-                        transition: background-color 0.3s;
-                    }
-      
-                    a:hover {
-                        background-color: #0056b3;
-                    }
-      
-                    .footer {
-                        text-align: center;
-                        font-size: 0.85em;
-                        margin-top: 40px;
-                        color: #777;
-                    }
-                </style>
-            </head>
-      
-            <body>
-                <div class="container">
-                    <h1>Your Saarthi.ai Session Report</h1>
-                    <p>Dear ${req.user.name},</p>
-                    <p>Your latest session report is now available for download:</p>
-                    <a href=#{} target="_blank">Download Report</a>
-                    <p>If you encounter any issues, please do not hesitate to contact us.</p>
-      
-                    <div class="footer">
-                        <p>Thank you for choosing Saarthi.ai.</p>
-                        <p><a href="#">Visit our Website</a></p>
-                    </div>
-                </div>
-            </body>
-      
-            </html>
-                  `,
-          };
+    const responseText = await callGatewayLLM(roadmapPrompt, "llama3.1:8b");
 
-          transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-              console.log("NodeMailer Error:", error);
-            } else {
-              console.log("Email sent: " + info.response);
-            }
-          });
-        } else {
-          console.log("User not found.");
-        }
-      })
-      .catch((error) => {
-        console.error("Error updating user roadmap:", error);
-      });
+    let roadmapData = [];
+    try {
+      const match = responseText.match(/\[[\s\S]*\]/);
+      if (match) {
+        roadmapData = JSON.parse(match[0]);
+      } else {
+        roadmapData = JSON.parse(responseText);
+      }
+    } catch (parseErr) {
+      console.warn("JSON parse fallback, trying cleanup:", parseErr.message);
+      const cleaned = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
+      const match = cleaned.match(/\[[\s\S]*\]/);
+      if (match) {
+        roadmapData = JSON.parse(match[0]);
+      }
+    }
 
-    return res.send(responseText);
+    if (!Array.isArray(roadmapData) || roadmapData.length === 0) {
+      return res.status(500).json({ success: false, message: "Could not structure roadmap items" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: { roadmap: roadmapData } },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Roadmap generated successfully",
+      roadmap: roadmapData,
+    });
   } catch (err) {
-    console.error("Error Happened ", err);
-    res.status(500).send("Internal Server Error ");
+    console.error("Error creating roadmap:", err.message);
+    return res.status(500).json({ success: false, message: err.message || "Failed to generate roadmap" });
   }
 });
 

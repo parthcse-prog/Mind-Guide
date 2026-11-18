@@ -632,6 +632,7 @@ Tone & Approach:
       {report && (
         <ReportModal
           report={report}
+          messages={messages}
           open={isReportModalOpen}
           onClose={() => setReportModalOpen(false)}
         />
