@@ -469,14 +469,14 @@ const Profile = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-bold text-slate-900">
-                  Job and Internship Board
+                  Job Board
                 </h2>
                 <span className="text-[10px] font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full uppercase tracking-wider">
                   Live Feed
                 </span>
               </div>
               <p className="text-xs text-slate-500">
-                Active fresher & undergrad opportunities tailored to your career tracks
+                Active opportunities tailored to your career tracks
               </p>
             </div>
           </div>
