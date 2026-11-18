@@ -86,7 +86,7 @@ const JobBoard = () => {
             </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold font-['Manrope'] text-white">
-            Engineering Job & Internship Board
+            Job & Internship Board
           </h1>
           <p className="text-sm text-[#85a5b3] max-w-xl">
             Real-time opportunities for Engineering Freshers & Undergrads (0-1 Year Experience) matched against your profile & counselor report skills.
