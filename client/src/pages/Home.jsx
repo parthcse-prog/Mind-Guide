@@ -5,47 +5,16 @@ import {
   faComments,
   faTableColumns,
   faArrowRight,
-  faCircleQuestion,
-  faSpa,
-  faCompass,
   faEnvelope,
   faLocationDot,
   faPaperPlane,
   faShieldHalved,
-  faLightbulb,
 } from "@fortawesome/free-solid-svg-icons";
 import logo2d from "../assets/MIET Logos/2d-logo-miet-comp.png";
 
 const Home = () => {
   const navigate = useNavigate();
   const userInfo = useSelector((state) => state.mindGuide.userInfo);
-
-  const pillars = [
-    {
-      title: "Ask Me Anything",
-      desc: "Inquire about anything on your mind — from life questions and decision-making to everyday curiosities and personal growth.",
-      icon: faCircleQuestion,
-      action: () => navigate("/chat"),
-      actionText: "Ask Saarthi",
-      color: "text-teal-700 bg-teal-50",
-    },
-    {
-      title: "Well-Being & Clarity",
-      desc: "A judgment-free, confidential space to decompress, sort through your thoughts, and find calm whenever you need it.",
-      icon: faSpa,
-      action: () => navigate("/chat"),
-      actionText: "Chat with Companion",
-      color: "text-emerald-700 bg-emerald-50",
-    },
-    {
-      title: "Guidance & Direction",
-      desc: "Explore perspectives, build productive routines, and talk through next steps with supportive companion personas.",
-      icon: faCompass,
-      action: () => navigate("/chat"),
-      actionText: "Explore Guidance",
-      color: "text-indigo-700 bg-indigo-50",
-    },
-  ];
 
   return (
     <div className="bg-slate-50 text-slate-800 font-sans min-h-screen">
@@ -168,53 +137,8 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Section 2: What You Can Ask */}
-      <section className="py-14 px-6 md:px-16 bg-white border-y border-slate-200/80">
-        <div className="max-w-5xl mx-auto space-y-8">
-          <div>
-            <span className="text-xs font-bold text-teal-800 uppercase tracking-wider block mb-1">
-              Versatile Guidance
-            </span>
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
-              Ask Me Anything: Versatile Support
-            </h2>
-            <p className="text-xs md:text-sm text-slate-500 mt-1 max-w-xl">
-              Ask about anything without restrictions. Get thoughtful perspectives, constructive feedback, and supportive conversation.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {pillars.map((pillar, idx) => (
-              <div
-                key={idx}
-                className="bg-slate-50 rounded-xl p-5 border border-slate-200 flex flex-col justify-between hover:border-slate-300 transition-colors"
-              >
-                <div className="space-y-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${pillar.color}`}>
-                    <FontAwesomeIcon icon={pillar.icon} className="text-base" />
-                  </div>
-                  <h3 className="text-base font-bold text-slate-900">
-                    {pillar.title}
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    {pillar.desc}
-                  </p>
-                </div>
-                <button
-                  onClick={pillar.action}
-                  className="mt-4 text-xs font-semibold text-teal-800 hover:text-teal-950 inline-flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>{pillar.actionText}</span>
-                  <FontAwesomeIcon icon={faArrowRight} className="text-[10px]" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Section 3: Contact & MIET Support */}
-      <section className="py-14 px-6 md:px-16 bg-slate-50" id="contact">
+      {/* Section 2: Contact & MIET Support */}
+      <section className="py-14 px-6 md:px-16 bg-white border-t border-slate-200/80" id="contact">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white p-7 md:p-9 rounded-2xl border border-slate-200">
             <div className="space-y-4">
