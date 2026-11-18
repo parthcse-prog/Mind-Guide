@@ -1,9 +1,20 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import headIcon from "../assets/Saarthi.ai Brain Network Logo.png";
+import mietWhiteLogo from "../assets/MIET Logos/miet-logo-white.png";
+import googleIcon from "../assets/google.png";
 import { useSelector, useDispatch } from "react-redux";
 import { removeUser } from "../redux/mindGuideSlice";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faComments,
+  faUserGroup,
+  faTableColumns,
+  faRightFromBracket,
+  faRightToBracket,
+  faCircleInfo,
+} from "@fortawesome/free-solid-svg-icons";
 
 const Header = () => {
   const userInfo = useSelector((state) => state.mindGuide.userInfo);
@@ -17,110 +28,152 @@ const Header = () => {
     try {
       await axios.post("/api/v1/user/logout");
       dispatch(removeUser());
-      toast.success("Logged out successfully");
+      toast.success("Signed out");
       navigate("/login");
     } catch (error) {
-      console.error("Error in logging out", error);
+      console.error("Error signing out:", error);
       toast.error("Logout failed");
     }
   };
 
+  const userPhoto =
+    userInfo?.picture && !userInfo.picture.includes("534528741775")
+      ? userInfo.picture
+      : userInfo?.pic && !userInfo.pic.includes("534528741775")
+      ? userInfo.pic
+      : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop";
+
   return (
-    <header className="bg-[#1a3b47] text-white py-4 px-6 md:px-12 sticky top-0 z-40 border-b border-white/10 font-['Manrope']">
-      <div className="max-w-[1366px] mx-auto flex justify-between items-center gap-2">
-        {/* Brand Logo & Title */}
-        <div className="flex items-center gap-2 md:gap-3">
-          <Link to="/" className="flex items-center gap-2 md:gap-3 shrink-0">
-            <img src={headIcon} alt="Saarthi.ai Logo" className="h-12 sm:h-16 md:h-20 w-auto object-contain" />
-            <h1 className="hidden sm:block text-lg md:text-2xl font-extrabold tracking-tight text-white hover:text-teal-300 transition-colors">
-              Saarthi.ai
-            </h1>
+    <header className="bg-[#122b35] text-white py-3 px-5 md:px-10 sticky top-0 z-40 border-b border-white/10 font-['Manrope']">
+      <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
+        {/* Brand: Saarthi.ai & MIET */}
+        <div className="flex items-center gap-4">
+          <Link to="/" className="flex items-center gap-3 shrink-0">
+            <img
+              src={headIcon}
+              alt="Saarthi.ai"
+              className="h-10 w-auto object-contain"
+            />
+            <div className="leading-tight">
+              <span className="text-xl font-bold tracking-tight text-white">
+                Saarthi<span className="text-teal-400 font-extrabold">.ai</span>
+              </span>
+              <span className="block text-[11px] text-teal-200/80 font-normal">
+                By MIET
+              </span>
+            </div>
           </Link>
+
+          <div className="hidden md:block h-6 w-px bg-white/20" />
+
+          <img
+            src={mietWhiteLogo}
+            alt="MIET Jammu"
+            className="hidden md:block h-7 w-auto object-contain opacity-80"
+          />
         </div>
 
-        {/* Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-10 font-medium text-base">
+        {/* Navigation Links with FontAwesome Icons */}
+        <nav className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
           <Link
-            to="/#secTwo"
-            className="hover:text-teal-300 transition-colors relative group py-2"
-          >
-            About Us
-            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-teal-300 transition-all group-hover:w-full"></span>
-          </Link>
-          <Link
-            to="/counselors"
-            className={`transition-colors relative group py-2 ${
-              isLinkActive("/counselors")
-                ? "text-teal-300 font-bold border-b-2 border-teal-300"
-                : "hover:text-teal-300"
+            to="/"
+            className={`py-1.5 px-3 rounded-xl flex items-center gap-2 transition-colors ${
+              isLinkActive("/") || isLinkActive("/about") || isLinkActive("/overview")
+                ? "bg-white/15 text-white font-semibold"
+                : "text-white/75 hover:text-white hover:bg-white/5"
             }`}
           >
-            Counselors
-            {!isLinkActive("/counselors") && (
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-teal-300 transition-all group-hover:w-full"></span>
-            )}
+            <FontAwesomeIcon icon={faCircleInfo} className="text-xs text-teal-400" />
+            <span>About Us</span>
           </Link>
+
+          {userInfo && (
+            <Link
+              to="/chat"
+              className={`py-1.5 px-3 rounded-xl flex items-center gap-2 transition-colors ${
+                isLinkActive("/chat")
+                  ? "bg-white/15 text-white font-semibold"
+                  : "text-white/75 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <FontAwesomeIcon icon={faComments} className="text-xs text-teal-400" />
+              <span>Chat</span>
+            </Link>
+          )}
+
+          <Link
+            to="/counselors"
+            className={`py-1.5 px-3 rounded-xl flex items-center gap-2 transition-colors ${
+              isLinkActive("/counselors")
+                ? "bg-white/15 text-white font-semibold"
+                : "text-white/75 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <FontAwesomeIcon icon={faUserGroup} className="text-xs text-teal-400" />
+            <span>Guides</span>
+          </Link>
+
+          {userInfo && (
+            <Link
+              to="/account/dashboard/profile"
+              className={`py-1.5 px-3 rounded-xl flex items-center gap-2 transition-colors ${
+                location.pathname.includes("/profile") || location.pathname.includes("/dashboard")
+                  ? "bg-white/15 text-white font-semibold"
+                  : "text-white/75 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <FontAwesomeIcon icon={faTableColumns} className="text-xs text-teal-400" />
+              <span>Profile</span>
+            </Link>
+          )}
         </nav>
 
-        {/* User Profile / Logout Section */}
-        <div className="flex items-center gap-2 md:gap-3 shrink-0">
+        {/* Profile & Auth Section */}
+        <div className="flex items-center gap-3 shrink-0">
           {userInfo ? (
             <>
-              <Link to="/account/dashboard">
-                <div className="flex items-center gap-2 md:gap-3 bg-white/5 hover:bg-white/10 px-2 md:px-4 py-1.5 md:py-2 rounded-full border border-white/10 transition-all active:scale-95">
-                  <span className="hidden md:block text-sm font-semibold truncate max-w-[120px]">
-                    {userInfo.name}
-                  </span>
-                  <div className="w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden border-2 border-teal-500 shadow-sm flex-shrink-0 bg-white/20">
-                    <img
-                      src={
-                        userInfo.pi360Profile?.student?.[0]?.ProfilePictureURL ||
-                        userInfo.pi360Data?.data?.avatar ||
-                        userInfo.pi360Data?.student?.[0]?.ProfilePictureURL ||
-                        userInfo.pic ||
-                        "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg"
-                      }
-                      alt={userInfo.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.src = "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg";
-                      }}
-                    />
-                  </div>
-                </div>
+              <Link
+                to="/account/dashboard/profile"
+                className="flex items-center gap-2.5 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 transition-colors"
+                title="Account Profile"
+              >
+                <img
+                  src={userPhoto}
+                  alt={userInfo.name}
+                  className="w-7 h-7 rounded-full object-cover border border-teal-400/50"
+                  onError={(e) => {
+                    e.target.src =
+                      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop";
+                  }}
+                />
+                <span className="hidden sm:inline text-xs font-semibold text-white max-w-[120px] truncate">
+                  {userInfo.name || "User"}
+                </span>
+                {userInfo.isGoogleAuth && (
+                  <img
+                    src={googleIcon}
+                    alt="Google account"
+                    className="w-3.5 h-3.5 object-contain"
+                  />
+                )}
               </Link>
 
-              {/* Header Logout Button */}
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-300 hover:text-red-200 border border-red-500/30 px-3 md:px-3.5 py-2 rounded-full text-xs font-bold transition-all active:scale-95"
-                title="Log out of account"
+                className="p-2 sm:px-3 sm:py-1.5 text-xs text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors flex items-center gap-1.5"
+                title="Sign out"
               >
-                <span className="material-symbols-outlined text-base md:text-lg">logout</span>
-                <span className="hidden sm:inline">Logout</span>
+                <FontAwesomeIcon icon={faRightFromBracket} className="text-xs" />
+                <span className="hidden sm:inline">Sign out</span>
               </button>
             </>
           ) : (
-            <Link to="/login">
-              <div className="flex items-center gap-3 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10 transition-all active:scale-95">
-                <span className="flex items-center gap-2 text-sm font-semibold text-teal-300 hover:text-white transition-colors">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-5 h-5"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                    />
-                  </svg>
-                  <span>Login</span>
-                </span>
-              </div>
+            <Link
+              to="/login"
+              className="flex items-center gap-2 bg-teal-500 hover:bg-teal-400 text-[#0c242c] font-bold px-4 py-2 rounded-xl text-xs transition-colors"
+            >
+              <FontAwesomeIcon icon={faRightToBracket} className="text-xs" />
+              <span>Sign In</span>
             </Link>
           )}
         </div>

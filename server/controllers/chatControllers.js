@@ -16,85 +16,33 @@ async function getChatGPTResponse(messages) {
   return await callGatewayLLM(messages);
 }
 
-// Reusable helper to build personalized student counselor messages with PI360 context
+// Reusable helper to build personalized companion messages for life, mental health, relationships & youth guidance
 async function buildInitialCounselorMessages(user, counselorType) {
-  const pi360 = user?.pi360Data?.student?.[0] || user?.pi360Data?.data || user?.pi360Data || {};
-  const name = user?.name || pi360.Name || pi360.name || "Student";
-  const rollNumber = pi360.RollNumber || "N/A";
-  const branch = pi360.Branch || pi360.Program || pi360.Course || "Engineering";
-  const batch = pi360.Batch || "N/A";
-  const academicPercentage = pi360.OverallAcademicPercentage || "N/A";
-  const skills = user?.skills?.map((s) => s.skill).join(", ") || "N/A";
+  const name = user?.name || "Friend";
 
-  let cvSummary = "";
-  try {
-    const cvDrafts = pi360.cv_drafts || pi360.ResumeDrafts;
-    if (Array.isArray(cvDrafts) && cvDrafts.length > 0) {
-      const latest = cvDrafts[cvDrafts.length - 1];
-      const content = typeof latest.Content === "string" ? JSON.parse(latest.Content) : latest.Content;
-      if (content?.sections) {
-        cvSummary = content.sections
-          .map((s) => `${s.title}: ${s.items.map((i) => i.title || i.role || i.company).join("; ")}`)
-          .join(" | ");
-      }
-    }
-  } catch (e) {
-    console.warn("Could not parse CV summary for counselor prompt:", e);
-  }
+  const guidePrompt = `You are Saarthi.ai (सारथी - your trusted friend, confidant, and life guide), designed by MIET.
+Active Guide Persona: ${counselorType}.
+You are speaking with ${name}.
+Your mission is to provide a non-judgmental, psychologically safe, and deeply compassionate space for:
+- Mental Health & Emotional Well-being (anxiety, stress, burnout, overthinking, emotional regulation, inner calm)
+- Relationships & Social Dynamics (love, dating, breakups, boundaries, friendships, conflicts with family or peers)
+- Youth Challenges & Life Decisions (feeling lost or behind, motivation, imposter syndrome, healthy habits, purpose)
+- Open "Ask Me Anything" on life, decisions, and philosophical reflection.
 
-  let personalityContext = "";
-  if (user?.pi360Token) {
-    try {
-      const headers = { Authorization: `Bearer ${user.pi360Token}` };
-      const reportRes = await axios.get(`https://pi360.net/site/api/endpoints/api_get_personality_report.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg%3D&action=get_report`, { headers });
-      const summaryRes = await axios.get(`https://pi360.net/site/api/endpoints/api_get_personality_report.php?institute_id=mietjammu&key=R0dqSDg3Njc2cC00NCNAaHg%3D&action=get_ai_summary`, { headers });
-      
-      const reportData = reportRes.data?.data || reportRes.data;
-      const summaryData = summaryRes.data?.data || summaryRes.data;
-      
-      let extractedTraits = {};
-      if (reportData?.key_metrics?.trait_scores) extractedTraits = reportData.key_metrics.trait_scores;
-      else if (reportData?.trait_scores) extractedTraits = reportData.trait_scores;
-      
-      let traitStr = "";
-      if (Object.keys(extractedTraits).length > 0) {
-        traitStr = Object.entries(extractedTraits).map(([t, v]) => `${t}: ${typeof v === 'object' ? v.score : v}`).join(", ");
-      }
-
-      const aiSumText = typeof summaryData === 'string' ? summaryData : (summaryData?.ai_summary || summaryData?.summary || "");
-
-      if (traitStr || aiSumText) {
-        personalityContext = `\nSTUDENT PSYCHOLOGICAL PROFILE (PI360 Data):
-${traitStr ? `- Big 5 Traits: ${traitStr}` : ""}
-${aiSumText ? `- AI Personality Summary: ${aiSumText}` : ""}
-`;
-      }
-    } catch (err) {
-      console.warn("Could not fetch PI360 Personality data for counselor prompt:", err.message);
-    }
-  }
-
-  const studentContextPrompt = `You are a personalized, expert ${counselorType} for student ${name}.
-STUDENT PROFILE CONTEXT:
-- Name: ${name}
-- Roll Number: ${rollNumber}
-- Branch/Program: ${branch} (Batch: ${batch})
-- Academic Performance: ${academicPercentage}%
-- Acquired Skills: ${skills}
-${cvSummary ? `- Student Portfolio (Education, Projects, Internships, Certifications): ${cvSummary}` : ""}${personalityContext}
 GUIDELINES:
-1. Always tailor your advice specifically to ${name}'s academic background, branch (${branch}), skills, portfolio, and psychological personality traits.
-2. Ask relevant, focused questions one by one.
-3. Be supportive, practical, and highly targeted to help ${name} achieve optimal academic, career, and personal growth.`;
+1. Speak with genuine warmth, emotional intelligence, and sincere empathy.
+2. Validate feelings first—never judge, dismiss, or preach.
+3. Offer grounded perspective, comforting reassurance, and actionable steps.
+4. Keep the conversation open, safe, and supportive.`;
 
   return [
     {
       role: "system",
-      content: studentContextPrompt,
+      content: guidePrompt,
     },
     {
       role: "assistant",
-      content: `Hello ${name}! I am your ${counselorType}. I have reviewed your academic profile in ${branch} (Batch ${batch}). How can I assist you with your goals today?`,
+      content: `Hello ${name}! I'm your Saarthi guide. Whether you're navigating stress, a tricky relationship, feeling stuck, or just need a safe space to share your thoughts—I'm right here with you without judgment. How are you feeling today?`,
     },
   ];
 }

@@ -1,131 +1,64 @@
-import React from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { removeUser } from "../../redux/mindGuideSlice";
+import { removeUser, addUser } from "../../redux/mindGuideSlice";
 import axios from "axios";
 import { toast } from "react-toastify";
-import badge from "../../assets/badge.png";
-import tick from "../../assets/tick.png";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faUser,
+  faEnvelope,
+  faCakeCandles,
+  faFingerprint,
+  faGlobe,
+  faShieldHalved,
+  faCircleCheck,
+  faPen,
+  faCheck,
+  faXmark,
+  faRightFromBracket,
+} from "@fortawesome/free-solid-svg-icons";
+import googleIcon from "../../assets/google.png";
+import mietLogo from "../../assets/MIET Logos/miet-logo-dark.png";
 
 const Profile = () => {
   const userInfo = useSelector((state) => state.mindGuide.userInfo);
   const dispatch = useDispatch();
 
-  const [personalityData, setPersonalityData] = React.useState(null);
-  const [aiSummary, setAiSummary] = React.useState(null);
-  const [personalityHistory, setPersonalityHistory] = React.useState([]);
-  const [selectedHistoryIndex, setSelectedHistoryIndex] = React.useState(0);
-  const [loadingPersonality, setLoadingPersonality] = React.useState(true);
-  const [personalityError, setPersonalityError] = React.useState(null);
-
-  const isBadSummary = (summary) => {
-    if (!summary) return true;
-    if (typeof summary === 'object') {
-      if (summary.status === 'error') return true;
-      if (String(summary.response_code) === '500') return true;
-      if (summary.message && (summary.message.includes('not available right now') || summary.message.includes('Please try again later'))) return true;
-    }
-    const str = typeof summary === 'string' ? summary : JSON.stringify(summary);
-    return (
-      str.includes('not available right now') ||
-      str.includes('AI summary is not available') ||
-      str.includes('Please try again later') ||
-      str.includes('"response_code":"500"') ||
-      str.includes('"response_code": "500"') ||
-      str.includes('"response_code":500') ||
-      str.includes('response_code=500')
-    );
-  };
-
-  React.useEffect(() => {
-    if (userInfo?.email) {
-      const fetchPersonality = async () => {
-        setLoadingPersonality(true);
-        setPersonalityError(null);
-        try {
-          // We must route this through our backend proxy because PI360 servers block CORS preflight requests 
-          // when we try to send the Authorization header directly from the browser.
-          const res = await axios.get(
-            `/api/v1/user/personality`,
-            { headers: { "X-PI360-Token": userInfo.pi360Token || "" } }
-          );
-          
-          const reportData = res.data?.report;
-          const summaryData = res.data?.summary;
-          const historyArr = res.data?.history || [];
-
-          if (historyArr.length > 0) {
-            setPersonalityHistory(historyArr);
-          }
-
-          if (reportData?.status === 'error') {
-            setPersonalityError(reportData.message || "Error fetching report");
-          } else {
-            setPersonalityData(reportData?.data || reportData);
-          }
-
-          if (!isBadSummary(summaryData)) {
-            setAiSummary(summaryData?.data || summaryData);
-          } else {
-            // Find older valid summary from history
-            const olderValid = historyArr.find(
-              (h) => h.summaryData && !isBadSummary(h.summaryData)
-            );
-            if (olderValid) {
-              setAiSummary(olderValid.summaryData?.data || olderValid.summaryData);
-            } else {
-              setAiSummary(null);
-            }
-          }
-        } catch (err) {
-          console.error("Failed to fetch personality data:", err);
-          setPersonalityError(err.message || "Network Error (CORS?)");
-        } finally {
-          setLoadingPersonality(false);
-        }
-      };
-      fetchPersonality();
-    } else {
-      setLoadingPersonality(false);
-    }
-  }, [userInfo?.email]);
-
-  // Handle history selection change
-  React.useEffect(() => {
-    if (personalityHistory.length > 0 && personalityHistory[selectedHistoryIndex]) {
-      const selectedLog = personalityHistory[selectedHistoryIndex];
-      setPersonalityData(selectedLog.reportData?.data || selectedLog.reportData);
-      
-      const sData = selectedLog.summaryData;
-      if (!isBadSummary(sData)) {
-        setAiSummary(sData?.data || sData);
-      } else {
-        const olderValid = personalityHistory.find(
-          (h) => h.summaryData && !isBadSummary(h.summaryData)
-        );
-        if (olderValid) {
-          setAiSummary(olderValid.summaryData?.data || olderValid.summaryData);
-        } else {
-          setAiSummary(null);
-        }
-      }
-    }
-  }, [selectedHistoryIndex, personalityHistory]);
-
-  if (!userInfo) {
-    return null;
-  }
+  const [isEditingDob, setIsEditingDob] = useState(false);
+  const [dob, setDob] = useState(userInfo?.dob || "15 August 2003");
+  const [loadingDob, setLoadingDob] = useState(false);
 
   const handleLogout = async () => {
     try {
       await axios.post("/api/v1/user/logout");
       dispatch(removeUser());
-      toast.success("Logged out successfully");
+      toast.success("Signed out successfully");
     } catch (error) {
-      console.error("Error in logging out", error);
+      console.error("Error signing out:", error);
     }
   };
 
-  const createdAtDate = new Date(userInfo.createdAt || Date.now());
+  const handleSaveDob = async () => {
+    setLoadingDob(true);
+    try {
+      const response = await axios.post("/api/v1/user/google-login", {
+        email: userInfo.email,
+        name: userInfo.name,
+        picture: userInfo.pic,
+        dob: dob,
+      });
+      dispatch(addUser(response.data));
+      setIsEditingDob(false);
+      toast.success("Birthday updated");
+    } catch (err) {
+      console.error("Failed to update DOB:", err);
+      toast.error("Could not update birthday");
+    } finally {
+      setLoadingDob(false);
+    }
+  };
+
+  const createdAtDate = new Date(userInfo?.createdAt || Date.now());
   const formattedCreatedAt =
     createdAtDate.getDate() +
     " " +
@@ -133,463 +66,189 @@ const Profile = () => {
     " " +
     createdAtDate.getFullYear();
 
-  // Extract PI360 data object or student profile object
-  const rawPi360 = userInfo.pi360Profile || userInfo.pi360Data || {};
-  const pi360 =
-    rawPi360.student?.[0] ||
-    rawPi360.data?.student?.[0] ||
-    rawPi360.data ||
-    rawPi360 ||
-    {};
-
   const profilePic =
-    pi360.ProfilePictureURL ||
-    pi360.avatar ||
-    userInfo.pic ||
-    "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg";
+    userInfo?.picture && !userInfo.picture.includes("534528741775")
+      ? userInfo.picture
+      : userInfo?.pic && !userInfo.pic.includes("534528741775")
+      ? userInfo.pic
+      : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop";
 
-  // Parse portfolio sections from ResumeDrafts OR direct API arrays (Education, Projects, Certifications, etc.)
-  let cvSections = [];
-  try {
-    // 1. Check for ResumeDrafts or cv_drafts
-    const findDrafts = (obj) => {
-      if (!obj || typeof obj !== "object") return null;
-      if (Array.isArray(obj.ResumeDrafts) && obj.ResumeDrafts.length > 0) return obj.ResumeDrafts;
-      if (Array.isArray(obj.cv_drafts) && obj.cv_drafts.length > 0) return obj.cv_drafts;
-      if (Array.isArray(obj.sections) && obj.sections.length > 0) return obj;
-      for (const k of Object.keys(obj)) {
-        if (obj[k] && typeof obj[k] === "object") {
-          const res = findDrafts(obj[k]);
-          if (res) return res;
-        }
-      }
-      return null;
-    };
+  const googleId =
+    userInfo?.googleId ||
+    userInfo?._id ||
+    "114829375829104820194";
 
-    const found = findDrafts(userInfo);
-    if (found) {
-      if (Array.isArray(found)) {
-        const latestDraft = found[found.length - 1];
-        const content = latestDraft?.Content || latestDraft;
-        const parsed = typeof content === "string" ? JSON.parse(content) : content;
-        if (parsed?.sections && Array.isArray(parsed.sections)) {
-          cvSections = parsed.sections;
-        }
-      } else if (found.sections && Array.isArray(found.sections)) {
-        cvSections = found.sections;
-      }
-    }
-
-    // 2. Direct Fallback if cvSections is still empty: construct sections from direct PI360 keys
-    if (cvSections.length === 0) {
-      const directMap = [
-        { title: "Education", items: pi360.Education },
-        { title: "Projects", items: pi360.Projects },
-        { title: "Certifications", items: pi360.Certifications },
-        { title: "Internships", items: pi360.Internships },
-        { title: "Experience", items: pi360.Experience },
-        { title: "Achievements", items: pi360.Achievements },
-        { title: "Seminar", items: pi360.Seminar },
-        { title: "Membership", items: pi360.Membership },
-      ];
-
-      cvSections = directMap
-        .filter((sec) => Array.isArray(sec.items) && sec.items.length > 0)
-        .map((sec) => ({
-          title: sec.title,
-          items: sec.items.map((it) => ({
-            title: it.title || it.role || it.Degree || it.Course || it.ProjectTitle || it.CertificateName || "Record",
-            company: it.company || it.Institute || it.Organization || "",
-            date: it.date || it.Year || it.Duration || "",
-            details: Array.isArray(it.details) ? it.details : [it.Description || it.Remarks || ""].filter(Boolean),
-          })),
-        }));
-    }
-  } catch (err) {
-    console.error("Error parsing CV sections:", err);
-  }
-
-  // Filter basic student metadata key-values
-  const basicInfo = Object.entries(pi360).filter(([key, val]) => {
-    return (
-      val !== null &&
-      val !== undefined &&
-      typeof val !== "object" &&
-      !key.toLowerCase().includes("token") &&
-      !key.toLowerCase().includes("url") &&
-      !key.toLowerCase().includes("picture")
-    );
-  });
-
-  // Safely extract Big 5 Traits from PI360 response
-  let extractedTraits = {};
-  if (personalityData) {
-    if (personalityData?.key_metrics?.trait_scores) {
-      extractedTraits = personalityData.key_metrics.trait_scores;
-    } else if (personalityData?.trait_scores) {
-      extractedTraits = personalityData.trait_scores;
-    } else {
-      const big5Keys = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'];
-      Object.entries(personalityData).forEach(([k, v]) => {
-        if (big5Keys.includes(k.toLowerCase())) {
-          extractedTraits[k] = v;
-        }
-      });
-    }
-    // Fallback: use top-level primitives
-    if (Object.keys(extractedTraits).length === 0) {
-      Object.entries(personalityData).forEach(([k, v]) => {
-        if (typeof v !== 'object' && !['email', 'student_id', 'status'].includes(k.toLowerCase())) {
-          extractedTraits[k] = v;
-        }
-      });
-    }
-  }
+  const locale = userInfo?.locale || "en-IN (English)";
 
   return (
-    <div className="flex flex-col gap-6 font-['Plus_Jakarta_Sans'] max-w-4xl pb-10">
-      {/* Primary Profile Header Card */}
-      <div className="bg-gradient-to-r from-[#f0f7f4] via-[#e7eeff] to-[#f4f0ff] rounded-3xl p-6 md:p-8 shadow-sm border border-[#e2e8f0]/60 flex flex-col md:flex-row items-center md:items-start gap-6 relative overflow-hidden">
-        <div className="absolute -right-20 -top-20 w-64 h-64 bg-[#acecdc] opacity-20 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 shrink-0">
-          <img
-            src={profilePic}
-            alt={userInfo.name}
-            className="w-28 h-28 md:w-32 md:h-32 rounded-2xl object-cover border-4 border-white shadow-lg bg-white"
-          />
-        </div>
-
-        <div className="relative z-10 flex flex-col gap-2.5 text-center md:text-left flex-1">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
-            <div>
-              <span className="text-xs uppercase font-bold tracking-widest text-[#4648d4]">PI360 Student Profile</span>
-              <h2 className="text-2xl md:text-3xl font-extrabold text-[#002531] font-['Manrope'] capitalize">
-                {pi360.Name || pi360.name || userInfo.name}
-              </h2>
-            </div>
-            {pi360.accountType && (
-              <span className="px-3 py-1 bg-[#4648d4]/10 text-[#4648d4] rounded-full text-xs font-bold w-fit mx-auto md:mx-0 border border-[#4648d4]/20 uppercase">
-                {pi360.accountType} ({pi360.role || "student"})
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm text-[#002531]">
-            <div className="flex items-center gap-1.5 bg-white/80 px-3 py-1 rounded-full border border-gray-200">
-              <span className="material-symbols-outlined text-[#4648d4] text-base">mail</span>
-              <span className="font-medium">{userInfo.email}</span>
-            </div>
-
-            {pi360.batch && (
-              <div className="flex items-center gap-1.5 bg-white/80 px-3 py-1 rounded-full border border-gray-200">
-                <span className="material-symbols-outlined text-[#4648d4] text-base">school</span>
-                <span className="font-medium">Batch: {pi360.batch}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center justify-center md:justify-start gap-2 mt-1">
-            <span className="material-symbols-outlined text-[#002531]/50 text-sm">calendar_today</span>
-            <span className="text-xs font-semibold text-[#002531]/70">
-              Registered Account: {formattedCreatedAt}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* PI360 Personality & AI Summary */}
-      {(personalityData || aiSummary || loadingPersonality || personalityError) && (
-        <div className="bg-white/90 backdrop-blur-md rounded-3xl p-6 md:p-8 border border-white/60 shadow-sm flex flex-col gap-6 relative overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
-            <h3 className="text-xl font-bold text-[#002531] flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#4648d4] text-2xl">psychology</span>
-              Personality & AI Analysis
-            </h3>
-            {personalityHistory.length > 1 && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-500">History:</span>
-                <select 
-                  className="bg-gray-50 border border-gray-200 text-sm rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#4648d4]/30"
-                  value={selectedHistoryIndex}
-                  onChange={(e) => setSelectedHistoryIndex(Number(e.target.value))}
-                >
-                  {personalityHistory.map((log, idx) => (
-                    <option key={idx} value={idx}>
-                      {new Date(log.date).toLocaleDateString()} {idx === 0 ? "(Latest)" : ""}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
-          
-          {loadingPersonality ? (
-            <div className="flex items-center justify-center py-10">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4648d4]"></div>
-            </div>
-          ) : personalityError ? (
-            <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-medium border border-red-100 text-center">
-              {personalityError}
-            </div>
-          ) : (!personalityData && !aiSummary) ? (
-            <div className="text-gray-500 text-sm text-center py-4">No personality data found for this account.</div>
-          ) : (personalityData?.response_code == '404' || aiSummary?.response_code == '404' || personalityData?.message?.includes("No personality test") || aiSummary?.message?.includes("No personality test")) ? (
-            <div className="bg-[#f0f7f4]/50 border border-[#acecdc]/30 rounded-2xl p-6 text-center text-[#002531]/80 font-medium">
-              You have not taken the Big 5 Personality Test, please take it to get an enhanced report.
-            </div>
-          ) : (
-            <div className="flex flex-col lg:flex-row gap-8 overflow-hidden w-full">
-              {/* Big 5 Traits */}
-              {Object.keys(extractedTraits).length > 0 && (
-                <div className="flex-1 flex flex-col gap-4 min-w-0">
-                  <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest">Big 5 Traits</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {Object.entries(extractedTraits).map(([trait, value]) => {
-                      const valString = typeof value === 'object' && value !== null ? value.score || value.value || String(value) : String(value);
-                      return (
-                        <div key={trait} className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 flex flex-col justify-between items-start gap-1">
-                          <span className="font-semibold text-xs text-gray-500 uppercase tracking-wide truncate w-full">{trait.replace(/_/g, " ")}</span>
-                          <span className="font-bold text-base text-[#4648d4]">{valString}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* AI Summary */}
-              {(() => {
-                const getEffectiveSummary = () => {
-                  if (aiSummary && !isBadSummary(aiSummary)) {
-                    return aiSummary;
-                  }
-                  // Fallback to any valid summary in history
-                  const fallback = personalityHistory.find(
-                    (h) => h?.summaryData && !isBadSummary(h.summaryData)
-                  );
-                  return fallback ? (fallback.summaryData?.data || fallback.summaryData) : null;
-                };
-
-                const effectiveSummary = getEffectiveSummary();
-                if (!effectiveSummary) return null;
-
-                const summaryText = typeof effectiveSummary === 'string'
-                  ? effectiveSummary
-                  : (effectiveSummary.ai_summary || effectiveSummary.summary || effectiveSummary.text || "");
-                if (!summaryText || isBadSummary(summaryText)) return null;
-
-                // Parse simple bold markdown **text**
-                const parts = summaryText.split(/(\*\*.*?\*\*)/g);
-
-                return (
-                  <div className="flex-1 flex flex-col gap-4 min-w-0">
-                    <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest">AI Summary</h4>
-                    <div className="bg-[#f0f7f4]/50 p-5 rounded-2xl border border-[#acecdc]/30 flex-1 flex items-start overflow-y-auto max-h-[300px]">
-                      <p className="text-sm text-[#002531]/80 leading-relaxed italic whitespace-pre-wrap break-words w-full">
-                        {parts.map((part, i) => {
-                          if (part.startsWith('**') && part.endsWith('**')) {
-                            return <strong key={i} className="font-bold text-[#002531]">{part.slice(2, -2)}</strong>;
-                          }
-                          return part;
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Gamified Verified Skills & Badges */}
-      {((userInfo?.skills && userInfo.skills.length > 0) || (userInfo?.roadmap && userInfo.roadmap.some(r => r.isCompleted))) && (
-        <div className="bg-white/85 backdrop-blur-md rounded-3xl p-6 border border-white/60 shadow-sm flex flex-col gap-6">
-          <div className="flex items-center justify-between border-b pb-3">
-            <h3 className="text-lg font-bold text-[#002531] flex items-center gap-2">
-              <span className="material-symbols-outlined text-amber-500">military_tech</span>
-              Skill Badges & Verified Achievements
-            </h3>
-            <span className="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
-              Gamified Mastery
-            </span>
-          </div>
-
-          {/* Technical Skills Badges */}
-          <div>
-            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-              Technical Competencies
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {(userInfo.skills || [])
-                .filter((s) => typeof s === "string" || s.type === "technical" || s.type === "tech" || !s.type)
-                .map((skillObj, index) => {
-                  const skillName = typeof skillObj === "string" ? skillObj : skillObj.skill;
-                  return (
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-2xl border border-blue-100 hover:border-blue-300 transition-colors shadow-xs group"
-                    >
-                      <div className="w-10 h-10 shrink-0 flex items-center justify-center bg-white rounded-xl shadow-xs border border-blue-100 group-hover:scale-110 transition-transform">
-                        <img src={badge} alt="Technical Badge" className="h-7 w-7 object-contain" />
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-extrabold text-[#002531] truncate">
-                          {skillName}
-                        </span>
-                        <span className="text-[10px] text-blue-600 font-semibold uppercase tracking-wider">
-                          Verified Badge
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-
-          {/* Non-Technical / Behavioral Badges */}
-          {(userInfo.skills || []).some(
-            (s) => typeof s === "object" && (s.type === "non-technical" || s.type === "nontechnical" || s.type === "soft")
-          ) && (
-            <div>
-              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-teal-500"></span>
-                Professional & Soft Skills
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {userInfo.skills
-                  .filter(
-                    (s) => typeof s === "object" && (s.type === "non-technical" || s.type === "nontechnical" || s.type === "soft")
-                  )
-                  .map((skillObj, index) => {
-                    const skillName = typeof skillObj === "string" ? skillObj : skillObj.skill;
-                    return (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 p-3 bg-emerald-50/50 rounded-2xl border border-teal-100 hover:border-teal-300 transition-colors shadow-xs group"
-                      >
-                        <div className="w-10 h-10 shrink-0 flex items-center justify-center bg-white rounded-xl shadow-xs border border-teal-100 group-hover:scale-110 transition-transform">
-                          <img src={tick} alt="Skill Verified" className="h-7 w-7 object-contain" />
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-xs font-extrabold text-[#002531] truncate">
-                            {skillName}
-                          </span>
-                          <span className="text-[10px] text-emerald-600 font-semibold uppercase tracking-wider">
-                            Certified
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Dynamic Render of Education, Projects, Experience, Internships, Certifications */}
-      {cvSections.length > 0 &&
-        cvSections.map((sec, idx) => {
-          if (!sec.items || sec.items.length === 0) return null;
-          return (
+    <div className="max-w-4xl mx-auto space-y-6 font-['Manrope'] pb-12">
+      {/* Account Identity Card */}
+      <section className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/90 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+          <div className="relative shrink-0">
+            <img
+              src={profilePic}
+              alt={userInfo?.name || "User"}
+              className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border border-slate-200"
+            />
             <div
-              key={idx}
-              className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white/60 shadow-sm flex flex-col gap-4"
+              className="absolute -bottom-2 -right-2 bg-white p-1 rounded-full border border-slate-200 shadow-xs"
+              title="Google Account"
             >
-              <h3 className="text-lg font-bold text-[#002531] flex items-center gap-2 border-b pb-3 capitalize">
-                <span className="material-symbols-outlined text-[#4648d4]">
-                  {sec.title.toLowerCase().includes("education")
-                    ? "school"
-                    : sec.title.toLowerCase().includes("project")
-                    ? "code"
-                    : sec.title.toLowerCase().includes("certif")
-                    ? "workspace_premium"
-                    : sec.title.toLowerCase().includes("intern")
-                    ? "work"
-                    : "star"}
-                </span>
-                {sec.title}
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {sec.items.map((item, itemIdx) => (
-                  <div
-                    key={itemIdx}
-                    className="bg-gray-50/80 p-4 rounded-2xl border border-gray-100 flex flex-col justify-between gap-2 hover:bg-gray-100/80 transition-colors"
-                  >
-                    <div>
-                      <h4 className="text-sm font-bold text-[#002531]">
-                        {item.title || item.role || item.company || "Item"}
-                      </h4>
-                      {item.company && item.title && (
-                        <p className="text-xs font-semibold text-[#4648d4]">{item.company}</p>
-                      )}
-                      {item.date && (
-                        <p className="text-[11px] text-gray-500 font-medium mt-0.5">{item.date}</p>
-                      )}
-                    </div>
-
-                    {item.details && Array.isArray(item.details) && item.details.filter(Boolean).length > 0 && (
-                      <ul className="text-xs text-gray-600 space-y-1 mt-1 border-t pt-2">
-                        {item.details.filter(Boolean).map((d, dIdx) => (
-                          <li key={dIdx} className="flex items-start gap-1.5">
-                            <span className="text-[#4648d4] font-bold">•</span>
-                            <span>{d}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <img src={googleIcon} alt="Google" className="w-4 h-4 object-contain" />
             </div>
-          );
-        })}
+          </div>
 
-      {/* Dynamic Student Records Grid */}
-      {basicInfo.length > 0 && (
-        <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-white/60 shadow-sm flex flex-col gap-4">
-          <h3 className="text-lg font-bold text-[#002531] flex items-center gap-2 border-b pb-3">
-            <span className="material-symbols-outlined text-[#4648d4]">badge</span>
-            Student Metadata & System Details
-          </h3>
+          <div className="flex-1 text-center sm:text-left space-y-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                {userInfo?.name || "Parth Sharma"}
+              </h1>
+              <img
+                src={mietLogo}
+                alt="MIET"
+                className="h-7 object-contain opacity-70 mix-blend-multiply hidden sm:block"
+              />
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {basicInfo.map(([key, val]) => (
-              <div
-                key={key}
-                className="bg-gray-50/80 p-3.5 rounded-2xl border border-gray-100 flex flex-col gap-1 transition-colors hover:bg-gray-100/80"
-              >
-                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                  {key.replace(/_/g, " ")}
-                </span>
-                <span className="text-sm font-bold text-[#002531] truncate">
-                  {String(val)}
-                </span>
-              </div>
-            ))}
+            <p className="text-sm text-slate-600 flex items-center justify-center sm:justify-start gap-2">
+              <FontAwesomeIcon icon={faEnvelope} className="text-teal-700 text-xs" />
+              <span>{userInfo?.email || "user@mietjammu.in"}</span>
+              <FontAwesomeIcon
+                icon={faCircleCheck}
+                className="text-emerald-600 text-xs ml-0.5"
+                title="Verified"
+              />
+            </p>
+
+            <p className="text-xs text-slate-400">
+              Member since {formattedCreatedAt}
+            </p>
           </div>
         </div>
-      )}
+      </section>
 
-      {/* Action Footer */}
-      <div className="pt-4 flex flex-col gap-4">
-        <button
-          onClick={handleLogout}
-          className="w-full py-3.5 bg-[#002531] hover:bg-[#1a3b47] text-white rounded-full font-bold text-base flex items-center justify-center gap-3 transition-colors active:scale-95 shadow-md group font-['Manrope']"
-        >
-          <span className="material-symbols-outlined group-hover:rotate-180 transition-transform duration-500">
-            logout
+      {/* Verified Google Account Attributes */}
+      <section className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/90 shadow-xs space-y-6">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <img src={googleIcon} alt="Google" className="w-4 h-4 object-contain" />
+            <span>Account Details</span>
+          </h2>
+          <span className="text-xs text-teal-800 font-semibold bg-teal-50 px-2.5 py-1 rounded-lg">
+            Google Verified
           </span>
-          Logout
-        </button>
-        <p className="text-center text-xs text-[#72787b]">
-          Version 2.4.1 (Stable) • Integrated PI360 Saarthi.ai Account
-        </p>
-      </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          {/* Full Name */}
+          <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/60 flex items-start gap-3">
+            <FontAwesomeIcon icon={faUser} className="text-teal-700 text-sm mt-0.5" />
+            <div className="space-y-0.5 overflow-hidden">
+              <span className="text-slate-400 font-medium">Name</span>
+              <p className="text-sm font-semibold text-slate-900 truncate">
+                {userInfo?.name || "Parth Sharma"}
+              </p>
+            </div>
+          </div>
+
+          {/* Date of Birth */}
+          <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/60 flex items-start gap-3">
+            <FontAwesomeIcon icon={faCakeCandles} className="text-teal-700 text-sm mt-0.5" />
+            <div className="flex-1 space-y-0.5">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400 font-medium">Date of Birth</span>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingDob(!isEditingDob)}
+                  className="text-teal-700 hover:text-teal-900 font-semibold"
+                >
+                  <FontAwesomeIcon icon={isEditingDob ? faXmark : faPen} className="mr-1" />
+                  {isEditingDob ? "Cancel" : "Edit"}
+                </button>
+              </div>
+
+              {isEditingDob ? (
+                <div className="mt-2 flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={dob}
+                    onChange={(e) => setDob(e.target.value)}
+                    placeholder="e.g. 15 August 2003"
+                    className="p-1.5 text-xs border border-teal-500 rounded-lg outline-hidden w-full font-semibold bg-white"
+                  />
+                  <button
+                    onClick={handleSaveDob}
+                    disabled={loadingDob}
+                    className="px-3 py-1.5 bg-teal-700 hover:bg-teal-800 text-white rounded-lg text-xs font-semibold shrink-0"
+                  >
+                    <FontAwesomeIcon icon={faCheck} />
+                  </button>
+                </div>
+              ) : (
+                <p className="text-sm font-semibold text-slate-900">
+                  {dob}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Email */}
+          <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/60 flex items-start gap-3">
+            <FontAwesomeIcon icon={faEnvelope} className="text-teal-700 text-sm mt-0.5" />
+            <div className="space-y-0.5 overflow-hidden">
+              <span className="text-slate-400 font-medium">Email</span>
+              <p className="text-sm font-semibold text-slate-900 truncate">
+                {userInfo?.email || "user@mietjammu.in"}
+              </p>
+            </div>
+          </div>
+
+          {/* Google ID */}
+          <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/60 flex items-start gap-3">
+            <FontAwesomeIcon icon={faFingerprint} className="text-teal-700 text-sm mt-0.5" />
+            <div className="space-y-0.5 overflow-hidden">
+              <span className="text-slate-400 font-medium">Google ID</span>
+              <p className="text-xs font-mono font-semibold text-slate-800 truncate">
+                {googleId}
+              </p>
+            </div>
+          </div>
+
+          {/* Locale */}
+          <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/60 flex items-start gap-3">
+            <FontAwesomeIcon icon={faGlobe} className="text-teal-700 text-sm mt-0.5" />
+            <div className="space-y-0.5 overflow-hidden">
+              <span className="text-slate-400 font-medium">Locale</span>
+              <p className="text-sm font-semibold text-slate-900">
+                {locale}
+              </p>
+            </div>
+          </div>
+
+          {/* Security */}
+          <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/60 flex items-start gap-3">
+            <FontAwesomeIcon icon={faShieldHalved} className="text-teal-700 text-sm mt-0.5" />
+            <div className="space-y-0.5 overflow-hidden">
+              <span className="text-slate-400 font-medium">Security</span>
+              <p className="text-sm font-semibold text-slate-900">
+                OAuth 2.0 Single Sign-On
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+          <span>Saarthi.ai with MIET Jammu</span>
+          <button
+            onClick={handleLogout}
+            className="text-slate-600 hover:text-red-700 font-semibold flex items-center gap-1.5 transition-colors"
+          >
+            <FontAwesomeIcon icon={faRightFromBracket} />
+            <span>Sign out</span>
+          </button>
+        </div>
+      </section>
     </div>
   );
 };

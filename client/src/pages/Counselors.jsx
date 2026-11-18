@@ -1,67 +1,79 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { stopNeuralTTS } from "../services/azureSpeechService";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faSpa,
+  faHeart,
+  faBrain,
+  faBolt,
+  faHandHoldingHeart,
+  faRobot,
+  faArrowLeft,
+  faArrowRight,
+} from "@fortawesome/free-solid-svg-icons";
 
 const counselors = [
   {
-    type: "Academic Counselor",
-    description: "Navigate your educational path with expert support.",
-    icon: "school",
-    badgeBg: "bg-[#c6e8f7]",
-    iconColor: "text-[#002531]",
+    type: "Maya Lin",
+    counselorKey: "maya",
+    title: "Mental Health & Emotional Well-Being",
+    description: "Navigate stress, anxiety, emotional burnout, and find grounded inner calm.",
+    icon: faSpa,
+    badgeBg: "bg-teal-50",
+    iconColor: "text-teal-700",
   },
   {
-    type: "Career Counselor",
-    description: "Discover your professional potential and goals.",
-    icon: "work",
-    badgeBg: "bg-[#acecdc]",
-    iconColor: "text-[#2d6d60]",
+    type: "Ethan Rostova",
+    counselorKey: "ethan",
+    title: "Relationships, Love & Boundaries",
+    description: "Confidential guidance for dating, breakups, friendships, and family dynamics.",
+    icon: faHeart,
+    badgeBg: "bg-rose-50",
+    iconColor: "text-rose-700",
   },
   {
-    type: "Personal Counselor",
-    description: "Find clarity and growth in your personal life.",
-    icon: "psychology",
-    badgeBg: "bg-[#d8e3fa]",
-    iconColor: "text-[#002531]",
+    type: "Dr. Alex (Saarthi)",
+    counselorKey: "saarthi",
+    title: "Chief Life & Youth Guide",
+    description: "Your all-around mentor for life choices, self-doubt, identity, and direction.",
+    icon: faBrain,
+    badgeBg: "bg-sky-50",
+    iconColor: "text-sky-800",
   },
   {
-    type: "Financial Counselor",
-    description: "Practical guidance for managing your finances.",
-    icon: "payments",
-    badgeBg: "bg-[#dde4e1]",
-    iconColor: "text-[#002531]",
+    type: "Marcus Cole",
+    counselorKey: "marcus",
+    title: "Confidence & Ambition Mentor",
+    description: "Conquer imposter syndrome, build bold self-confidence, and unlock your true drive.",
+    icon: faBolt,
+    badgeBg: "bg-amber-50",
+    iconColor: "text-amber-700",
   },
   {
-    type: "Health and Wellness Counselor",
-    description: "Holistic support for your physical and mental well-being.",
-    icon: "self_improvement",
-    badgeBg: "bg-[#afefdf]",
-    iconColor: "text-[#2d6d60]",
+    type: "Luna",
+    counselorKey: "luna",
+    title: "Empathy, Loneliness & Healing",
+    description: "A deeply caring soul for feeling understood, self-worth, and emotional healing.",
+    icon: faHandHoldingHeart,
+    badgeBg: "bg-indigo-50",
+    iconColor: "text-indigo-700",
   },
   {
-    type: "Student Life Counselor",
-    description: "Make the most of your student experience.",
-    icon: "groups",
-    badgeBg: "bg-[#e7eeff]",
-    iconColor: "text-[#002531]",
-  },
-  {
-    type: "Emotional Support Counselor",
-    description: "Compassionate listening and emotional guidance.",
-    icon: "favorite",
-    badgeBg: "bg-[#aaccdb]",
-    iconColor: "text-[#002531]",
+    type: "Timy Robot",
+    counselorKey: "timy",
+    title: "Habit Design & Clear Thinking",
+    description: "Practical breakdowns to stop overthinking, beat procrastination, and build daily flow.",
+    icon: faRobot,
+    badgeBg: "bg-emerald-50",
+    iconColor: "text-emerald-700",
   },
 ];
 
 const Counselors = () => {
-  const [showConfirmation, setShowConfirmation] = useState(false);
   const [selectedCounselor, setSelectedCounselor] = useState(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    stopNeuralTTS();
-  }, []);
 
   const handleCounselorClick = (counselor) => {
     setSelectedCounselor(counselor);
@@ -70,107 +82,98 @@ const Counselors = () => {
 
   const handleConfirmation = (confirmed) => {
     if (confirmed && selectedCounselor) {
-      const link = `/counselors/chat/${selectedCounselor.type.toLowerCase()}`;
-      navigate(link);
+      stopNeuralTTS();
+      // Store selected guide in localStorage
+      localStorage.setItem("saarthi_counselor_persona", selectedCounselor.counselorKey);
+      navigate("/chat");
     }
     setShowConfirmation(false);
   };
 
   return (
-    <div className="bg-[#f9f9ff] min-h-screen py-10 px-4 md:px-12 antialiased text-[#111c2c]">
+    <div className="bg-slate-50 min-h-screen py-10 px-4 md:px-12 font-sans text-slate-800">
       {/* Top Header */}
-      <div className="max-w-6xl mx-auto mb-10">
+      <div className="max-w-6xl mx-auto mb-8">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-[#002531] font-medium mb-4 hover:opacity-75 transition-opacity"
+          className="flex items-center gap-2 text-slate-600 font-medium mb-3 hover:text-slate-900 transition-colors cursor-pointer text-xs"
         >
-          <span className="material-symbols-outlined">arrow_back</span>
+          <FontAwesomeIcon icon={faArrowLeft} />
           <span>Back</span>
         </button>
-        <h1 className="text-3xl md:text-4xl font-bold text-[#002531] mb-2 font-['Manrope']">
-          Find your guide
+        <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-2">
+          Choose Your Saarthi Companion
         </h1>
-        <p className="text-[#41484b] text-base md:text-lg font-['Plus_Jakarta_Sans']">
-          Choose a designated counselor to start your journey.
+        <p className="text-slate-600 text-sm md:text-base">
+          Specialized guidance for mental health, relationships, youth dilemmas, and finding clarity.
         </p>
       </div>
 
       {/* Counselors Grid */}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {counselors.map((counselor, index) => (
           <div
             key={index}
-            className="bg-white rounded-2xl p-6 border border-[#E2E8F0] shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between gap-5 group cursor-pointer hover:-translate-y-1"
             onClick={() => handleCounselorClick(counselor)}
+            className="group flex flex-col justify-between p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 transition-all cursor-pointer"
           >
-            <div className="flex justify-between items-start">
-              <div
-                className={`w-14 h-14 ${counselor.badgeBg} rounded-xl flex items-center justify-center transition-transform group-hover:scale-105`}
-              >
-                <span
-                  className={`material-symbols-outlined ${counselor.iconColor} text-3xl`}
-                >
-                  {counselor.icon}
-                </span>
-              </div>
-              <span className="material-symbols-outlined text-[#72787b] opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all">
-                chevron_right
-              </span>
-            </div>
-
             <div>
-              <h3 className="text-xl font-bold text-[#002531] mb-2 font-['Manrope'] group-hover:text-[#28695c] transition-colors">
+              <div
+                className={`w-12 h-12 rounded-xl flex items-center justify-center ${counselor.badgeBg} ${counselor.iconColor} mb-4 shadow-xs`}
+              >
+                <FontAwesomeIcon icon={counselor.icon} className="text-xl" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-0.5">
                 {counselor.type}
               </h3>
-              <p className="text-[#41484b] text-sm leading-relaxed font-['Plus_Jakarta_Sans']">
+              <p className="text-xs font-semibold text-teal-700 mb-2">
+                {counselor.title}
+              </p>
+              <p className="text-slate-600 text-xs leading-relaxed">
                 {counselor.description}
               </p>
             </div>
-
-            <button
-              className="w-full py-3 bg-[#002531] hover:bg-[#1a3b47] text-white rounded-full font-semibold text-sm transition-all duration-200 shadow-sm active:scale-95"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCounselorClick(counselor);
-              }}
-            >
-              Choose Counselor
-            </button>
+            <div className="mt-6 pt-3 border-t border-slate-100 flex items-center justify-between text-teal-800 font-semibold text-xs">
+              <span>Start Conversation</span>
+              <FontAwesomeIcon
+                icon={faArrowRight}
+                className="text-xs group-hover:translate-x-1 transition-transform"
+              />
+            </div>
           </div>
         ))}
       </div>
 
       {/* Confirmation Modal */}
-      {showConfirmation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white p-8 rounded-2xl max-w-md w-full shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200">
-            <div className="w-12 h-12 bg-[#c6e8f7] rounded-xl flex items-center justify-center mb-4">
-              <span className="material-symbols-outlined text-[#002531] text-2xl">
-                {selectedCounselor?.icon || "forum"}
-              </span>
+      {showConfirmation && selectedCounselor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl p-6 border border-slate-200">
+            <div
+              className={`w-12 h-12 rounded-xl flex items-center justify-center ${selectedCounselor.badgeBg} ${selectedCounselor.iconColor} mb-3`}
+            >
+              <FontAwesomeIcon icon={selectedCounselor.icon} className="text-xl" />
             </div>
-            <h3 className="text-xl font-bold text-[#002531] mb-2 font-['Manrope']">
-              Start Counseling Session?
+            <h3 className="text-xl font-bold text-slate-900 mb-1">
+              Connect with {selectedCounselor.type}
             </h3>
-            <p className="text-[#41484b] text-sm mb-6 leading-relaxed">
-              You are about to start a session with{" "}
-              <span className="font-semibold text-[#28695c]">
-                {selectedCounselor?.type}
-              </span>
-              .
+            <p className="text-xs font-semibold text-teal-700 mb-2">
+              {selectedCounselor.title}
             </p>
-            <div className="flex justify-end gap-3">
+            <p className="text-xs text-slate-600 mb-5 leading-relaxed">
+              {selectedCounselor.description}
+            </p>
+            <div className="flex items-center justify-end gap-2">
               <button
-                className="px-5 py-2.5 rounded-full border border-gray-300 text-gray-700 font-semibold text-sm hover:bg-gray-50 transition-colors"
                 onClick={() => handleConfirmation(false)}
+                className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
-                className="px-6 py-2.5 bg-[#002531] hover:bg-[#1a3b47] text-white rounded-full font-semibold text-sm shadow transition-colors"
                 onClick={() => handleConfirmation(true)}
+                className="px-4 py-2 rounded-lg text-xs font-semibold bg-teal-800 hover:bg-teal-900 text-white shadow-xs transition-colors cursor-pointer"
               >
-                Confirm
+                Begin Session
               </button>
             </div>
           </div>

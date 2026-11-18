@@ -34,6 +34,9 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route element={<ProtectRoute userInfo={userInfo} />}>
               <Route index element={<Home />} />
+              <Route path="about" element={<Home />} />
+              <Route path="overview" element={<Home />} />
+              <Route path="chat" element={<ChatApp />} />
               <Route path="counselors" element={<Counselors />} />
               {/* Add a dynamic route to capture the counselor type */}
               <Route path="counselors/chat/:type" element={<ChatApp />} />

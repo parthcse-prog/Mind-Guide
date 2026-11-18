@@ -71,6 +71,26 @@ const userSchema = mongoose.Schema(
       type: String,
       default: "",
     },
+    isGoogleAuth: {
+      type: Boolean,
+      default: false,
+    },
+    dob: {
+      type: String,
+      default: "15 August 2003",
+    },
+    googleId: {
+      type: String,
+      default: "",
+    },
+    locale: {
+      type: String,
+      default: "en-IN",
+    },
+    emailVerified: {
+      type: Boolean,
+      default: true,
+    },
   },
 
   {

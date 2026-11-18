@@ -2,6 +2,7 @@ const express = require("express");
 const {
   registerUser,
   authUser,
+  googleAuth,
   getUserProfile,
   handleLogout,
   handleGetRoadmap,
@@ -23,6 +24,8 @@ const router = express.Router();
 
 router.route("/").post(registerUser);
 router.route("/login").post(authUser);
+router.route("/google").post(googleAuth);
+router.route("/google-login").post(googleAuth);
 router.route("/getUserProfile").get(getUserProfile);
 router.route("/logout").post(handleLogout);
 router.route("/roadmap").get(protectCookie, handleGetRoadmap);

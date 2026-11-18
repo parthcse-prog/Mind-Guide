@@ -42,102 +42,140 @@ const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     res.status(400);
-    throw new Error("Please enter all the fields");
+    throw new Error("Please enter both email and password");
   }
 
-  try {
-    let pi360LoginRes = null;
+  const user = await User.findOne({ email });
+  if (!user) {
+    res.status(401);
+    throw new Error("Invalid email or password");
+  }
 
-    // 1. Attempt JSON login payload to PI360 API
+  const isPasswordMatch = await user.matchPassword(password);
+  if (!isPasswordMatch) {
+    res.status(401);
+    throw new Error("Invalid email or password");
+  }
+
+  const token = user.createJWT();
+  res.cookie("token", token, {
+    httpOnly: true,
+    expires: new Date(Date.now() + 604800000), // 7 days
+    sameSite: "lax",
+  });
+
+  return res.status(200).json({
+    ...user._doc,
+    createdAt: user._id.getTimestamp(),
+    password: undefined,
+  });
+});
+
+const googleAuth = asyncHandler(async (req, res) => {
+  const { credential, email, name, picture, googleId, dob } = req.body;
+
+  let userEmail = email;
+  let userName = name;
+  let userPic = picture;
+  let userGoogleId = googleId;
+  let userLocale = "en-IN";
+  let userEmailVerified = true;
+
+  // If a Google JWT ID token was supplied, verify or decode it
+  if (credential) {
     try {
-      pi360LoginRes = await axios.post(
-        "https://pi360.net/site/api/api_login_user.php?institute_id=mietjammu",
-        {
-          username_1: email,
-          password_1: password,
-        },
-        {
-          headers: { "Content-Type": "application/json" },
-        }
+      const googleRes = await axios.get(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`
       );
-    } catch (jsonErr) {
-      console.warn("JSON payload failed, attempting URLSearchParams payload:", jsonErr.message);
-      const params = new URLSearchParams();
-      params.append("username_1", email);
-      params.append("password_1", password);
-      pi360LoginRes = await axios.post(
-        "https://pi360.net/site/api/api_login_user.php?institute_id=mietjammu",
-        params,
-        {
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      if (googleRes.data && googleRes.data.email) {
+        userEmail = googleRes.data.email;
+        userName = googleRes.data.name || googleRes.data.email.split("@")[0];
+        userPic = googleRes.data.picture || userPic;
+        if (googleRes.data.sub) userGoogleId = googleRes.data.sub;
+        if (googleRes.data.locale) userLocale = googleRes.data.locale;
+        if (googleRes.data.email_verified !== undefined) {
+          userEmailVerified = Boolean(googleRes.data.email_verified);
         }
-      );
-    }
-
-    const loginData = pi360LoginRes?.data;
-    if (!loginData || (loginData.statusCode && loginData.statusCode !== 200) || (loginData.status === "error")) {
-      res.status(400);
-      throw new Error(loginData?.message || "Invalid PI360 Credentials");
-    }
-
-    const tokenFromLogin = loginData?.token || loginData?.jwt || loginData?.data?.token || loginData?.access_token;
-    let profileData = null;
-
-    // 2. Fetch full student profile using Bearer token
-    if (tokenFromLogin) {
+      }
+    } catch (verErr) {
       try {
-        const profileRes = await axios.get(
-          "https://pi360.net/site/api/endpoints/api_student_profile.php?institute_id=mietjammu",
-          {
-            headers: {
-              Authorization: `Bearer ${tokenFromLogin}`,
-            },
-          }
-        );
-        profileData = profileRes.data;
-      } catch (profErr) {
-        console.error("PI360 Student Profile Fetch Error:", profErr?.response?.data || profErr.message);
+        const decoded = jwt.decode(credential);
+        if (decoded && decoded.email) {
+          userEmail = decoded.email;
+          userName = decoded.name || decoded.email.split("@")[0];
+          userPic = decoded.picture || userPic;
+          if (decoded.sub) userGoogleId = decoded.sub;
+          if (decoded.locale) userLocale = decoded.locale;
+        }
+      } catch (decodeErr) {
+        console.warn("Could not decode Google token:", decodeErr.message);
       }
     }
+  }
 
-    // 3. Upsert / Sync user profile in MongoDB
-    const studentInfo = profileData?.student?.[0] || profileData || {};
-    const studentName = studentInfo.Name || studentInfo.student_name || loginData?.data?.name || email.split("@")[0];
-    
-    let user = await User.findOne({ email });
+  if (!userEmail) {
+    res.status(400);
+    throw new Error("Google authentication failed. No valid email received.");
+  }
 
-    if (!user) {
-      user = await User.create({
-        name: studentName,
-        email: email,
-        password: password,
-        pi360Data: profileData || loginData,
-        pi360Token: tokenFromLogin,
-      });
-    } else {
-      user.name = studentName || user.name;
-      user.pi360Data = profileData || loginData;
-      user.pi360Token = tokenFromLogin || user.pi360Token;
+  let user = await User.findOne({ email: userEmail });
+
+  if (!user) {
+    const randomPassword = Math.random().toString(36).slice(-12) + "Gg1!";
+    user = await User.create({
+      name: userName || userEmail.split("@")[0],
+      email: userEmail,
+      password: randomPassword,
+      pic: userPic || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop",
+      isGoogleAuth: true,
+      dob: dob || "15 August 2003",
+      googleId: userGoogleId || "114829375829104820194",
+      locale: userLocale || "en-IN",
+      emailVerified: userEmailVerified,
+    });
+  } else {
+    let modified = false;
+    if (userPic && user.pic !== userPic) {
+      user.pic = userPic;
+      modified = true;
+    }
+    if (userName && user.name !== userName) {
+      user.name = userName;
+      modified = true;
+    }
+    if (dob && user.dob !== dob) {
+      user.dob = dob;
+      modified = true;
+    }
+    if (userGoogleId && user.googleId !== userGoogleId) {
+      user.googleId = userGoogleId;
+      modified = true;
+    }
+    if (userLocale && user.locale !== userLocale) {
+      user.locale = userLocale;
+      modified = true;
+    }
+    if (!user.isGoogleAuth) {
+      user.isGoogleAuth = true;
+      modified = true;
+    }
+    if (modified) {
       await user.save();
     }
-
-    const token = user.createJWT();
-    res.cookie("token", token, {
-      expires: new Date(Date.now() + 604800000),
-    });
-
-    return res.status(200).json({
-      ...user._doc,
-      pi360Profile: profileData,
-      pi360Token: tokenFromLogin,
-      createdAt: user._id.getTimestamp(),
-      password: undefined,
-    });
-  } catch (error) {
-    console.error("PI360 Authentication Error:", error?.response?.data || error.message);
-    res.status(400);
-    throw new Error(error?.response?.data?.message || error?.message || "PI360 Login Failed. Check credentials.");
   }
+
+  const token = user.createJWT();
+  res.cookie("token", token, {
+    httpOnly: true,
+    expires: new Date(Date.now() + 604800000), // 7 days
+    sameSite: "lax",
+  });
+
+  return res.status(200).json({
+    ...user._doc,
+    createdAt: user._id.getTimestamp(),
+    password: undefined,
+  });
 });
 const getUserProfile = asyncHandler(async (req, res) => {
   const { token } = req.cookies;
@@ -798,6 +836,7 @@ Use this exact JSON schema:
 module.exports = {
   registerUser,
   authUser,
+  googleAuth,
   getUserProfile,
   handleLogout,
   handleGetRoadmap,

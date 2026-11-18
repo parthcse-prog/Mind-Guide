@@ -1,290 +1,324 @@
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faComments,
+  faUserGroup,
+  faTableColumns,
+  faArrowRight,
+  faCircleQuestion,
+  faSpa,
+  faCompass,
+  faEnvelope,
+  faLocationDot,
+  faPaperPlane,
+  faShieldHalved,
+  faLightbulb,
+} from "@fortawesome/free-solid-svg-icons";
 import logo2d from "../assets/MIET Logos/2d-logo-miet-comp.png";
 
 const Home = () => {
   const navigate = useNavigate();
-  return (
-    <div className="bg-white text-[#111c2c] font-['Plus_Jakarta_Sans'] overflow-x-hidden">
-      {/* Hero Section */}
-      <section
-        id="secOne"
-        className="min-h-[85vh] px-6 md:px-16 flex flex-col items-start justify-center gap-6 bg-gradient-to-br from-white via-[#f0f3ff] to-[#e7eeff] relative overflow-hidden"
-      >
-        <div className="absolute -right-20 -top-20 w-96 h-96 bg-[#acecdc] opacity-20 rounded-full blur-3xl pointer-events-none"></div>
+  const userInfo = useSelector((state) => state.mindGuide.userInfo);
 
-        <div className="max-w-3xl space-y-4 z-10">
-          <h1 className="text-5xl md:text-7xl font-extrabold text-[#002531] font-['Manrope'] leading-tight tracking-tight">
-            Your Personalized Guide
-          </h1>
-          <p className="text-xl md:text-2xl text-[#41484b] font-normal leading-relaxed">
-            Ask anything — explore career paths, resume audits, and roadmaps with Saarthi.ai.
-            <br />
-            Empowering students to achieve their dreams.
-          </p>
-          <div className="pt-4 flex gap-4">
+  const pillars = [
+    {
+      title: "Ask Me Anything",
+      desc: "Inquire about anything on your mind — from life questions and decision-making to everyday curiosities and personal growth.",
+      icon: faCircleQuestion,
+      action: () => navigate("/chat"),
+      actionText: "Ask Saarthi",
+      color: "text-teal-700 bg-teal-50",
+    },
+    {
+      title: "Well-Being & Clarity",
+      desc: "A judgment-free, confidential space to decompress, sort through your thoughts, and find calm whenever you need it.",
+      icon: faSpa,
+      action: () => navigate("/chat"),
+      actionText: "Chat with Companion",
+      color: "text-emerald-700 bg-emerald-50",
+    },
+    {
+      title: "Guidance & Direction",
+      desc: "Explore perspectives, build productive routines, and talk through next steps with supportive companion personas.",
+      icon: faCompass,
+      action: () => navigate("/chat"),
+      actionText: "Explore Guidance",
+      color: "text-indigo-700 bg-indigo-50",
+    },
+  ];
+
+  return (
+    <div className="bg-slate-50 text-slate-800 font-sans min-h-screen">
+      {/* Hero Section */}
+      <section className="border-b border-slate-200/80 bg-white py-14 px-6 md:px-16">
+        <div className="max-w-5xl mx-auto space-y-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-teal-50 border border-teal-200/80 rounded-full text-xs font-semibold text-teal-800">
+            <FontAwesomeIcon icon={faShieldHalved} className="text-teal-600" />
+            <span>MIET Jammu · Safe & Confidential Companion</span>
+          </div>
+
+          <div className="space-y-3">
+            <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
+              {userInfo?.name ? `Welcome, ${userInfo.name}.` : "Welcome to Saarthi.ai."}
+              <br />
+              <span className="text-teal-800">
+                Your Personalized Guide · Saarthi Ask Me Anything
+              </span>
+            </h1>
+            <p className="text-slate-600 text-base md:text-lg max-w-2xl leading-relaxed">
+              Ask anything without judgment. Your Saarthi companions are here 24/7 to listen, guide, and assist you with anything on your mind.
+            </p>
+          </div>
+
+          {/* Quick Hub Navigation Cards */}
+          <div className="pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <button
-              className="bg-[#28695c] text-white px-8 py-3.5 rounded-full font-semibold font-['Manrope'] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#28695c]/30 hover:shadow-[#28695c]/50"
-              onClick={() => navigate("/counselors")}
+              onClick={() => navigate("/chat")}
+              className="flex items-center justify-between p-4 bg-teal-800 hover:bg-teal-900 text-white rounded-xl shadow-xs hover:shadow-md transition-all text-left cursor-pointer group"
             >
-              Get Started
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-teal-700/60 flex items-center justify-center text-teal-200">
+                  <FontAwesomeIcon icon={faComments} className="text-lg" />
+                </div>
+                <div>
+                  <span className="block text-sm font-bold">Start Chat</span>
+                  <span className="text-xs text-teal-200">Talk to Saarthi companions</span>
+                </div>
+              </div>
+              <FontAwesomeIcon
+                icon={faArrowRight}
+                className="text-xs text-teal-300 group-hover:translate-x-1 transition-transform"
+              />
+            </button>
+
+            <button
+              onClick={() => navigate("/counselors")}
+              className="flex items-center justify-between p-4 bg-white hover:bg-slate-50 text-slate-800 rounded-xl border border-slate-200 shadow-xs hover:shadow-md transition-all text-left cursor-pointer group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <FontAwesomeIcon icon={faUserGroup} className="text-base" />
+                </div>
+                <div>
+                  <span className="block text-sm font-bold text-slate-900">Explore Guides</span>
+                  <span className="text-xs text-slate-500">Choose your companion</span>
+                </div>
+              </div>
+              <FontAwesomeIcon
+                icon={faArrowRight}
+                className="text-xs text-slate-400 group-hover:translate-x-1 transition-transform"
+              />
+            </button>
+
+            <button
+              onClick={() => navigate("/account/dashboard/profile")}
+              className="flex items-center justify-between p-4 bg-white hover:bg-slate-50 text-slate-800 rounded-xl border border-slate-200 shadow-xs hover:shadow-md transition-all text-left cursor-pointer group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <FontAwesomeIcon icon={faTableColumns} className="text-base" />
+                </div>
+                <div>
+                  <span className="block text-sm font-bold text-slate-900">Google Profile</span>
+                  <span className="text-xs text-slate-500">View account & settings</span>
+                </div>
+              </div>
+              <FontAwesomeIcon
+                icon={faArrowRight}
+                className="text-xs text-slate-400 group-hover:translate-x-1 transition-transform"
+              />
             </button>
           </div>
         </div>
       </section>
 
-      {/* Section 1: Hero / About Us */}
-      <section className="py-20 px-6 md:px-16 bg-white" id="secTwo">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="order-2 lg:order-1 space-y-6">
-            <div className="flex items-center gap-6">
-              <h2 className="text-4xl md:text-5xl font-extrabold text-[#002531] font-['Manrope'] leading-tight">
-                About us
+      {/* Section 1: About Us */}
+      <section className="py-16 px-6 md:px-16" id="about-us">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+                About Saarthi.ai
               </h2>
-              <img src={logo2d} alt="MIET" className="h-16 md:h-20 object-contain mix-blend-multiply" />
+              <img
+                src={logo2d}
+                alt="MIET"
+                className="h-10 object-contain mix-blend-multiply opacity-85"
+              />
             </div>
-            <div className="space-y-4 text-[#41484b] leading-relaxed">
-              <p className="text-lg md:text-xl leading-relaxed">
-                Welcome to our Saarthi.ai, where we empower students on their
-                educational journey by harnessing the power of AI. Our mission is to
-                provide students with personalized guidance and counseling across a
-                multitude of fields, helping them navigate the complexities of
-                academia and career choices.
-              </p>
-              <p className="text-base md:text-lg leading-relaxed">
-                Whether you&#39;re seeking advice in the realms of science, art,
-                business, or any other area, our AI-driven platform connects you
-                with expert counselors who can offer tailored insights and support. We
-                believe that by leveraging cutting-edge technology, we can offer a
-                comprehensive, dynamic, and inclusive approach to counseling,
-                ensuring that every student has the opportunity to reach their full
-                potential. Your aspirations are our priority, and we&#39;re here to
-                guide you every step of the way.
-              </p>
-            </div>
-            <div className="pt-2">
+
+            <p className="text-sm md:text-base text-slate-600 leading-relaxed">
+              Saarthi.ai is an intelligent companion developed at Model Institute of Engineering and Technology (MIET), Jammu. Rooted in the timeless concept of a trusted guide and ally, Saarthi offers an accessible, judgment-free space for students and learners to discuss questions, seek perspectives, and find clarity.
+            </p>
+
+            <p className="text-sm md:text-base text-slate-600 leading-relaxed">
+              Whatever is on your mind, Saarthi serves as your versatile companion to explore ideas, reflect on decisions, and seek thoughtful guidance. Combining conversational companions with intelligent reasoning, Saarthi is here to support you at every turn.
+            </p>
+
+            <div className="pt-2 flex flex-wrap gap-2.5">
               <button
-                className="bg-[#002531] text-white px-8 py-3.5 rounded-full font-semibold font-['Manrope'] transition-all hover:scale-105 active:scale-95 shadow-md"
-                onClick={() => navigate("/counselors")}
+                onClick={() => navigate("/chat")}
+                className="px-5 py-2.5 bg-teal-800 hover:bg-teal-900 text-white rounded-lg text-xs font-semibold flex items-center gap-2 cursor-pointer transition-colors"
               >
-                Enroll Now
+                <FontAwesomeIcon icon={faComments} />
+                <span>Open Chat Session</span>
+              </button>
+              <button
+                onClick={() => navigate("/counselors")}
+                className="px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold flex items-center gap-2 cursor-pointer transition-colors"
+              >
+                <FontAwesomeIcon icon={faUserGroup} />
+                <span>Meet the Companions</span>
               </button>
             </div>
           </div>
 
-          <div className="order-1 lg:order-2 flex justify-center">
-            <div className="relative w-full max-w-lg aspect-[4/3] rounded-[32px] overflow-hidden shadow-xl border border-gray-100">
+          <div className="flex justify-center">
+            <div className="w-full max-w-md aspect-[4/3] rounded-2xl overflow-hidden shadow-sm border border-slate-200 bg-slate-900 relative">
               <img
                 src="https://images.unsplash.com/photo-1573495804664-b1c0849525af?q=80&w=2069&auto=format&fit=crop"
-                alt="About Saarthi.ai"
-                className="w-full h-full object-cover"
+                alt="Saarthi Companion"
+                className="w-full h-full object-cover opacity-90"
               />
+              <div className="absolute bottom-3 left-3 right-3 bg-slate-900/85 backdrop-blur-md p-3 rounded-xl border border-white/10 text-white">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-bold">Saarthi Companion Online</span>
+                </div>
+                <p className="text-[11px] text-slate-300 mt-0.5">
+                  Natural conversation, speech synthesis, and empathetic active listening.
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Section 2: Services */}
-      <section className="py-20 px-6 md:px-16 bg-[#f9f9ff]" id="services">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-12">
-            <h2 className="text-4xl md:text-5xl font-extrabold text-[#002531] font-['Manrope'] mb-3">
-              Services
+      {/* Section 2: What You Can Ask */}
+      <section className="py-14 px-6 md:px-16 bg-white border-y border-slate-200/80">
+        <div className="max-w-5xl mx-auto space-y-8">
+          <div>
+            <span className="text-xs font-bold text-teal-800 uppercase tracking-wider block mb-1">
+              Versatile Guidance
+            </span>
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+              Ask Me Anything: Versatile Support
             </h2>
-            <div className="h-1.5 w-16 bg-[#28695c] rounded-full"></div>
+            <p className="text-xs md:text-sm text-slate-500 mt-1 max-w-xl">
+              Ask about anything without restrictions. Get thoughtful perspectives, constructive feedback, and supportive conversation.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Service 1 */}
-            <div className="bg-white rounded-2xl overflow-hidden border border-[#c1c7cb]/30 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col hover:-translate-y-1">
-              <div className="aspect-video w-full overflow-hidden">
-                <img
-                  src="https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1864&auto=format&fit=crop"
-                  alt="Career Counseling"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-between gap-4">
-                <div>
-                  <h3 className="text-2xl font-bold text-[#002531] font-['Manrope'] mb-2">
-                    Career Counseling
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {pillars.map((pillar, idx) => (
+              <div
+                key={idx}
+                className="bg-slate-50 rounded-xl p-5 border border-slate-200 flex flex-col justify-between hover:border-slate-300 transition-colors"
+              >
+                <div className="space-y-3">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${pillar.color}`}>
+                    <FontAwesomeIcon icon={pillar.icon} className="text-base" />
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    {pillar.title}
                   </h3>
-                  <p className="text-[#41484b] text-base leading-relaxed">
-                    Our AI-powered career counseling offers students tailored advice by
-                    analyzing their profiles and matching them with ideal career
-                    options, ensuring they embark on a fulfilling professional journey.
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {pillar.desc}
                   </p>
                 </div>
                 <button
-                  onClick={() => navigate("/counselors")}
-                  className="mt-4 text-[#28695c] font-semibold text-sm inline-flex items-center gap-1.5 hover:gap-2.5 transition-all font-['Manrope'] text-left"
+                  onClick={pillar.action}
+                  className="mt-4 text-xs font-semibold text-teal-800 hover:text-teal-950 inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  Learn more{" "}
-                  <span className="material-symbols-outlined text-base">
-                    arrow_forward
-                  </span>
+                  <span>{pillar.actionText}</span>
+                  <FontAwesomeIcon icon={faArrowRight} className="text-[10px]" />
                 </button>
               </div>
-            </div>
-
-            {/* Service 2 */}
-            <div className="bg-white rounded-2xl overflow-hidden border border-[#c1c7cb]/30 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col hover:-translate-y-1">
-              <div className="aspect-video w-full overflow-hidden">
-                <img
-                  src="https://img.freepik.com/free-photo/collage-customer-experience-concept_23-2149367121.jpg?w=1380"
-                  alt="AI Based Job Matching"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-between gap-4">
-                <div>
-                  <h3 className="text-2xl font-bold text-[#002531] font-['Manrope'] mb-2">
-                    AI Based Job Matching
-                  </h3>
-                  <p className="text-[#41484b] text-base leading-relaxed">
-                    Discover your perfect career path with our intelligent Job Board. We match your unique skills against live real-time job and internship postings to find the most relevant opportunities for you.
-                  </p>
-                </div>
-                <button
-                  onClick={() => navigate("/account/dashboard/jobBoard")}
-                  className="mt-4 text-[#28695c] font-semibold text-sm inline-flex items-center gap-1.5 hover:gap-2.5 transition-all font-['Manrope'] text-left"
-                >
-                  Find jobs{" "}
-                  <span className="material-symbols-outlined text-base">
-                    arrow_forward
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            {/* Service 3 */}
-            <div className="bg-white rounded-2xl overflow-hidden border border-[#c1c7cb]/30 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col hover:-translate-y-1">
-              <div className="aspect-video w-full overflow-hidden">
-                <img
-                  src="https://images.unsplash.com/photo-1506784881475-0e408bbca849?q=80&w=2068&auto=format&fit=crop"
-                  alt="Resume Analyzer"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-between gap-4">
-                <div>
-                  <h3 className="text-2xl font-bold text-[#002531] font-['Manrope'] mb-2">
-                    Resume Analyzer
-                  </h3>
-                  <p className="text-[#41484b] text-base leading-relaxed">
-                    Our AI-powered Resume Analyzer instantly extracts your resume text and compares it against your target job description to identify critical missing skills and ensure a perfect match.
-                  </p>
-                </div>
-                <button
-                  onClick={() => navigate("/account/dashboard/resume-analyzer")}
-                  className="mt-4 text-[#28695c] font-semibold text-sm inline-flex items-center gap-1.5 hover:gap-2.5 transition-all font-['Manrope'] text-left"
-                >
-                  Analyze resume{" "}
-                  <span className="material-symbols-outlined text-base">
-                    arrow_forward
-                  </span>
-                </button>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Section 3: Contact Us */}
-      <section
-        className="py-16 px-6 md:px-16 bg-white"
-        id="contact"
-      >
+      {/* Section 3: Contact & MIET Support */}
+      <section className="py-14 px-6 md:px-16 bg-slate-50" id="contact">
         <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 bg-white p-8 md:p-12 rounded-[28px] shadow-[0_10px_30px_rgba(0,0,0,0.06)] border border-slate-100/80">
-            <div className="flex flex-col justify-between space-y-6">
-              <div className="space-y-4">
-                <h2 className="text-3xl md:text-4xl font-extrabold text-[#002531] font-['Manrope'] tracking-tight">
-                  Contact Us
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white p-7 md:p-9 rounded-2xl border border-slate-200">
+            <div className="space-y-4">
+              <div>
+                <span className="text-xs font-bold text-teal-800 uppercase tracking-wider block mb-1">
+                  Connect With Us
+                </span>
+                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+                  MIET Jammu Support & Feedback
                 </h2>
-                <p className="text-[#41484b] text-sm md:text-base leading-relaxed max-w-sm">
-                  Reach out to us using the contact form. We are here to help and
-                  answer any questions you may have. We look forward to hearing from
-                  you!
+                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                  Have feedback or inquiries? Reach out to the team at Model Institute of Engineering and Technology.
                 </p>
               </div>
 
-              <div className="space-y-3 pt-6">
-                <div className="flex items-center gap-3 text-[#002531]">
-                  <span className="material-symbols-outlined text-[#28695c] text-xl">
-                    mail
-                  </span>
-                  <span className="font-semibold text-sm">
-                    info@mietjammu.in
-                  </span>
+              <div className="space-y-2 pt-2 text-xs text-slate-700">
+                <div className="flex items-center gap-2.5">
+                  <FontAwesomeIcon icon={faEnvelope} className="text-teal-700 w-4" />
+                  <span>support@mietjammu.in</span>
                 </div>
-                <div className="flex items-center gap-3 text-[#002531]">
-                  <span className="material-symbols-outlined text-[#28695c] text-xl">
-                    location_on
-                  </span>
-                  <span className="font-semibold text-sm">Jammu, India</span>
+                <div className="flex items-center gap-2.5">
+                  <FontAwesomeIcon icon={faLocationDot} className="text-teal-700 w-4" />
+                  <span>Kot Bhalwal, Jammu, J&K, India</span>
                 </div>
               </div>
             </div>
 
             <form
-              action="mailto:info@mietjammu.in"
+              action="mailto:support@mietjammu.in"
               method="post"
               encType="text/plain"
-              className="space-y-4"
+              className="space-y-3"
             >
-              <div className="space-y-1">
-                <label
-                  className="font-semibold text-xs text-[#002531] block font-['Manrope']"
-                  htmlFor="name"
-                >
-                  Name
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                  Your Name
                 </label>
                 <input
-                  required
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:border-[#28695c] focus:ring-2 focus:ring-[#acecdc]/40 outline-none transition-all placeholder:text-slate-400"
-                  id="name"
-                  placeholder="Enter Name"
                   type="text"
+                  required
+                  defaultValue={userInfo?.name || ""}
+                  placeholder="e.g. Parth Sharma"
+                  className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-hidden focus:border-teal-700"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label
-                  className="font-semibold text-xs text-[#002531] block font-['Manrope']"
-                  htmlFor="email"
-                >
-                  Email
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                  Email Address
                 </label>
                 <input
-                  required
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:border-[#28695c] focus:ring-2 focus:ring-[#acecdc]/40 outline-none transition-all placeholder:text-slate-400"
-                  id="email"
-                  placeholder="Enter Email"
                   type="email"
+                  required
+                  defaultValue={userInfo?.email || ""}
+                  placeholder="e.g. name@mietjammu.in"
+                  className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-hidden focus:border-teal-700"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label
-                  className="font-semibold text-xs text-[#002531] block font-['Manrope']"
-                  htmlFor="message"
-                >
-                  Your Message
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                  Feedback or Inquiry
                 </label>
                 <textarea
+                  rows={2}
                   required
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm resize-none focus:border-[#28695c] focus:ring-2 focus:ring-[#acecdc]/40 outline-none transition-all placeholder:text-slate-400"
-                  id="message"
-                  placeholder="Your Message..."
-                  rows={3}
-                ></textarea>
+                  placeholder="Share any feedback or questions..."
+                  className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-hidden focus:border-teal-700 resize-none"
+                />
               </div>
 
               <button
-                className="w-full bg-[#002531] hover:bg-[#1a3b47] text-white py-3.5 rounded-xl font-bold font-['Manrope'] transition-all active:scale-[0.98] mt-2 shadow-md"
                 type="submit"
+                className="w-full py-2 bg-teal-800 hover:bg-teal-900 text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                Send
+                <FontAwesomeIcon icon={faPaperPlane} className="text-[11px]" />
+                <span>Send Message</span>
               </button>
             </form>
           </div>
