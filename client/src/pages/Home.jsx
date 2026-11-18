@@ -44,7 +44,7 @@ const Home = () => {
             </div>
             <div className="space-y-4 text-[#41484b] leading-relaxed">
               <p className="text-lg md:text-xl leading-relaxed">
-                Welcome to our Saarthi.ai App, where we empower students on their
+                Welcome to our Saarthi.ai, where we empower students on their
                 educational journey by harnessing the power of AI. Our mission is to
                 provide students with personalized guidance and counseling across a
                 multitude of fields, helping them navigate the complexities of
