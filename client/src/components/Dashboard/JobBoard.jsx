@@ -165,24 +165,6 @@ const JobBoard = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {filteredJobs.map((job) => {
-            // Guarantee no 0% match display on the UI
-            let displayMatch = job.matchPercentage;
-            if (!displayMatch || displayMatch === 0) {
-              const seed = (job.id || job.title || "job")
-                .split("")
-                .reduce((acc, c) => acc + c.charCodeAt(0), 0);
-              displayMatch = 35 + (seed % 21); // 35% - 55%
-            }
-
-            const isHighMatch = displayMatch >= 80;
-            const isGoodMatch = displayMatch >= 65 && displayMatch < 80;
-
-            const badgeBg = isHighMatch
-              ? "bg-emerald-100 text-emerald-800 border-emerald-300"
-              : isGoodMatch
-              ? "bg-teal-100 text-teal-800 border-teal-300"
-              : "bg-amber-100 text-amber-800 border-amber-300";
-
             return (
               <div
                 key={job.id}
@@ -209,14 +191,6 @@ const JobBoard = () => {
                         </h3>
                         <p className="text-xs font-semibold text-gray-500">{job.company}</p>
                       </div>
-                    </div>
-
-                    {/* Match Badge */}
-                    <div
-                      className={`px-3 py-1 rounded-full text-xs font-extrabold border shrink-0 flex items-center gap-1 ${badgeBg}`}
-                    >
-                      <span className="material-symbols-outlined text-[13px]">track_changes</span>
-                      <span>{displayMatch}% Match</span>
                     </div>
                   </div>
 

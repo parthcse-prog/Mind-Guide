@@ -16,6 +16,8 @@ import GetAllReports from "./components/Dashboard/GetAllReports.jsx";
 import GetRoadmap from "./components/Dashboard/GetRoadmap.jsx";
 import Profile from "./components/Dashboard/Profile.jsx";
 import HeroDashBoard from "./components/Dashboard/HeroDashBoard.jsx";
+import JobBoard from "./components/Dashboard/JobBoard.jsx";
+import ResumeAnalyzer from "./components/Dashboard/ResumeAnalyzer.jsx";
 import { ThemeProvider } from "./context/ThemeContext";
 
 axios.defaults.baseURL = "http://localhost:3001";
@@ -42,6 +44,8 @@ function App() {
                 <Route index element={<HeroDashBoard />} />
                 <Route path="reports" element={<GetAllReports />} />
                 <Route path="getRoadmap" element={<GetRoadmap />} />
+                <Route path="jobBoard" element={<Navigate to="/account/dashboard/profile" replace />} />
+                <Route path="resume-analyzer" element={<Navigate to="/account/dashboard/profile" replace />} />
                 <Route path="profile" element={<Profile />} />
               </Route>
             </Route>

@@ -17,11 +17,17 @@ import {
   faRightFromBracket,
   faAward,
   faRotate,
+  faBriefcase,
+  faFileSignature,
+  faChevronDown,
+  faChevronUp,
 } from "@fortawesome/free-solid-svg-icons";
 import googleIcon from "../../assets/google.png";
 import mietLogo from "../../assets/MIET Logos/miet-logo-dark.png";
 import badge from "../../assets/badge.png";
 import tick from "../../assets/tick.png";
+import JobBoard from "./JobBoard";
+import ResumeAnalyzer from "./ResumeAnalyzer";
 
 const Profile = () => {
   const userInfo = useSelector((state) => state.mindGuide.userInfo);
@@ -31,6 +37,16 @@ const Profile = () => {
   const [dob, setDob] = useState(userInfo?.dob || "15 August 2003");
   const [loadingDob, setLoadingDob] = useState(false);
   const [syncingSkills, setSyncingSkills] = useState(false);
+  const [isJobBoardOpen, setIsJobBoardOpen] = useState(false);
+  const [isResumeAnalyzerOpen, setIsResumeAnalyzerOpen] = useState(false);
+  const [jobBoardKey, setJobBoardKey] = useState(0);
+
+  const handleRefreshJobBoard = (e) => {
+    e.stopPropagation();
+    setJobBoardKey((prev) => prev + 1);
+    if (!isJobBoardOpen) setIsJobBoardOpen(true);
+    toast.info("Refreshing job board...");
+  };
 
   useEffect(() => {
     const refreshProfile = async () => {
@@ -399,6 +415,93 @@ const Profile = () => {
             <span>Sign out</span>
           </button>
         </div>
+      </section>
+
+      {/* Collapsible Resume Analyzer Section */}
+      <section className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden transition-all">
+        <div
+          onClick={() => setIsResumeAnalyzerOpen(!isResumeAnalyzerOpen)}
+          className="p-5 sm:p-6 flex items-center justify-between cursor-pointer hover:bg-slate-50/70 transition-colors select-none"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-200 shadow-2xs">
+              <FontAwesomeIcon icon={faFileSignature} className="text-base" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-slate-900">
+                  ATS Resume Analyzer & Feedback
+                </h2>
+                <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  AI Powered
+                </span>
+              </div>
+              <p className="text-xs text-slate-500">
+                Upload your resume PDF for instant ATS score benchmarking and keyword gap insights
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 transition-transform">
+              <FontAwesomeIcon icon={isResumeAnalyzerOpen ? faChevronUp : faChevronDown} className="text-xs" />
+            </div>
+          </div>
+        </div>
+
+        {isResumeAnalyzerOpen && (
+          <div className="p-4 sm:p-6 border-t border-slate-100 bg-slate-50/40">
+            <ResumeAnalyzer />
+          </div>
+        )}
+      </section>
+
+      {/* Collapsible Job Board Section */}
+      <section className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden transition-all">
+        <div
+          onClick={() => setIsJobBoardOpen(!isJobBoardOpen)}
+          className="p-5 sm:p-6 flex items-center justify-between cursor-pointer hover:bg-slate-50/70 transition-colors select-none"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-700 border border-teal-200 shadow-2xs">
+              <FontAwesomeIcon icon={faBriefcase} className="text-base" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-slate-900">
+                  Engineering Job & Internship Board
+                </h2>
+                <span className="text-[10px] font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  Live Feed
+                </span>
+              </div>
+              <p className="text-xs text-slate-500">
+                Active fresher & undergrad opportunities tailored to engineering tracks
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={handleRefreshJobBoard}
+              className="p-2 text-xs font-semibold text-teal-700 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 rounded-lg border border-teal-200 transition-colors flex items-center gap-1.5 cursor-pointer"
+              title="Refresh job opportunities"
+            >
+              <FontAwesomeIcon icon={faRotate} />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
+            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 transition-transform">
+              <FontAwesomeIcon icon={isJobBoardOpen ? faChevronUp : faChevronDown} className="text-xs" />
+            </div>
+          </div>
+        </div>
+
+        {isJobBoardOpen && (
+          <div className="p-4 sm:p-6 border-t border-slate-100 bg-slate-50/40">
+            <JobBoard key={jobBoardKey} />
+          </div>
+        )}
       </section>
     </div>
   );
