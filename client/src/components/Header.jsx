@@ -127,8 +127,10 @@ const Header = () => {
                 <img
                   src={userPhoto}
                   alt={userInfo.name}
+                  referrerPolicy="no-referrer"
                   className="w-7 h-7 rounded-full object-cover border border-teal-400/50"
                   onError={(e) => {
+                    e.target.onerror = null;
                     e.target.src =
                       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop";
                   }}

@@ -140,12 +140,16 @@ const Profile = () => {
     " " +
     createdAtDate.getFullYear();
 
+  const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+    userInfo?.name || "Parth"
+  )}&background=0c242c&color=2dd4bf&size=256&bold=true`;
+
   const profilePic =
     userInfo?.picture && !userInfo.picture.includes("534528741775")
       ? userInfo.picture
       : userInfo?.pic && !userInfo.pic.includes("534528741775")
       ? userInfo.pic
-      : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop";
+      : fallbackAvatar;
 
   const locale = userInfo?.locale || "en-IN (English)";
 
@@ -158,7 +162,12 @@ const Profile = () => {
             <img
               src={profilePic}
               alt={userInfo?.name || "User"}
+              referrerPolicy="no-referrer"
               className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border border-slate-200"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = fallbackAvatar;
+              }}
             />
             <div
               className="absolute -bottom-2 -right-2 bg-white p-1 rounded-full border border-slate-200 shadow-xs"
