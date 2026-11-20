@@ -316,20 +316,6 @@ const LoginPage = () => {
           </button>
         </form>
 
-        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <span>Testing?</span>
-          <button
-            type="button"
-            onClick={() => {
-              setEmail("parth.cse@mietjammu.in");
-              setPassword("parth123");
-            }}
-            className="text-teal-700 hover:text-teal-900 font-semibold"
-          >
-            Fill Demo Account
-          </button>
-        </div>
-
         <div className="mt-5 text-center text-xs text-slate-500">
           Don&apos;t have an account?{" "}
           <Link

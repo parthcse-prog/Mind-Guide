@@ -140,16 +140,26 @@ const Profile = () => {
     " " +
     createdAtDate.getFullYear();
 
-  const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-    userInfo?.name || "Parth"
-  )}&background=0c242c&color=2dd4bf&size=256&bold=true`;
+  const isFemale =
+    /umika|female|woman|girl|maya|priya|ananya|neha|riya|shreya|simran/i.test(
+      userInfo?.name || ""
+    ) ||
+    (userInfo?.pic && userInfo.pic.includes("female")) ||
+    (userInfo?.picture && userInfo.picture.includes("female"));
 
-  const profilePic =
-    userInfo?.picture && !userInfo.picture.includes("534528741775")
-      ? userInfo.picture
-      : userInfo?.pic && !userInfo.pic.includes("534528741775")
-      ? userInfo.pic
-      : fallbackAvatar;
+  const defaultAvatar = isFemale
+    ? "/female-avatar.svg"
+    : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        userInfo?.name || "User"
+      )}&background=0c242c&color=2dd4bf&size=256&bold=true`;
+
+  const profilePic = isFemale
+    ? "/female-avatar.svg"
+    : userInfo?.picture && !userInfo.picture.includes("534528741775")
+    ? userInfo.picture
+    : userInfo?.pic && !userInfo.pic.includes("534528741775")
+    ? userInfo.pic
+    : defaultAvatar;
 
   const locale = userInfo?.locale || "en-IN (English)";
 
@@ -166,7 +176,7 @@ const Profile = () => {
               className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border border-slate-200"
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = fallbackAvatar;
+                e.target.src = defaultAvatar;
               }}
             />
             <div

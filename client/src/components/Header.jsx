@@ -35,12 +35,24 @@ const Header = () => {
     }
   };
 
-  const userPhoto =
-    userInfo?.picture && !userInfo.picture.includes("534528741775")
-      ? userInfo.picture
-      : userInfo?.pic && !userInfo.pic.includes("534528741775")
-      ? userInfo.pic
-      : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop";
+  const isFemale =
+    /umika|female|woman|girl|maya|priya|ananya|neha|riya|shreya|simran/i.test(
+      userInfo?.name || ""
+    ) ||
+    (userInfo?.pic && userInfo.pic.includes("female")) ||
+    (userInfo?.picture && userInfo.picture.includes("female"));
+
+  const defaultAvatar = isFemale
+    ? "/female-avatar.svg"
+    : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop";
+
+  const userPhoto = isFemale
+    ? "/female-avatar.svg"
+    : userInfo?.picture && !userInfo.picture.includes("534528741775")
+    ? userInfo.picture
+    : userInfo?.pic && !userInfo.pic.includes("534528741775")
+    ? userInfo.pic
+    : defaultAvatar;
 
   return (
     <header className="bg-[#122b35] text-white py-3 px-5 md:px-10 sticky top-0 z-40 border-b border-white/10 font-['Manrope']">
@@ -131,8 +143,7 @@ const Header = () => {
                   className="w-7 h-7 rounded-full object-cover border border-teal-400/50"
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src =
-                      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop";
+                    e.target.src = defaultAvatar;
                   }}
                 />
                 <span className="hidden sm:inline text-xs font-semibold text-white max-w-[120px] truncate">

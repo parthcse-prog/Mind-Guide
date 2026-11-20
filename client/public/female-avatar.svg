@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0c242c" />
+      <stop offset="50%" stop-color="#0e3e4a" />
+      <stop offset="100%" stop-color="#005c53" />
+    </linearGradient>
+    <linearGradient id="skinGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fed7aa" />
+      <stop offset="100%" stop-color="#fba86f" />
+    </linearGradient>
+    <linearGradient id="hairGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#261b17" />
+      <stop offset="50%" stop-color="#3d271f" />
+      <stop offset="100%" stop-color="#180e0a" />
+    </linearGradient>
+    <linearGradient id="shirtGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#042f2e" />
+      <stop offset="100%" stop-color="#0d9488" />
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="256" fill="url(#bgGrad)" />
+
+  <!-- Back Hair Waves -->
+  <path d="M150 180 C150 70, 362 70, 362 180 C375 280, 385 365, 370 425 C345 390, 335 320, 335 270 C335 200, 177 200, 177 270 C177 320, 167 390, 142 425 C127 365, 137 280, 150 180 Z" fill="url(#hairGrad)" />
+
+  <!-- Shoulders / Jacket -->
+  <path d="M126 500 C140 400, 196 365, 256 365 C316 365, 372 400, 386 500 C346 515, 166 515, 126 500 Z" fill="url(#shirtGrad)" />
+
+  <!-- Neck -->
+  <path d="M226 310 L226 385 C236 395, 276 395, 286 385 L286 310 Z" fill="url(#skinGrad)" />
+  <path d="M226 345 C246 365, 266 365, 286 345 L286 360 C266 380, 246 380, 226 360 Z" fill="#e59f75" opacity="0.6" />
+
+  <!-- Face -->
+  <ellipse cx="256" cy="245" rx="78" ry="92" fill="url(#skinGrad)" />
+
+  <!-- Front Hair Style / Bangs -->
+  <path d="M176 215 C178 135, 220 115, 256 115 C292 115, 334 135, 336 215 C322 175, 285 160, 256 168 C227 160, 190 175, 176 215 Z" fill="url(#hairGrad)" />
+  <path d="M176 215 C172 255, 182 295, 187 315 C192 290, 187 255, 182 225 Z" fill="url(#hairGrad)" />
+  <path d="M336 215 C340 255, 330 295, 325 315 C320 290, 325 255, 330 225 Z" fill="url(#hairGrad)" />
+
+  <!-- Eyebrows -->
+  <path d="M206 216 Q222 208, 236 214" stroke="#261b17" stroke-width="4.5" stroke-linecap="round" fill="none" />
+  <path d="M306 216 Q290 208, 276 214" stroke="#261b17" stroke-width="4.5" stroke-linecap="round" fill="none" />
+
+  <!-- Eyes -->
+  <ellipse cx="222" cy="236" rx="12" ry="13" fill="#ffffff" />
+  <circle cx="223" cy="236" r="7.5" fill="#2e1f18" />
+  <circle cx="225" cy="233" r="2.8" fill="#ffffff" />
+
+  <ellipse cx="290" cy="236" rx="12" ry="13" fill="#ffffff" />
+  <circle cx="289" cy="236" r="7.5" fill="#2e1f18" />
+  <circle cx="291" cy="233" r="2.8" fill="#ffffff" />
+
+  <!-- Eyelashes -->
+  <path d="M209 232 Q222 223, 235 232" stroke="#1c120e" stroke-width="2.5" stroke-linecap="round" fill="none" />
+  <path d="M277 232 Q290 223, 303 232" stroke="#1c120e" stroke-width="2.5" stroke-linecap="round" fill="none" />
+
+  <!-- Nose -->
+  <path d="M256 238 L256 264 Q252 270, 256 272 Q260 270, 256 264" stroke="#d88b5d" stroke-width="3" stroke-linecap="round" fill="none" />
+
+  <!-- Soft Blush -->
+  <ellipse cx="204" cy="262" rx="15" ry="9" fill="#f87171" opacity="0.35" />
+  <ellipse cx="308" cy="262" rx="15" ry="9" fill="#f87171" opacity="0.35" />
+
+  <!-- Warm Smile -->
+  <path d="M235 292 Q256 314, 277 292" stroke="#c2410c" stroke-width="3.5" stroke-linecap="round" fill="none" />
+  <path d="M238 292 Q256 309, 274 292 Z" fill="#ffffff" opacity="0.95" />
+
+  <!-- Emerald/Teal Earrings -->
+  <circle cx="174" cy="262" r="5.5" fill="#2dd4bf" stroke="#0f766e" stroke-width="1.5" />
+  <circle cx="338" cy="262" r="5.5" fill="#2dd4bf" stroke="#0f766e" stroke-width="1.5" />
+</svg>
