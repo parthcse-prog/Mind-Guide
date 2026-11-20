@@ -1,0 +1,2323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saarthi.ai - Product Demo Video</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --accent: #0f766e;
+      --accent-light: #14b8a6;
+      --accent-dark: #115e59;
+      --hi: #0284c7;
+      --hi-light: #38bdf8;
+      --sec: #0f172a;
+      --warm: #f43f5e;
+      --amber: #f59e0b;
+      --emerald: #10b981;
+      --muted: #64748b;
+      --border: rgba(226, 232, 240, 0.9);
+      
+      --card-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.72) 100%);
+      --card-border: 1.5px solid rgba(255, 255, 255, 0.95);
+      --card-shadow: 0 24px 60px -12px rgba(15, 23, 42, 0.12), 0 8px 24px -8px rgba(15, 118, 110, 0.08);
+      --card-shadow-heavy: 0 32px 80px -16px rgba(15, 23, 42, 0.2), 0 12px 32px -8px rgba(15, 118, 110, 0.12);
+      --radius: 28px;
+      
+      --g-a: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+      --g-h: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+      --g-s: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+      --g-p: linear-gradient(135deg, #0f766e 0%, #0284c7 100%);
+      --g-warm: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%);
+      --g-amber: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+      --g-emerald: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: #0b0f19;
+      color: var(--sec);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      width: 100vw;
+    }
+
+    #stage-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-sizing: border-box;
+      padding-bottom: 66px;
+    }
+
+    body.render-mode #stage-container {
+      padding-bottom: 0px !important;
+    }
+
+    #stage {
+      position: absolute;
+      width: 1920px;
+      height: 1080px;
+      background: var(--bg);
+      overflow: hidden;
+      transform-origin: center center;
+      box-shadow: 0 0 100px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Fixed background with masked grid */
+    #bg {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-color: #f8fafc;
+      background-image:
+        radial-gradient(circle at 10% 10%, rgba(15, 118, 110, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 90%, rgba(2, 132, 199, 0.05) 0%, transparent 40%),
+        linear-gradient(to right, rgba(15, 118, 110, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(15, 118, 110, 0.04) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 80px 80px, 80px 80px;
+      mask-image: radial-gradient(circle at 50% 50%, black 35%, rgba(0,0,0,0.6) 70%, transparent 92%);
+      -webkit-mask-image: radial-gradient(circle at 50% 50%, black 35%, rgba(0,0,0,0.6) 70%, transparent 92%);
+    }
+
+    /* Camera root */
+    #camera {
+      position: absolute;
+      inset: 0;
+      transform-origin: 960px 540px;
+      will-change: transform;
+      z-index: 10;
+    }
+
+    #cam-inner {
+      position: absolute;
+      inset: 0;
+      transform-origin: 960px 540px;
+    }
+
+    /* Parallax Floating Accents Layer (1.4x camera) */
+    #fg {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 25;
+      transform-origin: 960px 540px;
+    }
+
+    .fg-node {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(15, 118, 110, 0.25) 0%, rgba(15, 118, 110, 0) 70%);
+      filter: blur(8px);
+    }
+
+    .fg-chip {
+      position: absolute;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      color: var(--accent);
+    }
+
+    /* Fast move camera motion blur simulator */
+    #camblur {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 30;
+      opacity: 0;
+      background: transparent;
+      backdrop-filter: blur(0px);
+    }
+
+    /* Scene Hierarchy: scene (IN) -> out (OUT) -> ct (CONTENT) */
+    section.scene {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+
+    .out {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      will-change: transform, opacity;
+    }
+
+    .ct {
+      position: relative;
+      width: 1680px;
+      height: 820px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 50px;
+      margin: 0 auto;
+    }
+
+    /* Narrative column styling */
+    .narrative-col {
+      width: 480px;
+      flex-shrink: 0;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Showcase column styling */
+    .showcase-col {
+      width: 1150px;
+      height: 640px;
+      flex-shrink: 0;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3;
+    }
+
+    /* Clean Desktop Browser Frame for Readable Product Screenshots */
+    .browser-frame {
+      position: relative;
+      width: 1150px;
+      height: 640px;
+      background: #ffffff;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 28px 70px -15px rgba(15, 23, 42, 0.22), 0 10px 30px -8px rgba(15, 118, 110, 0.12);
+      border: 1.5px solid rgba(226, 232, 240, 0.95);
+      display: flex;
+      flex-direction: column;
+      transform-origin: center center;
+      will-change: transform, opacity;
+    }
+
+    .browser-header {
+      height: 38px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .browser-dots {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .browser-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+
+    .browser-url {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 3px 12px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      max-width: 380px;
+    }
+
+    .browser-badge {
+      margin-left: auto;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(15, 118, 110, 0.08);
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .browser-content {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      overflow: hidden;
+      background: #f8fafc;
+    }
+
+    .browser-content img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+      image-rendering: -webkit-optimize-contrast;
+    }
+
+    /* Cards and Glass Panels */
+    .card {
+      background: var(--card-bg);
+      border: var(--card-border);
+      box-shadow: var(--card-shadow);
+      border-radius: var(--radius);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card.heavy-shadow {
+      box-shadow: var(--card-shadow-heavy);
+    }
+
+    /* Screenshots & Bare Panels */
+    .shot {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.16), 0 8px 24px -8px rgba(15, 23, 42, 0.08);
+      transform-origin: center center;
+    }
+
+    .shot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .shot.device-frame {
+      border: 10px solid #ffffff;
+      box-shadow: 0 35px 80px -20px rgba(15, 23, 42, 0.22), 0 15px 35px -10px rgba(15, 118, 110, 0.15);
+      border-radius: 24px;
+    }
+
+    /* Pulse Rings and Highlights */
+    .pulse-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid var(--accent-light);
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.6);
+      will-change: transform, opacity;
+    }
+
+    .hl-box {
+      position: absolute;
+      border: 2px solid var(--amber);
+      background: rgba(245, 158, 11, 0.12);
+      border-radius: 12px;
+      pointer-events: none;
+      opacity: 0;
+      will-change: transform, opacity;
+    }
+
+    /* Typography & Hierarchy */
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 16px;
+      border-radius: 999px;
+      background: rgba(15, 118, 110, 0.08);
+      border: 1px solid rgba(15, 118, 110, 0.2);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .eyebrow-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent-light);
+    }
+
+    .h1 {
+      font-size: 48px;
+      line-height: 1.12;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--sec);
+      margin-bottom: 20px;
+    }
+
+    .h2 {
+      font-size: 40px;
+      line-height: 1.16;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: var(--sec);
+      margin-bottom: 18px;
+    }
+
+    .h3 {
+      font-size: 38px;
+      line-height: 1.2;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: var(--sec);
+      margin-bottom: 14px;
+    }
+
+    .lead {
+      font-size: 17px;
+      line-height: 1.5;
+      font-weight: 400;
+      color: var(--muted);
+      max-width: 480px;
+    }
+
+    .gradient-text {
+      background: var(--g-p);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .word-wrap {
+      display: inline-block;
+      overflow: hidden;
+      vertical-align: top;
+      margin-right: 0.28em;
+    }
+
+    .word {
+      display: inline-block;
+      will-change: transform, opacity;
+    }
+
+    /* Pill Badges */
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      border-radius: 16px;
+      background: #ffffff;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--sec);
+    }
+
+    .badge-pill.active {
+      background: var(--g-a);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 12px 28px rgba(15, 118, 110, 0.25);
+    }
+
+    /* Transition Overlays */
+    .trans-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 40;
+    }
+
+    /* Sticky Full-Width Media Player Bottom Bar */
+    #sticky-player {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100vw;
+      background: rgba(11, 15, 25, 0.94);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    #sticky-player.hidden {
+      display: none !important;
+    }
+
+    /* Sliced Progress Bar */
+    #slice-track-container {
+      position: relative;
+      width: 100%;
+      height: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      box-sizing: border-box;
+    }
+
+    #slice-track {
+      width: 100%;
+      height: 5px;
+      display: flex;
+      gap: 3px;
+      transition: height 0.15s ease;
+      align-items: center;
+    }
+
+    #slice-track-container:hover #slice-track {
+      height: 9px;
+    }
+
+    .slice-segment {
+      position: relative;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.16);
+      border-radius: 3px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .slice-segment:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .slice-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #0f766e 0%, #14b8a6 100%);
+      box-shadow: 0 0 12px rgba(20, 184, 166, 0.6);
+      border-radius: 3px;
+      pointer-events: none;
+    }
+
+    #slice-tooltip {
+      position: absolute;
+      bottom: 24px;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      pointer-events: none;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+      font-family: 'JetBrains Mono', monospace;
+      z-index: 1010;
+    }
+
+    /* Player Controls Row */
+    #player-controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 52px;
+      padding: 0 20px;
+      color: #ffffff;
+    }
+
+    .player-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .player-btn {
+      background: transparent;
+      border: none;
+      color: #cbd5e1;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .player-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+    }
+
+    .player-btn:active {
+      transform: scale(0.92);
+    }
+
+    .player-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 6px;
+    }
+
+    #current-time-text {
+      color: #f8fafc;
+      font-weight: 700;
+    }
+
+    .time-sep {
+      color: #475569;
+    }
+
+    .chapter-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(15, 118, 110, 0.2);
+      border: 1px solid rgba(20, 184, 166, 0.35);
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 700;
+      margin-left: 12px;
+    }
+
+    .chapter-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #14b8a6;
+      box-shadow: 0 0 6px #14b8a6;
+    }
+
+    .player-center {
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+      letter-spacing: 0.04em;
+    }
+
+    .player-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="stage-container">
+  <div id="stage">
+    <!-- Static masked background grid -->
+    <div id="bg"></div>
+
+    <!-- Parallax floating elements (1.15x camera) -->
+    <div id="fg">
+      <div class="fg-node" style="width: 260px; height: 260px; top: 120px; left: 160px;"></div>
+      <div class="fg-node" style="width: 300px; height: 300px; bottom: 100px; right: 180px; background: radial-gradient(circle, rgba(2, 132, 199, 0.18) 0%, transparent 70%);"></div>
+      <div class="fg-chip" style="top: 60px; right: 220px;">24/7 MIET Gateway</div>
+      <div class="fg-chip" style="bottom: 90px; left: 240px;">100% Confidential</div>
+    </div>
+
+    <!-- Motion blur simulator during fast transitions -->
+    <div id="camblur"></div>
+
+    <!-- Camera wrapper -->
+    <div id="camera">
+      <div id="cam-inner">
+
+        <!-- ==========================================
+             SCENE 0: IDENTITY & HERO INTRO (S0)
+        =========================================== -->
+        <section class="scene" id="sc0">
+          <div class="out" id="out0">
+            <div class="ct">
+              <!-- Left: Typography & Logo -->
+              <div class="narrative-col">
+                <div class="eyebrow" id="sc0-eyebrow">
+                  <span class="eyebrow-dot"></span>
+                  <span>MIET Jammu · Safe &amp; Confidential</span>
+                </div>
+
+                <!-- Animated SVG Logo -->
+                <div id="sc0-logo-box" style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+                  <svg width="56" height="56" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="44" stroke="#0f766e" stroke-width="3" stroke-dasharray="1" stroke-dashoffset="1" pathLength="1" id="sc0-svg-circle" />
+                    <path d="M50 22 C34 22 24 34 24 48 C24 60 32 70 42 74 L42 82 L58 82 L58 74 C68 70 76 60 76 48 C76 34 66 22 50 22 Z" 
+                          stroke="#14b8a6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+                          stroke-dasharray="1" stroke-dashoffset="1" pathLength="1" id="sc0-svg-brain" />
+                    <circle cx="50" cy="40" r="5" fill="#0f766e" id="sc0-svg-n1" />
+                    <circle cx="38" cy="52" r="4" fill="#0284c7" id="sc0-svg-n2" />
+                    <circle cx="62" cy="52" r="4" fill="#0284c7" id="sc0-svg-n3" />
+                    <path d="M50 40 L38 52 M50 40 L62 52 M38 52 L62 52" stroke="#0f766e" stroke-width="2" stroke-linecap="round"
+                          stroke-dasharray="1" stroke-dashoffset="1" pathLength="1" id="sc0-svg-synapses" />
+                  </svg>
+                  <div>
+                    <h2 style="font-size: 28px; font-weight: 800; letter-spacing: -0.02em; color: var(--sec); line-height: 1;">Saarthi.ai</h2>
+                    <p style="font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 3px;">Mind-Guide Platform</p>
+                  </div>
+                </div>
+
+                <div class="h1" id="sc0-headline">
+                  Welcome to <span class="gradient-text">Saarthi.ai</span>, your personal guide.
+                </div>
+
+                <p class="lead" id="sc0-subtext" style="margin-bottom: 24px;">
+                  Your personalized AI companion for life choices, personal growth, and career mentorship.
+                </p>
+
+                <!-- 3 Pillars -->
+                <div id="sc0-pillars" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                  <div class="badge-pill active" style="font-size: 13px; padding: 7px 14px;">
+                    <span style="font-size: 15px;">🌱</span>
+                    <span>Life Choices</span>
+                  </div>
+                  <div class="badge-pill" style="font-size: 13px; padding: 7px 14px;">
+                    <span style="font-size: 15px;">🧠</span>
+                    <span>Personal Growth</span>
+                  </div>
+                  <div class="badge-pill" style="font-size: 13px; padding: 7px 14px;">
+                    <span style="font-size: 15px;">🚀</span>
+                    <span>Career Mentorship</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right: Hero Screenshot in Desktop Browser Frame -->
+              <div class="showcase-col">
+                <div class="browser-frame" id="sc0-hero-shot">
+                  <div class="browser-header">
+                    <div class="browser-dots">
+                      <span class="browser-dot dot-red"></span>
+                      <span class="browser-dot dot-yellow"></span>
+                      <span class="browser-dot dot-green"></span>
+                    </div>
+                    <div class="browser-url">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                      <span>saarthi.ai/welcome</span>
+                    </div>
+                    <div class="browser-badge">MIET Gateway · 24/7</div>
+                  </div>
+                  <div class="browser-content">
+                    <img src="shots/Saarthi.png" alt="Saarthi Welcome Interface">
+                    <div class="pulse-ring" id="sc0-hero-ring" style="width: 130px; height: 130px; top: 62%; left: 24%;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             SCENE 1: 3D VIRTUAL MENTORS (S1)
+        =========================================== -->
+        <section class="scene" id="sc1">
+          <div class="out" id="out1">
+            <div class="ct">
+              <!-- Left Column: Narrative -->
+              <div class="narrative-col">
+                <div class="eyebrow" id="sc1-eyebrow">
+                  <span class="eyebrow-dot"></span>
+                  <span>Empathetic Intelligence · 24/7 Availability</span>
+                </div>
+
+                <div class="h2" id="sc1-headline">
+                  A Safe, Judgment-Free Space to <span class="gradient-text">Converse &amp; Grow</span>.
+                </div>
+
+                <p class="lead" id="sc1-subtext" style="margin-bottom: 22px;">
+                  Whenever you need guidance, specialized 3D virtual mentors listen, speak, and adapt to your unique journey.
+                </p>
+
+                <!-- Highlights feature list -->
+                <div id="sc1-features" style="display: flex; flex-direction: column; gap: 10px;">
+                  <div class="card" style="padding: 12px 18px; display: flex; align-items: center; gap: 12px; border-radius: 14px;">
+                    <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(15, 118, 110, 0.12); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--accent);">🎙️</div>
+                    <div>
+                      <h4 style="font-size: 14px; font-weight: 700; color: var(--sec);">Real-Time Voice &amp; Lip Sync</h4>
+                      <p style="font-size: 11px; color: var(--muted);">Low-latency neural Kokoro TTS with dynamic speech frequencies.</p>
+                    </div>
+                  </div>
+
+                  <div class="card" style="padding: 12px 18px; display: flex; align-items: center; gap: 12px; border-radius: 14px;">
+                    <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(2, 132, 199, 0.12); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--hi);">🛡️</div>
+                    <div>
+                      <h4 style="font-size: 14px; font-weight: 700; color: var(--sec);">Empathetic 3D Gestures</h4>
+                      <p style="font-size: 11px; color: var(--muted);">Steady forward gaze with subtle head gestures for student comfort.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Column: 3D Mentor & Conversation Showcase -->
+              <div class="showcase-col">
+                <div class="browser-frame" id="sc1-shot-front">
+                  <div class="browser-header">
+                    <div class="browser-dots">
+                      <span class="browser-dot dot-red"></span>
+                      <span class="browser-dot dot-yellow"></span>
+                      <span class="browser-dot dot-green"></span>
+                    </div>
+                    <div class="browser-url">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                      <span>saarthi.ai/counselor/dr-alex</span>
+                    </div>
+                    <div class="browser-badge">Live Interactive Session</div>
+                  </div>
+                  <div class="browser-content">
+                    <img src="shots/Agent.png" alt="Dr. Alex 3D Virtual Mentor">
+                    <!-- Overlay conversation dialog that cross-fades at W(1, 'adapt') -->
+                    <div id="sc1-shot-back" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none;">
+                      <img src="shots/Agent 2.png" alt="Active Chat Dialogue Transcript" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="pulse-ring" id="sc1-wave-ring" style="width: 130px; height: 130px; top: 58%; left: 45%;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             SCENE 2: COUNSELOR DOMAINS & MEMORY (S2)
+        =========================================== -->
+        <section class="scene" id="sc2">
+          <div class="out" id="out2">
+            <div class="ct">
+              <!-- Left Column: Counseling Domains and Session Continuity -->
+              <div class="narrative-col">
+                <div class="eyebrow" id="sc2-eyebrow">
+                  <span class="eyebrow-dot"></span>
+                  <span>Four Dedicated Personas · Session Continuity</span>
+                </div>
+
+                <div class="h2" id="sc2-headline">
+                  Mentors Who <span class="gradient-text">Remember</span> Past Sessions.
+                </div>
+
+                <p class="lead" id="sc2-subtext" style="margin-bottom: 20px;">
+                  Covering emotional well-being, personal confidence, relationships, and career direction—continue right where you left off.
+                </p>
+
+                <!-- Floating Session Memory Card -->
+                <div class="card heavy-shadow" id="sc2-memory-card" style="padding: 16px 18px; border-radius: 16px; border-left: 5px solid var(--emerald); margin-bottom: 16px;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-size: 14px;">🔄</span>
+                      <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--emerald);">Continuous Context Memory</span>
+                    </div>
+                    <span style="font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--muted);">SESSION #2488</span>
+                  </div>
+                  <p style="font-size: 13px; font-weight: 600; color: var(--sec); line-height: 1.4;">
+                    "Welcome back, Parth. In our last chat with Dr. Alex, you resolved to practice mock interviews. Let's build upon that today."
+                  </p>
+                </div>
+
+                <!-- 4 Domain Tags -->
+                <div id="sc2-domains" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                  <div class="card" style="padding: 9px 12px; display: flex; align-items: center; gap: 8px; border-radius: 10px;">
+                    <span style="color: #0d9488; font-size: 15px;">🌿</span>
+                    <span style="font-size: 12px; font-weight: 700;">Emotional Well-Being</span>
+                  </div>
+                  <div class="card" style="padding: 9px 12px; display: flex; align-items: center; gap: 8px; border-radius: 10px;">
+                    <span style="color: #f59e0b; font-size: 15px;">⚡</span>
+                    <span style="font-size: 12px; font-weight: 700;">Personal Confidence</span>
+                  </div>
+                  <div class="card" style="padding: 9px 12px; display: flex; align-items: center; gap: 8px; border-radius: 10px;">
+                    <span style="color: #f43f5e; font-size: 15px;">❤️</span>
+                    <span style="font-size: 12px; font-weight: 700;">Relationships</span>
+                  </div>
+                  <div class="card" style="padding: 9px 12px; display: flex; align-items: center; gap: 8px; border-radius: 10px;">
+                    <span style="color: #0284c7; font-size: 15px;">🎯</span>
+                    <span style="font-size: 12px; font-weight: 700;">Career Direction</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Column: Counselors Grid Screenshot in Browser Frame -->
+              <div class="showcase-col">
+                <div class="browser-frame" id="sc2-shot-counselors">
+                  <div class="browser-header">
+                    <div class="browser-dots">
+                      <span class="browser-dot dot-red"></span>
+                      <span class="browser-dot dot-yellow"></span>
+                      <span class="browser-dot dot-green"></span>
+                    </div>
+                    <div class="browser-url">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                      <span>saarthi.ai/counselors</span>
+                    </div>
+                    <div class="browser-badge">4 Specialized AI Guides</div>
+                  </div>
+                  <div class="browser-content" style="position: relative;">
+                    <img src="shots/Councellors.png" alt="Counselors Selection Grid">
+
+                    <!-- Avatar Card Outlines (Aligned with 4px outward margin for clean halo) -->
+                    <div class="avatar-card-frame" id="sc2-frame-alex" style="position: absolute; left: 94.5px; top: 179px; width: 231.4px; height: 327.1px; border-radius: 22px; border: 1.5px solid rgba(148, 163, 184, 0.32); pointer-events: none; z-index: 10; box-sizing: border-box; will-change: border-color, box-shadow, transform;">
+                      <div id="sc2-alex-check" style="position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; border-radius: 50%; background: #0f766e; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; box-shadow: 0 2px 8px rgba(15,118,110,0.45); opacity: 0; transform: scale(0.2); pointer-events: none; will-change: transform, opacity;">✓</div>
+                    </div>
+                    <div class="avatar-card-frame" id="sc2-frame-maya" style="position: absolute; left: 337px; top: 179px; width: 231.4px; height: 327.1px; border-radius: 22px; border: 1.5px solid rgba(148, 163, 184, 0.32); pointer-events: none; z-index: 10; box-sizing: border-box; will-change: border-color, box-shadow;"></div>
+                    <div class="avatar-card-frame" id="sc2-frame-ethan" style="position: absolute; left: 579.6px; top: 179px; width: 231.4px; height: 327.1px; border-radius: 22px; border: 1.5px solid rgba(148, 163, 184, 0.32); pointer-events: none; z-index: 10; box-sizing: border-box; will-change: border-color, box-shadow;"></div>
+                    <div class="avatar-card-frame" id="sc2-frame-marcus" style="position: absolute; left: 822.1px; top: 179px; width: 231.4px; height: 327.1px; border-radius: 22px; border: 1.5px solid rgba(148, 163, 184, 0.32); pointer-events: none; z-index: 10; box-sizing: border-box; will-change: border-color, box-shadow;"></div>
+
+                    <!-- Mouse Cursor & Click Selection -->
+                    <div id="sc2-cursor" style="position: absolute; top: 0; left: 0; z-index: 30; pointer-events: none; opacity: 0; will-change: transform, opacity;">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style="filter: drop-shadow(0 4px 8px rgba(0,0,0,0.45));">
+                        <path d="M4 3L11 20L14 13L21 10L4 3Z" fill="#0f172a" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
+                      </svg>
+                      <div id="sc2-click-ripple" style="position: absolute; top: 2px; left: 2px; width: 44px; height: 44px; border-radius: 50%; border: 3px solid #14b8a6; background: rgba(20, 184, 166, 0.25); transform: translate(-50%, -50%) scale(0.2); opacity: 0; pointer-events: none;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             SCENE 3: GUIDANCE REPORT & SWOT (S3)
+        =========================================== -->
+        <section class="scene" id="sc3">
+          <div class="out" id="out3">
+            <div class="ct">
+              <!-- Left Column: Post-Session Analysis -->
+              <div class="narrative-col">
+                <div class="eyebrow" id="sc3-eyebrow">
+                  <span class="eyebrow-dot"></span>
+                  <span>Automated Synthesis · Instant PDF Export</span>
+                </div>
+
+                <div class="h2" id="sc3-headline">
+                  Actionable <span class="gradient-text">Guidance Reports</span> &amp; SWOT Analysis.
+                </div>
+
+                <p class="lead" id="sc3-subtext" style="margin-bottom: 20px;">
+                  After every conversation, Saarthi compiles your strengths, growth areas, and milestones into a clear downloadable report.
+                </p>
+
+                <!-- Rebuilt SWOT mini cards -->
+                <div id="sc3-swot-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px;">
+                  <div class="card" style="padding: 12px 14px; border-left: 4px solid #10b981; border-radius: 12px;">
+                    <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: #059669; text-transform: uppercase;">S · STRENGTHS</div>
+                    <div style="font-size: 12px; font-weight: 600; color: var(--sec); margin-top: 3px;">Analytical rigor &amp; self-awareness</div>
+                  </div>
+                  <div class="card" style="padding: 12px 14px; border-left: 4px solid #f59e0b; border-radius: 12px;">
+                    <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: #d97706; text-transform: uppercase;">W · WEAKNESSES</div>
+                    <div style="font-size: 12px; font-weight: 600; color: var(--sec); margin-top: 3px;">Perfectionist hesitation on deadlines</div>
+                  </div>
+                  <div class="card" style="padding: 12px 14px; border-left: 4px solid #0284c7; border-radius: 12px;">
+                    <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: #0284c7; text-transform: uppercase;">O · OPPORTUNITIES</div>
+                    <div style="font-size: 12px; font-weight: 600; color: var(--sec); margin-top: 3px;">High affinity for tech leadership</div>
+                  </div>
+                  <div class="card" style="padding: 12px 14px; border-left: 4px solid #f43f5e; border-radius: 12px;">
+                    <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: #e11d48; text-transform: uppercase;">T · THREATS</div>
+                    <div style="font-size: 12px; font-weight: 600; color: var(--sec); margin-top: 3px;">Academic burnout during finals</div>
+                  </div>
+                </div>
+
+                <!-- Download PDF Button Badge -->
+                <div class="card" id="sc3-pdf-btn" style="display: inline-flex; align-items: center; gap: 10px; padding: 10px 22px; border-radius: 999px; background: var(--g-a); color: #ffffff; box-shadow: 0 10px 25px rgba(15, 118, 110, 0.3); width: fit-content;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span style="font-size: 14px; font-weight: 700;">Download Report PDF</span>
+                  <span style="font-size: 10px; background: rgba(255,255,255,0.22); padding: 2px 6px; border-radius: 4px;">Ready</span>
+                </div>
+              </div>
+
+              <!-- Right Column: Full-Size Guidance Report Browser with Centered SWOT Modal -->
+              <div class="showcase-col">
+                <div class="browser-frame" id="sc3-shot-summary">
+                  <div class="browser-header">
+                    <div class="browser-dots">
+                      <span class="browser-dot dot-red"></span>
+                      <span class="browser-dot dot-yellow"></span>
+                      <span class="browser-dot dot-green"></span>
+                    </div>
+                    <div class="browser-url">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                      <span>saarthi.ai/reports/session-analysis</span>
+                    </div>
+                    <div class="browser-badge">Automated Synthesis</div>
+                  </div>
+                  <div class="browser-content">
+                    <img src="shots/Session Report.png" alt="Guidance Report Overview">
+                    
+                    <!-- Centered, large, highly readable SWOT Modal that pops in at W(3, 'swot') -->
+                    <div id="sc3-shot-modal" style="position: absolute; width: 880px; height: 530px; top: 35px; left: 135px; border-radius: 16px; overflow: hidden; box-shadow: 0 30px 80px rgba(15, 23, 42, 0.45); border: 2px solid #14b8a6; background: #ffffff; z-index: 5; opacity: 0; transform-origin: center center;">
+                      <img src="shots/Report 1.png" alt="SWOT Analysis Report Detail" style="width: 100%; height: 100%; object-fit: contain; background: #ffffff;">
+                      <div class="pulse-ring" id="sc3-swot-pulse" style="width: 120px; height: 120px; top: 46%; left: 50%;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             SCENE 4: VISUAL ROADMAP & BADGES (S4)
+        =========================================== -->
+        <section class="scene" id="sc4">
+          <div class="out" id="out4">
+            <div class="ct">
+              <!-- Left Column: Narrative & Profile Badges -->
+              <div class="narrative-col">
+                <div class="eyebrow" id="sc4-eyebrow">
+                  <span class="eyebrow-dot"></span>
+                  <span>Goal Execution · MIET Verified Badges</span>
+                </div>
+
+                <div class="h2" id="sc4-headline">
+                  Interactive <span class="gradient-text">Visual Roadmaps</span> to Earned Badges.
+                </div>
+
+                <p class="lead" id="sc4-subtext" style="margin-bottom: 20px;">
+                  Turn insights into real progress with day-wise milestones, mapping every completed goal to verified competency badges.
+                </p>
+
+                <!-- Profile card with badge preview -->
+                <div class="card heavy-shadow" id="sc4-profile-badge-card" style="padding: 16px 18px; border-radius: 18px; display: flex; align-items: center; gap: 16px; margin-bottom: 14px;">
+                  <div style="width: 58px; height: 58px; border-radius: 14px; background: rgba(245, 158, 11, 0.12); display: flex; align-items: center; justify-content: center; border: 2px solid rgba(245, 158, 11, 0.3); flex-shrink: 0;">
+                    <img src="shots/badge.png" alt="Competency Badge" style="width: 40px; height: 40px; object-fit: contain;">
+                  </div>
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-size: 14px; font-weight: 800; color: var(--sec);">MERN &amp; Cloud Arch</span>
+                      <span style="font-size: 9px; font-weight: 700; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 4px;">VERIFIED</span>
+                    </div>
+                    <p style="font-size: 11px; color: var(--muted); margin-top: 3px;">Earned through completed Saarthi roadmap milestones &amp; verified by MIET.</p>
+                  </div>
+                </div>
+
+                <!-- Milestone chip -->
+                <div class="badge-pill" id="sc4-floating-milestone" style="font-size: 12px; padding: 8px 16px; width: fit-content;">
+                  <span style="color: var(--accent); font-weight: 800;">✓</span>
+                  <span>Day-Wise Execution · Curated Resources</span>
+                </div>
+              </div>
+
+              <!-- Right Column: Visual Roadmap Browser Showcase -->
+              <div class="showcase-col">
+                <div class="browser-frame" id="sc4-shot-roadmap">
+                  <div class="browser-header">
+                    <div class="browser-dots">
+                      <span class="browser-dot dot-red"></span>
+                      <span class="browser-dot dot-yellow"></span>
+                      <span class="browser-dot dot-green"></span>
+                    </div>
+                    <div class="browser-url">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                      <span>saarthi.ai/roadmap/software-engineer</span>
+                    </div>
+                    <div class="browser-badge">Interactive Roadmap</div>
+                  </div>
+                  <div class="browser-content" style="position: relative;">
+                    <img src="shots/Roadmap 2.png" alt="Day-Wise Interactive Roadmap">
+                    <!-- Interactive Mouse Cursor on Roadmap -->
+                    <div id="sc4-cursor" style="position: absolute; top: 0; left: 0; z-index: 30; pointer-events: none; opacity: 0; will-change: transform, opacity;">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style="filter: drop-shadow(0 4px 8px rgba(0,0,0,0.45));">
+                        <path d="M4 3L11 20L14 13L21 10L4 3Z" fill="#0f172a" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
+                      </svg>
+                      <div id="sc4-click-ripple" style="position: absolute; top: 2px; left: 2px; width: 44px; height: 44px; border-radius: 50%; border: 3px solid #10b981; background: rgba(16, 185, 129, 0.25); transform: translate(-50%, -50%) scale(0.2); opacity: 0; pointer-events: none;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             SCENE 5: ATS RESUME ANALYZER (S5)
+        =========================================== -->
+        <section class="scene" id="sc5">
+          <div class="out" id="out5">
+            <div class="ct">
+              <!-- Left Column: ATS Score & Narrative -->
+              <div class="narrative-col">
+                <div class="eyebrow" id="sc5-eyebrow">
+                  <span class="eyebrow-dot"></span>
+                  <span>Target Role Alignment · Semantic Auditing</span>
+                </div>
+
+                <div class="h2" id="sc5-headline">
+                  ATS Resume Analyzer &amp; <span class="gradient-text">Competency Radar</span>.
+                </div>
+
+                <p class="lead" id="sc5-subtext" style="margin-bottom: 20px;">
+                  Test your resume against any target role with visual radar scoring, formatting audits, and high-impact bullet rewrites.
+                </p>
+
+                <!-- High Impact Bullet Point Rewrite comparison -->
+                <div class="card" id="sc5-rewrite-card" style="padding: 14px 16px; border-radius: 16px; margin-bottom: 14px;">
+                  <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase; margin-bottom: 5px;">Bullet Point Optimization</div>
+                  <div style="font-size: 11px; color: #94a3b8; text-decoration: line-through; margin-bottom: 4px;">
+                    "Worked on backend APIs using Express and connected it with MongoDB."
+                  </div>
+                  <div style="font-size: 12px; font-weight: 700; color: var(--accent); display: flex; align-items: flex-start; gap: 6px;">
+                    <span>⚡</span>
+                    <span>"Architected 14+ RESTful endpoints in Node.js/MongoDB with JWT authentication, boosting query throughput by 42%."</span>
+                  </div>
+                </div>
+
+                <!-- 3 Audit Pills -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <div class="badge-pill" style="font-size: 11px; padding: 5px 12px;">
+                    <span style="color: #10b981;">✓</span>
+                    <span>Quantified Impact</span>
+                  </div>
+                  <div class="badge-pill" style="font-size: 11px; padding: 5px 12px;">
+                    <span style="color: #10b981;">✓</span>
+                    <span>ATS Layout Safe</span>
+                  </div>
+                  <div class="badge-pill" style="font-size: 11px; padding: 5px 12px;">
+                    <span style="color: #10b981;">✓</span>
+                    <span>Role Keyword Match</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Column: Staggered Resume Panels & Radar Chart -->
+              <div class="showcase-col">
+                <div class="browser-frame" id="sc5-shot-radar">
+                  <div class="browser-header">
+                    <div class="browser-dots">
+                      <span class="browser-dot dot-red"></span>
+                      <span class="browser-dot dot-yellow"></span>
+                      <span class="browser-dot dot-green"></span>
+                    </div>
+                    <div class="browser-url">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                      <span>saarthi.ai/resume/analyzer</span>
+                    </div>
+                    <div class="browser-badge">ATS Score &amp; Competency Radar</div>
+                  </div>
+                  <div class="browser-content">
+                    <img src="shots/Resume 2.png" alt="Competency Radar Chart">
+                    <div class="pulse-ring" id="sc5-radar-pulse" style="width: 130px; height: 130px; top: 48%; left: 38%;"></div>
+                    
+                    <!-- High-impact bullet rewrites audit detail card that slides in at W(5, 'rewrites') -->
+                    <div id="sc5-shot-score" style="position: absolute; width: 440px; height: 280px; bottom: 20px; right: 25px; border-radius: 14px; overflow: hidden; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.35); border: 1.5px solid rgba(226, 232, 240, 0.9); background: #ffffff; z-index: 4; opacity: 0;">
+                      <img src="shots/Resume 3.png" alt="ATS Bullet Point Rewrites Audit" style="width: 100%; height: 100%; object-fit: contain; background: #ffffff;">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             SCENE 6: SMART JOB BOARD (S6)
+        =========================================== -->
+        <section class="scene" id="sc6">
+          <div class="out" id="out6">
+            <div class="ct">
+              <!-- Left Column: Smart Placement Narrative -->
+              <div class="narrative-col">
+                <div class="eyebrow" id="sc6-eyebrow">
+                  <span class="eyebrow-dot"></span>
+                  <span>Intelligent Placement · Skill Matching</span>
+                </div>
+
+                <div class="h2" id="sc6-headline">
+                  Smart Job Board Ranked by <span class="gradient-text">Match Percentage</span>.
+                </div>
+
+                <p class="lead" id="sc6-subtext" style="margin-bottom: 20px;">
+                  Connect your verified skills directly with live career opportunities, ranked in real time by your personalized match score.
+                </p>
+
+                <!-- High Match Pill Banner -->
+                <div class="card heavy-shadow" id="sc6-match-card" style="padding: 16px 18px; border-radius: 18px; margin-bottom: 16px; border-left: 5px solid var(--accent-light);">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;">
+                    <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent);">Personalized Job Ranking</span>
+                    <span style="font-size: 14px; font-weight: 800; color: #059669; background: #ecfdf5; padding: 3px 8px; border-radius: 6px;">94% MATCH</span>
+                  </div>
+                  <h3 style="font-size: 16px; font-weight: 800; color: var(--sec);">Full Stack Engineer · Cloud Platform</h3>
+                  <p style="font-size: 11px; color: var(--muted); margin-top: 3px;">Direct skill alignment with your completed Saarthi milestones.</p>
+                </div>
+
+                <!-- Location & Types Tags -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <span class="badge-pill" style="font-size: 11px; padding: 5px 12px;">📍 Jammu / Delhi / Remote</span>
+                  <span class="badge-pill" style="font-size: 11px; padding: 5px 12px;">💼 Full-time &amp; Internships</span>
+                  <span class="badge-pill" style="font-size: 11px; padding: 5px 12px;">⚡ 1-Click Application</span>
+                </div>
+              </div>
+
+              <!-- Right Column: Job Board Screenshot Browser Showcase -->
+              <div class="showcase-col">
+                <div class="browser-frame" id="sc6-shot-job">
+                  <div class="browser-header">
+                    <div class="browser-dots">
+                      <span class="browser-dot dot-red"></span>
+                      <span class="browser-dot dot-yellow"></span>
+                      <span class="browser-dot dot-green"></span>
+                    </div>
+                    <div class="browser-url">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                      <span>saarthi.ai/jobs/matches</span>
+                    </div>
+                    <div class="browser-badge">Smart Career Matching</div>
+                  </div>
+                  <div class="browser-content" style="position: relative;">
+                    <img src="shots/Job.png" alt="Smart Job Board Live Opportunities">
+                    <div class="pulse-ring" id="sc6-job-pulse" style="width: 130px; height: 130px; top: 38%; left: 78%;"></div>
+                    <!-- Interactive Mouse Cursor on Job Board -->
+                    <div id="sc6-cursor" style="position: absolute; top: 0; left: 0; z-index: 30; pointer-events: none; opacity: 0; will-change: transform, opacity;">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style="filter: drop-shadow(0 4px 8px rgba(0,0,0,0.45));">
+                        <path d="M4 3L11 20L14 13L21 10L4 3Z" fill="#0f172a" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
+                      </svg>
+                      <div id="sc6-click-ripple" style="position: absolute; top: 2px; left: 2px; width: 44px; height: 44px; border-radius: 50%; border: 3px solid #10b981; background: rgba(16, 185, 129, 0.25); transform: translate(-50%, -50%) scale(0.2); opacity: 0; pointer-events: none;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             SCENE 7: PAYOFF & LOGO LOCKUP (S7)
+        =========================================== -->
+        <section class="scene" id="sc7">
+          <div class="out" id="out7">
+            <div class="ct" style="justify-content: center; text-align: center;">
+              <div style="max-width: 980px; z-index: 2; display: flex; flex-direction: column; align-items: center;">
+                
+                <div class="eyebrow" id="sc7-eyebrow">
+                  <span class="eyebrow-dot"></span>
+                  <span>Personal Clarity to Professional Placement</span>
+                </div>
+
+                <div class="h1" id="sc7-headline" style="font-size: 64px; line-height: 1.1; margin-bottom: 18px;">
+                  Guidance for Every Step of <br><span class="gradient-text">Your Journey</span>.
+                </div>
+
+                <p class="lead" id="sc7-subtext" style="font-size: 22px; max-width: 800px; margin-bottom: 34px;">
+                  Empathetic, confidential, and always available. <br>Saarthi.ai is your complete guide.
+                </p>
+
+                <!-- Grand Logo Lockup Box -->
+                <div class="card heavy-shadow" id="sc7-lockup" style="padding: 22px 38px; border-radius: 999px; display: inline-flex; align-items: center; gap: 20px;">
+                  <img src="shots/logo.png" alt="Saarthi Logo" style="height: 48px; object-fit: contain;">
+                  <div style="text-align: left;">
+                    <div style="font-size: 26px; font-weight: 800; color: var(--sec); line-height: 1;">Saarthi.ai</div>
+                    <div style="font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 3px;">Powered by MIET AI Gateway</div>
+                  </div>
+                  <div style="width: 1px; height: 34px; background: rgba(0,0,0,0.1); margin: 0 4px;"></div>
+                  <div style="display: flex; gap: 8px;">
+                    <span class="badge-pill" style="font-size: 11px; padding: 5px 10px;">3D Mentors</span>
+                    <span class="badge-pill" style="font-size: 11px; padding: 5px 10px;">SWOT Report</span>
+                    <span class="badge-pill" style="font-size: 11px; padding: 5px 10px;">Visual Roadmap</span>
+                    <span class="badge-pill" style="font-size: 11px; padding: 5px 10px;">Smart Jobs</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sticky Full-Width Media Player Bottom Bar (Auto-hidden in #render mode) -->
+<div id="sticky-player">
+  <div id="slice-track-container">
+    <div id="slice-track"></div>
+    <div id="slice-tooltip">00:00 · Intro</div>
+  </div>
+
+  <div id="player-controls-row">
+    <!-- Left: Play/Pause, Restart, Time, Chapter -->
+    <div class="player-left">
+      <button class="player-btn" id="play-btn" title="Play / Pause (Space)">
+        <svg id="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+      </button>
+
+      <button class="player-btn" id="restart-btn" title="Restart (Home)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+          <path d="M3 3v5h5"></path>
+        </svg>
+      </button>
+
+      <div class="player-time">
+        <span id="current-time-text">00:00.0</span>
+        <span class="time-sep">/</span>
+        <span id="total-time-text">01:34.8</span>
+      </div>
+
+      <div class="chapter-indicator" id="chapter-indicator">
+        <span class="chapter-dot"></span>
+        <span id="chapter-name">Intro</span>
+      </div>
+    </div>
+
+    <!-- Center: Demo Label -->
+    <div class="player-center">
+      <span>Saarthi.ai Product Demo</span>
+    </div>
+
+    <!-- Right: Fullscreen -->
+    <div class="player-right">
+      <button class="player-btn" id="fullscreen-btn" title="Toggle Fullscreen (F)">
+        <svg id="fs-enter-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+        <svg id="fs-exit-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+          <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =======================================================================
+   SAARTHI.AI PRODUCT DEMO - MASTER WAAPI ENGINE
+   Architecture: Single Clock, WAAPI keyframes, Camera Path, Anti-Tremor
+======================================================================= */
+
+// 1. Voice-over Breath-Chunked Script
+const SCRIPT = [
+  // S0: Identity & Hero Intro
+  ["Hello and welcome to Saarthi.ai,", "your personalized AI companion", "for life, personal growth,", "and career mentorship."],
+  
+  // S1: 3D Virtual Mentors
+  ["Whenever you need guidance,", "Saarthi offers a safe, judgment-free space", "to converse with specialized 3D virtual mentors", "who listen, speak,", "and adapt to your unique journey."],
+  
+  // S2: Domains & Session Continuity
+  ["Covering emotional well-being,", "personal confidence, relationships,", "and career direction,", "your mentors remember past sessions", "so you can always continue right where you left off."],
+  
+  // S3: Actionable Guidance Report & SWOT
+  ["After every conversation,", "Saarthi automatically compiles an actionable Guidance Report", "with a clear SWOT analysis,", "downloadable instantly as a PDF."],
+  
+  // S4: Visual Roadmap & Competency Badges
+  ["To turn insights into real progress,", "the platform creates an interactive Visual Roadmap", "with day-wise milestones and curated resources,", "mapping your completed goals to your Profile", "with earned competency badges."],
+  
+  // S5: ATS Resume Analyzer & Radar Chart
+  ["When you are ready to take your career forward,", "our ATS Resume Analyzer tests your resume against any target role,", "delivering a visual competency radar chart,", "formatting audits,", "and high-impact bullet point rewrites."],
+  
+  // S6: Smart Job Board
+  ["Finally, the Smart Job Board", "connects your verified skills directly with live career opportunities,", "ranked by a personalized match percentage."],
+  
+  // S7: Payoff & Closing Lockup
+  ["From personal clarity to professional placement,", "Saarthi.ai is your complete guide", "for every step of your journey."]
+];
+
+const VO = {}; // Retiming table for future recorded VO timings {0:[start,end]}
+const PACE = { lead: 1.0, perWord: 0.34, chunkGap: 0.18, sentGap: 0.6, outro: 2.8 };
+const MS = 1.0; // Snappy motion speed factor
+
+// 2. Timeline and Word-Time Calculator
+let cursor = PACE.lead;
+const sTimings = [];
+const allWords = [];
+
+SCRIPT.forEach((chunks, sIdx) => {
+  const sStart = cursor;
+  const wordsInSent = [];
+  chunks.forEach((chunk, cIdx) => {
+    const rawWords = chunk.trim().split(/\s+/).filter(Boolean);
+    const chunkStart = cursor;
+    rawWords.forEach((rw, wIdx) => {
+      const clean = rw.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const wordT = chunkStart + wIdx * PACE.perWord;
+      const wObj = { s: sIdx, c: cIdx, raw: rw, clean, t: wordT };
+      wordsInSent.push(wObj);
+      allWords.push(wObj);
+    });
+    cursor = chunkStart + rawWords.length * PACE.perWord;
+    if (cIdx < chunks.length - 1) cursor += PACE.chunkGap;
+  });
+  const sEnd = cursor;
+  sTimings.push({ s: sIdx, start: sStart, end: sEnd, words: wordsInSent });
+  cursor += PACE.sentGap;
+});
+
+const END = cursor - PACE.sentGap + PACE.outro;
+window.DURATION = END;
+
+function S(i) {
+  if (i < 0 || i >= sTimings.length) throw new Error("Sentence out of bounds: " + i);
+  return sTimings[i];
+}
+
+function W(sIdx, prefix, nth = 1) {
+  const s = S(sIdx);
+  const target = prefix.toLowerCase();
+  let count = 0;
+  for (const w of s.words) {
+    if (w.clean.startsWith(target)) {
+      count++;
+      if (count === nth) return w.t;
+    }
+  }
+  console.warn("W(): word not found:", sIdx, prefix, nth);
+  return s.start;
+}
+
+// 3. Animation Engine (A[] list, WAAPI driver)
+const A = [];
+
+const EIO    = "cubic-bezier(0.65, 0, 0.35, 1)";
+const EOUT   = "cubic-bezier(0.16, 1, 0.3, 1)";
+const EIN    = "cubic-bezier(0.7, 0, 0.84, 0)";
+const SPRING = "cubic-bezier(0.34, 1.56, 0.64, 1)";
+const SINE   = "cubic-bezier(0.37, 0, 0.63, 1)";
+const LIN    = "linear";
+
+function K(el, keyframeEntries) {
+  if (!el) return null;
+  // keyframeEntries: [ [timeInSec, {props}, easing], ... ]
+  // Ensure sorted by time
+  const sorted = [...keyframeEntries].sort((a, b) => a[0] - b[0]);
+  
+  // Normalize times to offsets [0..1]
+  const keyframes = [];
+  
+  // If first entry > 0, hold initial props from 0
+  if (sorted[0][0] > 0) {
+    keyframes.push({
+      offset: 0,
+      ...sorted[0][1]
+    });
+  }
+
+  sorted.forEach(([t, props, easing]) => {
+    const rawOffset = t / END;
+    const offset = Math.max(0, Math.min(1, rawOffset));
+    const kf = { offset, ...props };
+    if (easing) kf.easing = easing;
+    keyframes.push(kf);
+  });
+
+  // If last entry < 1, hold final props to 1
+  if (sorted[sorted.length - 1][0] < END) {
+    keyframes.push({
+      offset: 1,
+      ...sorted[sorted.length - 1][1]
+    });
+  }
+
+  const anim = el.animate(keyframes, {
+    duration: END * 1000,
+    fill: "both",
+    iterations: 1
+  });
+  anim.pause();
+  A.push(anim);
+  return anim;
+}
+
+function IN(el, t, dur, fromProps, toProps, easing = EOUT) {
+  return K(el, [
+    [t, fromProps],
+    [t + dur * MS, toProps, easing]
+  ]);
+}
+
+function WIN(el, tIn, durIn, tOut, durOut, inProps, midProps, outProps, easing = EOUT) {
+  return K(el, [
+    [tIn, inProps],
+    [tIn + durIn * MS, midProps, easing],
+    [tOut, midProps],
+    [tOut + durOut * MS, outProps, EIN]
+  ]);
+}
+
+function FADE(el, t0, t1, easing = SINE) {
+  return K(el, [
+    [t0, { opacity: 0 }],
+    [t1, { opacity: 1 }, easing]
+  ]);
+}
+
+function DRAW(el, t0, t1, easing = EIO) {
+  return K(el, [
+    [t0, { strokeDashoffset: 1 }],
+    [t1, { strokeDashoffset: 0 }, easing]
+  ]);
+}
+
+function SWEEP(el, t0, t1, easing = EOUT) {
+  return K(el, [
+    [t0, { clipPath: "inset(0 100% 0 0 round 16px)", opacity: 0 }],
+    [t0 + 0.1, { opacity: 1 }],
+    [t1, { clipPath: "inset(0 0% 0 0 round 16px)", opacity: 1 }, easing]
+  ]);
+}
+
+function PULSE(el, t0, dur = 1.2, easing = EOUT) {
+  return K(el, [
+    [t0, { transform: "translate(-50%, -50%) scale(0.6)", opacity: 0 }],
+    [t0 + 0.1, { opacity: 0.9 }],
+    [t0 + dur, { transform: "translate(-50%, -50%) scale(1.6)", opacity: 0 }, easing]
+  ]);
+}
+
+function split(el) {
+  if (!el) return [];
+  const text = el.innerText.trim();
+  const words = text.split(/\s+/);
+  el.innerHTML = words.map(w => `<span class="word-wrap"><span class="word">${w}</span></span>`).join(" ");
+  return Array.from(el.querySelectorAll(".word"));
+}
+
+function KIN(wordEls, times, dur = 0.5, easing = EOUT) {
+  wordEls.forEach((wEl, i) => {
+    const t = times[i] !== undefined ? times[i] : times[times.length - 1] + i * 0.1;
+    K(wEl, [
+      [t, { transform: "translateY(100%)", opacity: 0 }],
+      [t + dur * MS, { transform: "translateY(0%)", opacity: 1 }, easing]
+    ]);
+  });
+}
+
+// 4. Transitions Table T{} and Scene Orchestration
+const T = {
+  t0_1: S(0).end,
+  t1_2: S(1).end,
+  t2_3: S(2).end,
+  t3_4: S(3).end,
+  t4_5: S(4).end,
+  t5_6: S(5).end,
+  t6_7: S(6).end
+};
+
+// Setup In / Out animations for scenes
+// In animates section.scene; Out animates .out
+const scenes = [
+  { sc: "#sc0", out: "#out0", inT: 0, outT: T.t0_1, trans: "ring" },
+  { sc: "#sc1", out: "#out1", inT: T.t0_1, outT: T.t1_2, trans: "push" },
+  { sc: "#sc2", out: "#out2", inT: T.t1_2, outT: T.t2_3, trans: "wipeX" },
+  { sc: "#sc3", out: "#out3", inT: T.t2_3, outT: T.t3_4, trans: "zoom" },
+  { sc: "#sc4", out: "#out4", inT: T.t3_4, outT: T.t4_5, trans: "zoomPast" },
+  { sc: "#sc5", out: "#out5", inT: T.t4_5, outT: T.t5_6, trans: "morph" },
+  { sc: "#sc6", out: "#out6", inT: T.t5_6, outT: T.t6_7, trans: "blur" },
+  { sc: "#sc7", out: "#out7", inT: T.t6_7, outT: END, trans: "hold" }
+];
+
+scenes.forEach((item, idx) => {
+  const scEl = document.querySelector(item.sc);
+  const outEl = document.querySelector(item.out);
+  const D = 0.85; // transition duration
+
+  // In transition on scEl
+  if (idx === 0) {
+    // Opening: fade in directly, hide completely after transition out finishes
+    K(scEl, [
+      [0, { opacity: 1, pointerEvents: "auto" }],
+      [item.outT + D, { opacity: 1 }],
+      [item.outT + D + 0.05, { opacity: 0, pointerEvents: "none" }],
+      [END, { opacity: 0, pointerEvents: "none" }]
+    ]);
+  } else {
+    const t = item.inT;
+    const inKeyframes = [];
+    inKeyframes.push([0, { opacity: 0, pointerEvents: "none" }]);
+    inKeyframes.push([Math.max(0, t - 0.06), { opacity: 0, pointerEvents: "none" }]);
+    
+    switch(item.trans) {
+      case "push":
+        inKeyframes.push([t - 0.05, { transform: "translateX(100%)", opacity: 0 }]);
+        inKeyframes.push([t + D, { transform: "translateX(0%)", opacity: 1, pointerEvents: "auto" }, EOUT]);
+        break;
+      case "zoom":
+        inKeyframes.push([t - 0.05, { transform: "scale(0.8)", opacity: 0 }]);
+        inKeyframes.push([t + D, { transform: "scale(1.0)", opacity: 1, pointerEvents: "auto" }, EOUT]);
+        break;
+      case "zoomPast":
+        inKeyframes.push([t - 0.05, { transform: "scale(1.3)", opacity: 0 }]);
+        inKeyframes.push([t + D, { transform: "scale(1.0)", opacity: 1, pointerEvents: "auto" }, EOUT]);
+        break;
+      case "wipeX":
+        inKeyframes.push([t - 0.05, { clipPath: "inset(0 0 0 100%)", opacity: 1 }]);
+        inKeyframes.push([t + D, { clipPath: "inset(0 0 0 0%)", opacity: 1, pointerEvents: "auto" }, EIO]);
+        break;
+      case "morph":
+      case "blur":
+      case "ring":
+      default:
+        inKeyframes.push([t - 0.05, { opacity: 0, transform: "scale(0.96)" }]);
+        inKeyframes.push([t + D, { opacity: 1, transform: "scale(1.0)", pointerEvents: "auto" }, EOUT]);
+        break;
+    }
+
+    if (idx < scenes.length - 1) {
+      inKeyframes.push([item.outT + D, { opacity: 1 }]);
+      inKeyframes.push([item.outT + D + 0.05, { opacity: 0, pointerEvents: "none" }]);
+      inKeyframes.push([END, { opacity: 0, pointerEvents: "none" }]);
+    }
+    K(scEl, inKeyframes);
+  }
+
+  // Out transition on outEl
+  if (idx < scenes.length - 1) {
+    const t = item.outT;
+    switch(item.trans) {
+      case "push":
+        K(outEl, [
+          [t, { transform: "translateX(0%)", opacity: 1 }],
+          [t + D, { transform: "translateX(-40%)", opacity: 0 }, EIN]
+        ]);
+        break;
+      case "zoom":
+        K(outEl, [
+          [t, { transform: "scale(1.0)", opacity: 1 }],
+          [t + D, { transform: "scale(1.25)", opacity: 0 }, EIN]
+        ]);
+        break;
+      case "zoomPast":
+        K(outEl, [
+          [t, { transform: "scale(1.0)", opacity: 1 }],
+          [t + D, { transform: "scale(0.75)", opacity: 0 }, EIN]
+        ]);
+        break;
+      case "wipeX":
+        K(outEl, [
+          [t, { opacity: 1 }],
+          [t + D, { opacity: 0 }, SINE]
+        ]);
+        break;
+      case "ring":
+      case "morph":
+      case "blur":
+      default:
+        K(outEl, [
+          [t, { opacity: 1, transform: "scale(1.0)" }],
+          [t + D, { opacity: 0, transform: "scale(1.04)" }, EIN]
+        ]);
+        break;
+    }
+  }
+});
+
+// 5. Camera System & Anti-Tremor Rules
+function P(x, y, scale = 1.0, rot = 0) {
+  return { x, y, scale, rot };
+}
+
+const rawCamTrack = [
+  // Scene 0: Welcome
+  [0, P(960, 540, 0.98, -1.5), EIO],
+  [W(0, "welcome"), P(960, 540, 1.0, 0), EOUT],
+  [W(0, "companion"), P(975, 540, 1.04, 0), EIO],
+  
+  // Scene 1: 3D Mentors
+  [T.t0_1, P(960, 540, 1.0, 0), EIO],
+  [W(1, "mentors"), P(975, 535, 1.05, 0), EOUT],
+  [W(1, "listen"), P(980, 535, 1.06, 0), EIO],
+  
+  // Scene 2: Domains & Memory
+  [T.t1_2, P(960, 540, 1.0, 0), EIO],
+  [W(2, "covering"), P(975, 540, 1.04, 0), EOUT],
+  [W(2, "remember"), P(950, 538, 1.05, 0), EIO],
+  
+  // Scene 3: Guidance Report & SWOT
+  [T.t2_3, P(960, 540, 1.0, 0), EIO],
+  [W(3, "compiles"), P(970, 538, 1.05, 0), EOUT],
+  [W(3, "pdf"), P(955, 542, 1.06, 0), EIO],
+  
+  // Scene 4: Visual Roadmap & Badges
+  [T.t3_4, P(960, 540, 1.0, 0), EIO],
+  [W(4, "visual"), P(950, 538, 1.05, 0), EOUT],
+  [W(4, "badges"), P(975, 538, 1.06, 0), EIO],
+  
+  // Scene 5: ATS Resume & Radar
+  [T.t4_5, P(960, 540, 1.0, 0), EIO],
+  [W(5, "tests"), P(975, 535, 1.06, 0), EOUT],
+  [W(5, "rewrites"), P(955, 538, 1.05, 0), EIO],
+  
+  // Scene 6: Smart Job Board
+  [T.t5_6, P(960, 540, 1.0, 0), EIO],
+  [W(6, "smart"), P(970, 538, 1.04, 0), EOUT],
+  [W(6, "ranked"), P(975, 535, 1.06, 0), EIO],
+  
+  // Scene 7: Outro Payoff & Lockup
+  [T.t6_7, P(960, 540, 1.0, 0), EIO],
+  [W(7, "saarthi"), P(960, 540, 0.98, 1.0), EOUT],
+  [END, P(960, 540, 0.98, 1.0), LIN]
+];
+
+// Anti-tremor sanitizer
+function sanitizeCameraTrack(track) {
+  const clean = [];
+  for (let i = 0; i < track.length; i++) {
+    const entry = track[i];
+    let [t, p, easing] = entry;
+    
+    // Rule 1: Drop tilts under 1 degree (except deliberate opening/closing)
+    if (Math.abs(p.rot) < 1.0) {
+      p.rot = 0;
+    }
+    
+    // Rule 2: If move < 40px with almost no zoom change in < 1.5s, turn into hold
+    if (clean.length > 0) {
+      const prev = clean[clean.length - 1];
+      const dt = t - prev[0];
+      const dx = Math.abs(p.x - prev[1].x);
+      const dy = Math.abs(p.y - prev[1].y);
+      const ds = Math.abs(p.scale - prev[1].scale);
+      if (dt < 1.5 && dx < 40 && dy < 40 && ds < 0.04) {
+        p.x = prev[1].x;
+        p.y = prev[1].y;
+        p.scale = prev[1].scale;
+      }
+    }
+    clean.push([t, p, easing]);
+  }
+  return clean;
+}
+
+const cleanCamTrack = sanitizeCameraTrack(rawCamTrack);
+
+// Apply camera animations to #cam-inner and #fg (at 1.4x parallax)
+const camInnerEl = document.querySelector("#cam-inner");
+const fgEl = document.querySelector("#fg");
+
+const camKeyframes = cleanCamTrack.map(([t, p, easing]) => {
+  const tx = (960 - p.x);
+  const ty = (540 - p.y);
+  return [
+    t,
+    { transform: `translate(${tx}px, ${ty}px) scale(${p.scale}) rotate(${p.rot}deg)` },
+    easing
+  ];
+});
+
+const fgKeyframes = cleanCamTrack.map(([t, p, easing]) => {
+  const tx = (960 - p.x) * 1.15;
+  const ty = (540 - p.y) * 1.15;
+  return [
+    t,
+    { transform: `translate(${tx}px, ${ty}px) scale(${1 + (p.scale - 1) * 1.15})` },
+    easing
+  ];
+});
+
+K(camInnerEl, camKeyframes);
+K(fgEl, fgKeyframes);
+
+// Camera Motion Blur simulation during fast moves
+const camBlurEl = document.querySelector("#camblur");
+K(camBlurEl, [
+  [0, { opacity: 0 }],
+  [T.t0_1, { opacity: 0 }],
+  [T.t0_1 + 0.1, { opacity: 0.15 }],
+  [T.t0_1 + 0.4, { opacity: 0 }],
+  [T.t2_3, { opacity: 0 }],
+  [T.t2_3 + 0.1, { opacity: 0.18 }],
+  [T.t2_3 + 0.4, { opacity: 0 }],
+  [T.t4_5, { opacity: 0 }],
+  [T.t4_5 + 0.1, { opacity: 0.2 }],
+  [T.t4_5 + 0.4, { opacity: 0 }],
+  [END, { opacity: 0 }]
+]);
+
+/* =======================================================================
+   6. SCENE-SPECIFIC VISUAL BEATS AND WORD CUES
+======================================================================= */
+
+// SCENE 0 (S0)
+DRAW(document.querySelector("#sc0-svg-circle"), W(0, "hello"), W(0, "welcome"));
+DRAW(document.querySelector("#sc0-svg-brain"), W(0, "welcome"), W(0, "saarthi"));
+DRAW(document.querySelector("#sc0-svg-synapses"), W(0, "saarthi"), W(0, "companion"));
+
+IN(document.querySelector("#sc0-eyebrow"), 0.4, 0.6, { transform: "translateY(-20px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+const sc0Words = split(document.querySelector("#sc0-headline"));
+const sc0WordTimes = sc0Words.map((_, i) => W(0, "welcome") + i * 0.16);
+KIN(sc0Words, sc0WordTimes);
+
+IN(document.querySelector("#sc0-subtext"), W(0, "personalized"), 0.7, { transform: "translateY(20px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+IN(document.querySelector("#sc0-pillars"), W(0, "mentorship"), 0.6, { transform: "translateY(24px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 }, SPRING);
+
+IN(document.querySelector("#sc0-hero-shot"), W(0, "welcome"), 0.85, 
+   { transform: "translateY(30px) scale(0.96)", opacity: 0 }, 
+   { transform: "translateY(0px) scale(1.0)", opacity: 1 }, SPRING);
+PULSE(document.querySelector("#sc0-hero-ring"), W(0, "mentorship"));
+
+// SCENE 1 (S1)
+IN(document.querySelector("#sc1-eyebrow"), W(1, "whenever"), 0.5, { transform: "translateY(-15px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+const sc1Words = split(document.querySelector("#sc1-headline"));
+const sc1WordTimes = sc1Words.map((_, i) => W(1, "guidance") + i * 0.15);
+KIN(sc1Words, sc1WordTimes);
+
+IN(document.querySelector("#sc1-subtext"), W(1, "safe"), 0.6, { transform: "translateY(20px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+IN(document.querySelector("#sc1-features"), W(1, "converse"), 0.7, { transform: "translateY(20px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+
+IN(document.querySelector("#sc1-shot-front"), W(1, "whenever") + 0.2, 0.85,
+   { transform: "translateY(30px) scale(0.96)", opacity: 0 },
+   { transform: "translateY(0px) scale(1.0)", opacity: 1 }, SPRING);
+
+IN(document.querySelector("#sc1-shot-back"), W(1, "adapt"), 0.8,
+   { opacity: 0, transform: "scale(0.98)" },
+   { opacity: 1, transform: "scale(1.0)" }, EOUT);
+
+PULSE(document.querySelector("#sc1-wave-ring"), W(1, "listen"), 1.4);
+
+// SCENE 2 (S2)
+IN(document.querySelector("#sc2-eyebrow"), W(2, "covering"), 0.5, { transform: "translateY(-15px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+const sc2Words = split(document.querySelector("#sc2-headline"));
+const sc2WordTimes = sc2Words.map((_, i) => W(2, "covering") + i * 0.18);
+KIN(sc2Words, sc2WordTimes);
+
+IN(document.querySelector("#sc2-subtext"), W(2, "confidence"), 0.6, { transform: "translateY(20px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+IN(document.querySelector("#sc2-memory-card"), W(2, "remember"), 0.7, { transform: "translateX(-30px)", opacity: 0 }, { transform: "translateX(0)", opacity: 1 }, SPRING);
+IN(document.querySelector("#sc2-domains"), W(2, "direction"), 0.6, { transform: "translateY(16px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+
+IN(document.querySelector("#sc2-shot-counselors"), W(2, "covering"), 0.85,
+   { transform: "translateY(30px) scale(0.96)", opacity: 0 },
+   { transform: "translateY(0px) scale(1.0)", opacity: 1 }, SPRING);
+
+// Smooth Mouse-Based Selection Animation
+const sc2Cursor = document.querySelector("#sc2-cursor");
+const sc2Ripple = document.querySelector("#sc2-click-ripple");
+
+const tCover = W(2, "covering");
+const tEmot = W(2, "emotional");
+const tConf = W(2, "confidence");
+const tRel = W(2, "relationships");
+const tDir = W(2, "direction");
+const tRem = W(2, "remember");
+const tCont = W(2, "continue");
+const tEnd = S(2).end;
+
+K(sc2Cursor, [
+  [tCover - 0.2, { transform: "translate(800px, 480px) scale(1.0)", opacity: 0 }],
+  [tCover + 0.3, { transform: "translate(680px, 360px) scale(1.0)", opacity: 1 }, EOUT],
+  [tEmot,        { transform: "translate(460px, 330px) scale(1.0)", opacity: 1 }, EIO],
+  [tConf,        { transform: "translate(430px, 320px) scale(1.0)", opacity: 1 }, EIO],
+  [tRel,         { transform: "translate(670px, 330px) scale(1.0)", opacity: 1 }, EIO],
+  [tDir,         { transform: "translate(910px, 340px) scale(1.0)", opacity: 1 }, EIO],
+  [tRem,         { transform: "translate(320px, 360px) scale(1.0)", opacity: 1 }, EIO],
+  [tCont - 0.2,  { transform: "translate(177px, 310px) scale(1.0)", opacity: 1 }, EOUT],
+  [tCont,        { transform: "translate(177px, 310px) scale(0.82)", opacity: 1 }, EIN],
+  [tCont + 0.15, { transform: "translate(177px, 310px) scale(1.0)", opacity: 1 }, EOUT],
+  [tEnd,         { transform: "translate(177px, 310px) scale(1.0)", opacity: 1 }]
+]);
+
+K(sc2Ripple, [
+  [tCont - 0.05, { opacity: 0, transform: "translate(-50%, -50%) scale(0.2)" }],
+  [tCont,        { opacity: 0.9, transform: "translate(-50%, -50%) scale(0.3)" }],
+  [tCont + 0.5,  { opacity: 0, transform: "translate(-50%, -50%) scale(2.4)" }, EOUT],
+  [tEnd,         { opacity: 0 }]
+]);
+
+// Avatar Cards Interactive Borders & Selection
+const sc2FrameAlex   = document.querySelector("#sc2-frame-alex");
+const sc2AlexCheck   = document.querySelector("#sc2-alex-check");
+const sc2FrameMaya   = document.querySelector("#sc2-frame-maya");
+const sc2FrameEthan  = document.querySelector("#sc2-frame-ethan");
+const sc2FrameMarcus = document.querySelector("#sc2-frame-marcus");
+
+// Dr. Alex: Selected upon click at tCont
+K(sc2FrameAlex, [
+  [tCover,       { borderColor: "rgba(148, 163, 184, 0.32)", boxShadow: "0 0 0px rgba(0,0,0,0)", transform: "scale(1.0)" }],
+  [tCont - 0.05, { borderColor: "rgba(148, 163, 184, 0.32)", boxShadow: "0 0 0px rgba(0,0,0,0)", transform: "scale(1.0)" }],
+  [tCont,        { borderColor: "#0f766e", boxShadow: "0 0 24px rgba(20, 184, 166, 0.45), inset 0 0 16px rgba(20, 184, 166, 0.08)", transform: "scale(0.98)" }, EIN],
+  [tCont + 0.22, { borderColor: "#0f766e", boxShadow: "0 0 28px rgba(20, 184, 166, 0.52), inset 0 0 16px rgba(20, 184, 166, 0.08)", transform: "scale(1.018)" }, SPRING],
+  [tCont + 0.45, { borderColor: "#0f766e", boxShadow: "0 0 24px rgba(20, 184, 166, 0.45), inset 0 0 16px rgba(20, 184, 166, 0.08)", transform: "scale(1.0)" }, EOUT],
+  [tEnd,         { borderColor: "#0f766e", boxShadow: "0 0 24px rgba(20, 184, 166, 0.45), inset 0 0 16px rgba(20, 184, 166, 0.08)", transform: "scale(1.0)" }]
+]);
+
+K(sc2AlexCheck, [
+  [tCover,       { opacity: 0, transform: "scale(0.2)" }],
+  [tCont - 0.05, { opacity: 0, transform: "scale(0.2)" }],
+  [tCont + 0.18, { opacity: 1, transform: "scale(1.2)" }, SPRING],
+  [tCont + 0.35, { opacity: 1, transform: "scale(1.0)" }, EOUT],
+  [tEnd,         { opacity: 1, transform: "scale(1.0)" }]
+]);
+
+// Hover reaction on Maya
+K(sc2FrameMaya, [
+  [tCover,       { borderColor: "rgba(148, 163, 184, 0.32)", boxShadow: "0 0 0px rgba(0,0,0,0)" }],
+  [tEmot - 0.2,  { borderColor: "rgba(148, 163, 184, 0.32)", boxShadow: "0 0 0px rgba(0,0,0,0)" }],
+  [tEmot + 0.2,  { borderColor: "rgba(20, 184, 166, 0.55)", boxShadow: "0 0 16px rgba(20, 184, 166, 0.22)" }, EOUT],
+  [tConf - 0.1,  { borderColor: "rgba(148, 163, 184, 0.32)", boxShadow: "0 0 0px rgba(0,0,0,0)" }, EOUT],
+  [tEnd,         { borderColor: "rgba(148, 163, 184, 0.32)", boxShadow: "0 0 0px rgba(0,0,0,0)" }]
+]);
+
+// Hover reaction on Ethan
+K(sc2FrameEthan, [
+  [tCover,       { borderColor: "rgba(148, 163, 184, 0.32)", boxShadow: "0 0 0px rgba(0,0,0,0)" }],
+  [tRel - 0.2,   { borderColor: "rgba(148, 163, 184, 0.32)", boxShadow: "0 0 0px rgba(0,0,0,0)" }],
+  [tRel + 0.2,   { borderColor: "rgba(20, 184, 166, 0.55)", boxShadow: "0 0 16px rgba(20, 184, 166, 0.22)" }, EOUT],
+  [tRel + 0.7,   { borderColor: "rgba(148, 163, 184, 0.32)", boxShadow: "0 0 0px rgba(0,0,0,0)" }, EOUT],
+  [tEnd,         { borderColor: "rgba(148, 163, 184, 0.32)", boxShadow: "0 0 0px rgba(0,0,0,0)" }]
+]);
+
+// Hover reaction on Marcus
+K(sc2FrameMarcus, [
+  [tCover,       { borderColor: "rgba(148, 163, 184, 0.32)", boxShadow: "0 0 0px rgba(0,0,0,0)" }],
+  [tDir - 0.2,   { borderColor: "rgba(148, 163, 184, 0.32)", boxShadow: "0 0 0px rgba(0,0,0,0)" }],
+  [tDir + 0.2,   { borderColor: "rgba(20, 184, 166, 0.55)", boxShadow: "0 0 16px rgba(20, 184, 166, 0.22)" }, EOUT],
+  [tRem - 0.1,   { borderColor: "rgba(148, 163, 184, 0.32)", boxShadow: "0 0 0px rgba(0,0,0,0)" }, EOUT],
+  [tEnd,         { borderColor: "rgba(148, 163, 184, 0.32)", boxShadow: "0 0 0px rgba(0,0,0,0)" }]
+]);
+
+// SCENE 3 (S3)
+IN(document.querySelector("#sc3-eyebrow"), W(3, "after"), 0.5, { transform: "translateY(-15px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+const sc3Words = split(document.querySelector("#sc3-headline"));
+const sc3WordTimes = sc3Words.map((_, i) => W(3, "guidance") + i * 0.16);
+KIN(sc3Words, sc3WordTimes);
+
+IN(document.querySelector("#sc3-subtext"), W(3, "actionable"), 0.6, { transform: "translateY(20px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+IN(document.querySelector("#sc3-swot-grid"), W(3, "swot"), 0.7, { transform: "translateY(20px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 }, SPRING);
+IN(document.querySelector("#sc3-pdf-btn"), W(3, "downloadable"), 0.6, { transform: "scale(0.85)", opacity: 0 }, { transform: "scale(1.0)", opacity: 1 }, SPRING);
+
+IN(document.querySelector("#sc3-shot-summary"), W(3, "after"), 0.85,
+   { transform: "translateY(30px) scale(0.96)", opacity: 0 },
+   { transform: "translateY(0px) scale(1.0)", opacity: 1 }, SPRING);
+
+IN(document.querySelector("#sc3-shot-modal"), W(3, "swot"), 0.8,
+   { transform: "scale(0.88) translateY(24px)", opacity: 0 },
+   { transform: "scale(1.0) translateY(0px)", opacity: 1 }, SPRING);
+PULSE(document.querySelector("#sc3-swot-pulse"), W(3, "pdf"));
+
+// SCENE 4 (S4)
+IN(document.querySelector("#sc4-eyebrow"), W(4, "turn"), 0.5, { transform: "translateY(-15px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+const sc4Words = split(document.querySelector("#sc4-headline"));
+const sc4WordTimes = sc4Words.map((_, i) => W(4, "visual") + i * 0.16);
+KIN(sc4Words, sc4WordTimes);
+
+IN(document.querySelector("#sc4-subtext"), W(4, "milestones"), 0.6, { transform: "translateY(20px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+IN(document.querySelector("#sc4-profile-badge-card"), W(4, "badges"), 0.7, { transform: "translateX(-30px)", opacity: 0 }, { transform: "translateX(0)", opacity: 1 }, SPRING);
+IN(document.querySelector("#sc4-floating-milestone"), W(4, "curated"), 0.6, { transform: "translateY(20px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 }, SPRING);
+
+IN(document.querySelector("#sc4-shot-roadmap"), W(4, "turn"), 0.85,
+   { transform: "translateY(30px) scale(0.96)", opacity: 0 },
+   { transform: "translateY(0px) scale(1.0)", opacity: 1 }, SPRING);
+// Mouse Cursor on Roadmap
+const sc4Cursor = document.querySelector("#sc4-cursor");
+const sc4Ripple = document.querySelector("#sc4-click-ripple");
+const tSc4Start = W(4, "visual");
+const tSc4Badge = W(4, "badges");
+const tSc4End = S(4).end;
+
+K(sc4Cursor, [
+  [tSc4Start,      { transform: "translate(900px, 300px) scale(1.0)", opacity: 0 }],
+  [tSc4Start + 0.4,{ transform: "translate(750px, 220px) scale(1.0)", opacity: 1 }, EOUT],
+  [tSc4Badge - 0.5,{ transform: "translate(580px, 440px) scale(1.0)", opacity: 1 }, EIO],
+  [tSc4Badge,      { transform: "translate(580px, 440px) scale(0.82)", opacity: 1 }, EIN],
+  [tSc4Badge + 0.15,{ transform: "translate(580px, 440px) scale(1.0)", opacity: 1 }, EOUT],
+  [tSc4End,        { transform: "translate(580px, 440px) scale(1.0)", opacity: 1 }]
+]);
+
+K(sc4Ripple, [
+  [tSc4Badge - 0.05, { opacity: 0, transform: "translate(-50%, -50%) scale(0.2)" }],
+  [tSc4Badge,        { opacity: 0.9, transform: "translate(-50%, -50%) scale(0.3)" }],
+  [tSc4Badge + 0.5,  { opacity: 0, transform: "translate(-50%, -50%) scale(2.2)" }, EOUT],
+  [tSc4End,          { opacity: 0 }]
+]);
+
+// SCENE 5 (S5)
+IN(document.querySelector("#sc5-eyebrow"), W(5, "ready"), 0.5, { transform: "translateY(-15px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+const sc5Words = split(document.querySelector("#sc5-headline"));
+const sc5WordTimes = sc5Words.map((_, i) => W(5, "ats") + i * 0.16);
+KIN(sc5Words, sc5WordTimes);
+
+IN(document.querySelector("#sc5-subtext"), W(5, "tests"), 0.6, { transform: "translateY(20px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+IN(document.querySelector("#sc5-rewrite-card"), W(5, "rewrites"), 0.7, { transform: "translateY(20px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 }, SPRING);
+
+IN(document.querySelector("#sc5-shot-radar"), W(5, "ready"), 0.85,
+   { transform: "translateY(30px) scale(0.96)", opacity: 0 },
+   { transform: "translateY(0px) scale(1.0)", opacity: 1 }, SPRING);
+
+IN(document.querySelector("#sc5-shot-score"), W(5, "rewrites"), 0.8,
+   { transform: "translateY(30px) scale(0.92)", opacity: 0 },
+   { transform: "translateY(0px) scale(1.0)", opacity: 1 }, SPRING);
+PULSE(document.querySelector("#sc5-radar-pulse"), W(5, "radar"));
+
+// SCENE 6 (S6)
+IN(document.querySelector("#sc6-eyebrow"), W(6, "finally"), 0.5, { transform: "translateY(-15px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+const sc6Words = split(document.querySelector("#sc6-headline"));
+const sc6WordTimes = sc6Words.map((_, i) => W(6, "smart") + i * 0.16);
+KIN(sc6Words, sc6WordTimes);
+
+IN(document.querySelector("#sc6-subtext"), W(6, "connects"), 0.6, { transform: "translateY(20px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+IN(document.querySelector("#sc6-match-card"), W(6, "ranked"), 0.7, { transform: "translateY(20px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 }, SPRING);
+
+IN(document.querySelector("#sc6-shot-job"), W(6, "finally"), 0.85,
+   { transform: "translateY(30px) scale(0.96)", opacity: 0 },
+   { transform: "translateY(0px) scale(1.0)", opacity: 1 }, SPRING);
+PULSE(document.querySelector("#sc6-job-pulse"), W(6, "percentage"));
+// Mouse Cursor on Job Board
+const sc6Cursor = document.querySelector("#sc6-cursor");
+const sc6Ripple = document.querySelector("#sc6-click-ripple");
+const tSc6Start = W(6, "smart");
+const tSc6Rank = W(6, "ranked");
+const tSc6End = S(6).end;
+
+K(sc6Cursor, [
+  [tSc6Start,      { transform: "translate(880px, 400px) scale(1.0)", opacity: 0 }],
+  [tSc6Start + 0.4,{ transform: "translate(720px, 240px) scale(1.0)", opacity: 1 }, EOUT],
+  [tSc6Rank - 0.3, { transform: "translate(540px, 320px) scale(1.0)", opacity: 1 }, EIO],
+  [tSc6Rank,       { transform: "translate(540px, 320px) scale(0.82)", opacity: 1 }, EIN],
+  [tSc6Rank + 0.15,{ transform: "translate(540px, 320px) scale(1.0)", opacity: 1 }, EOUT],
+  [tSc6End,        { transform: "translate(540px, 320px) scale(1.0)", opacity: 1 }]
+]);
+
+K(sc6Ripple, [
+  [tSc6Rank - 0.05, { opacity: 0, transform: "translate(-50%, -50%) scale(0.2)" }],
+  [tSc6Rank,        { opacity: 0.9, transform: "translate(-50%, -50%) scale(0.3)" }],
+  [tSc6Rank + 0.5,  { opacity: 0, transform: "translate(-50%, -50%) scale(2.2)" }, EOUT],
+  [tSc6End,         { opacity: 0 }]
+]);
+
+// SCENE 7 (S7)
+IN(document.querySelector("#sc7-eyebrow"), W(7, "clarity"), 0.5, { transform: "translateY(-15px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+const sc7Words = split(document.querySelector("#sc7-headline"));
+const sc7WordTimes = sc7Words.map((_, i) => W(7, "clarity") + i * 0.18);
+KIN(sc7Words, sc7WordTimes);
+
+IN(document.querySelector("#sc7-subtext"), W(7, "saarthi"), 0.7, { transform: "translateY(25px)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 });
+IN(document.querySelector("#sc7-lockup"), W(7, "complete"), 0.8, { transform: "scale(0.85) translateY(24px)", opacity: 0 }, { transform: "scale(1.0) translateY(0px)", opacity: 1 }, SPRING);
+
+/* =======================================================================
+   7. MASTER CLOCK, SEEK CONTROLLER & PREVIEW UI
+======================================================================= */
+
+let currentTime = 0;
+let isPlaying = false;
+let rafId = null;
+let lastRafTime = null;
+
+function seek(t) {
+  currentTime = Math.max(0, Math.min(END, t));
+  const ms = currentTime * 1000;
+  for (let i = 0; i < A.length; i++) {
+    A[i].currentTime = ms;
+  }
+  updateUI();
+}
+
+window.seek = seek;
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  const tenth = Math.floor((s % 1) * 10);
+  return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${tenth}`;
+}
+
+// 8. Media Player & Sliced Chapter Timeline
+const chapters = [
+  { name: "Intro", start: 0, end: S(0).end },
+  { name: "3D Mentors", start: S(0).end, end: S(1).end },
+  { name: "Past Memory", start: S(1).end, end: S(2).end },
+  { name: "SWOT Report", start: S(2).end, end: S(3).end },
+  { name: "Visual Roadmap", start: S(3).end, end: S(4).end },
+  { name: "ATS Analyzer", start: S(4).end, end: S(5).end },
+  { name: "Smart Jobs", start: S(5).end, end: S(6).end },
+  { name: "Outro Lockup", start: S(6).end, end: END }
+];
+
+const sliceTrack = document.querySelector("#slice-track");
+const sliceTooltip = document.querySelector("#slice-tooltip");
+const sliceTrackContainer = document.querySelector("#slice-track-container");
+const sliceElements = [];
+
+// Build slice segments dynamically
+chapters.forEach((ch, idx) => {
+  const seg = document.createElement("div");
+  seg.className = "slice-segment";
+  const durationPct = ((ch.end - ch.start) / END) * 100;
+  seg.style.width = `${durationPct}%`;
+  seg.setAttribute("data-idx", idx);
+
+  const fill = document.createElement("div");
+  fill.className = "slice-fill";
+  seg.appendChild(fill);
+
+  // Click on a slice to seek
+  seg.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const rect = seg.getBoundingClientRect();
+    const clickRatio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const targetT = ch.start + clickRatio * (ch.end - ch.start);
+    seek(targetT);
+  });
+
+  sliceTrack.appendChild(seg);
+  sliceElements.push({ seg, fill, ch });
+});
+
+// Tooltip on hover
+sliceTrackContainer.addEventListener("mousemove", (e) => {
+  const rect = sliceTrackContainer.getBoundingClientRect();
+  const mouseRatio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  const hoverT = mouseRatio * END;
+  
+  let hoverChapter = chapters[0];
+  for (const c of chapters) {
+    if (hoverT >= c.start && hoverT <= c.end) {
+      hoverChapter = c;
+      break;
+    }
+  }
+
+  sliceTooltip.textContent = `${hoverChapter.name} · ${formatTime(hoverT)}`;
+  sliceTooltip.style.left = `${e.clientX}px`;
+  sliceTooltip.style.opacity = "1";
+});
+
+sliceTrackContainer.addEventListener("mouseleave", () => {
+  sliceTooltip.style.opacity = "0";
+});
+
+// Drag scrub across slices
+let isDraggingSlice = false;
+sliceTrackContainer.addEventListener("mousedown", (e) => {
+  isDraggingSlice = true;
+  handleSliceScrub(e);
+});
+
+window.addEventListener("mousemove", (e) => {
+  if (isDraggingSlice) handleSliceScrub(e);
+});
+
+window.addEventListener("mouseup", () => {
+  isDraggingSlice = false;
+});
+
+function handleSliceScrub(e) {
+  const rect = sliceTrackContainer.getBoundingClientRect();
+  const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  seek(ratio * END);
+}
+
+// Media Controls Elements
+const playBtn = document.querySelector("#play-btn");
+const playIcon = document.querySelector("#play-icon");
+const restartBtn = document.querySelector("#restart-btn");
+const fullscreenBtn = document.querySelector("#fullscreen-btn");
+const fsEnterIcon = document.querySelector("#fs-enter-icon");
+const fsExitIcon = document.querySelector("#fs-exit-icon");
+const currentTimeText = document.querySelector("#current-time-text");
+const totalTimeText = document.querySelector("#total-time-text");
+const chapterNameText = document.querySelector("#chapter-name");
+
+if (totalTimeText) totalTimeText.textContent = formatTime(END);
+
+function updateUI() {
+  if (currentTimeText) currentTimeText.textContent = formatTime(currentTime);
+
+  let currentChapter = chapters[0];
+  sliceElements.forEach(({ fill, ch }) => {
+    if (currentTime <= ch.start) {
+      fill.style.width = "0%";
+    } else if (currentTime >= ch.end) {
+      fill.style.width = "100%";
+    } else {
+      currentChapter = ch;
+      const pct = ((currentTime - ch.start) / (ch.end - ch.start)) * 100;
+      fill.style.width = `${pct}%`;
+    }
+  });
+
+  if (currentTime >= chapters[chapters.length - 1].start) {
+    currentChapter = chapters[chapters.length - 1];
+  }
+  if (chapterNameText) chapterNameText.textContent = currentChapter.name;
+}
+
+function play() {
+  if (currentTime >= END) seek(0);
+  isPlaying = true;
+  lastRafTime = performance.now();
+  if (playIcon) {
+    playIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
+  }
+  loop();
+}
+
+function pause() {
+  isPlaying = false;
+  if (rafId) cancelAnimationFrame(rafId);
+  if (playIcon) {
+    playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
+  }
+}
+
+function togglePlay() {
+  if (isPlaying) pause();
+  else play();
+}
+
+function loop() {
+  if (!isPlaying) return;
+  const now = performance.now();
+  const dt = (now - lastRafTime) / 1000;
+  lastRafTime = now;
+  seek(currentTime + dt);
+  if (currentTime >= END) {
+    pause();
+    seek(END);
+    return;
+  }
+  rafId = requestAnimationFrame(loop);
+}
+
+playBtn.addEventListener("click", togglePlay);
+
+restartBtn.addEventListener("click", () => {
+  seek(0);
+  play();
+});
+
+// Fullscreen toggle
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+}
+
+fullscreenBtn.addEventListener("click", toggleFullscreen);
+
+document.addEventListener("fullscreenchange", () => {
+  const isFs = !!document.fullscreenElement;
+  if (fsEnterIcon) fsEnterIcon.style.display = isFs ? "none" : "block";
+  if (fsExitIcon) fsExitIcon.style.display = isFs ? "block" : "none";
+});
+
+// Keyboard controls
+window.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "INPUT") return;
+  if (e.code === "Space") {
+    e.preventDefault();
+    togglePlay();
+  } else if (e.code === "ArrowLeft") {
+    e.preventDefault();
+    pause();
+    seek(currentTime - (e.shiftKey ? 5 : 1));
+  } else if (e.code === "ArrowRight") {
+    e.preventDefault();
+    pause();
+    seek(currentTime + (e.shiftKey ? 5 : 1));
+  } else if (e.code === "Home") {
+    e.preventDefault();
+    pause();
+    seek(0);
+  } else if (e.code === "KeyF") {
+    e.preventDefault();
+    toggleFullscreen();
+  }
+});
+
+// Viewport scaler for #stage
+function resizeStage() {
+  const stage = document.querySelector("#stage");
+  const isRender = window.location.hash.includes("render");
+  const bottomBarHeight = isRender ? 0 : 66;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight - bottomBarHeight;
+  const scale = Math.min(vw / 1920, vh / 1080);
+  stage.style.transform = `scale(${scale})`;
+}
+
+window.addEventListener("resize", resizeStage);
+resizeStage();
+
+// Render Mode detection: #render hides controls and disables autoplay
+const isRenderMode = window.location.hash.includes("render");
+if (isRenderMode) {
+  document.body.classList.add("render-mode");
+  const player = document.querySelector("#sticky-player");
+  if (player) player.classList.add("hidden");
+}
+
+// Drag & Drop image preview onto any .shot slot
+document.querySelectorAll(".shot").forEach(slot => {
+  slot.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    slot.style.outline = "3px dashed var(--accent-light)";
+  });
+  slot.addEventListener("dragleave", () => {
+    slot.style.outline = "none";
+  });
+  slot.addEventListener("drop", (e) => {
+    e.preventDefault();
+    slot.style.outline = "none";
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = (re) => {
+        const img = slot.querySelector("img");
+        if (img) img.src = re.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+});
+
+// Initial seek to 0
+seek(0);
+</script>
+</body>
+</html>

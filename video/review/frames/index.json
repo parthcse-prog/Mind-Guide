@@ -1,0 +1,118 @@
+{
+  "duration": 75.92000000000004,
+  "capturedAt": "2026-11-20T10:56:21.758Z",
+  "frames": [
+    {
+      "id": "01",
+      "t": 3.99,
+      "label": "sc0_hero_welcome",
+      "file": "frame_01_sc0_hero_welcome.jpg",
+      "sizeBytes": 195964
+    },
+    {
+      "id": "02",
+      "t": 7.28,
+      "label": "trans_0_to_1_ring",
+      "file": "frame_02_trans_0_to_1_ring.jpg",
+      "sizeBytes": 177302
+    },
+    {
+      "id": "03",
+      "t": 12.36,
+      "label": "sc1_3d_mentors_active",
+      "file": "frame_03_sc1_3d_mentors_active.jpg",
+      "sizeBytes": 266380
+    },
+    {
+      "id": "04",
+      "t": 17.44,
+      "label": "trans_1_to_2_push",
+      "file": "frame_04_trans_1_to_2_push.jpg",
+      "sizeBytes": 189076
+    },
+    {
+      "id": "05",
+      "t": 22.18,
+      "label": "sc2_counselors_memory",
+      "file": "frame_05_sc2_counselors_memory.jpg",
+      "sizeBytes": 189152
+    },
+    {
+      "id": "06",
+      "t": 26.919999999999998,
+      "label": "trans_2_to_3_wipeX",
+      "file": "frame_06_trans_2_to_3_wipeX.jpg",
+      "sizeBytes": 167606
+    },
+    {
+      "id": "07",
+      "t": 30.89,
+      "label": "sc3_guidance_report_swot",
+      "file": "frame_07_sc3_guidance_report_swot.jpg",
+      "sizeBytes": 179439
+    },
+    {
+      "id": "08",
+      "t": 34.86,
+      "label": "trans_3_to_4_zoom",
+      "file": "frame_08_trans_3_to_4_zoom.jpg",
+      "sizeBytes": 217531
+    },
+    {
+      "id": "09",
+      "t": 40.620000000000005,
+      "label": "sc4_roadmap_badges",
+      "file": "frame_09_sc4_roadmap_badges.jpg",
+      "sizeBytes": 178087
+    },
+    {
+      "id": "10",
+      "t": 46.38,
+      "label": "trans_4_to_5_zoomPast",
+      "file": "frame_10_trans_4_to_5_zoomPast.jpg",
+      "sizeBytes": 160057
+    },
+    {
+      "id": "11",
+      "t": 52.650000000000006,
+      "label": "sc5_ats_radar_rewrites",
+      "file": "frame_11_sc5_ats_radar_rewrites.jpg",
+      "sizeBytes": 203486
+    },
+    {
+      "id": "12",
+      "t": 58.92000000000001,
+      "label": "trans_5_to_6_morph",
+      "file": "frame_12_trans_5_to_6_morph.jpg",
+      "sizeBytes": 186944
+    },
+    {
+      "id": "13",
+      "t": 62.80000000000002,
+      "label": "sc6_job_board_match",
+      "file": "frame_13_sc6_job_board_match.jpg",
+      "sizeBytes": 205774
+    },
+    {
+      "id": "14",
+      "t": 66.68000000000002,
+      "label": "trans_6_to_7_blur",
+      "file": "frame_14_trans_6_to_7_blur.jpg",
+      "sizeBytes": 161971
+    },
+    {
+      "id": "15",
+      "t": 68.98000000000002,
+      "label": "sc7_payoff_logo_lockup",
+      "file": "frame_15_sc7_payoff_logo_lockup.jpg",
+      "sizeBytes": 90492
+    },
+    {
+      "id": "16",
+      "t": 75.12000000000005,
+      "label": "sc7_outro_hold",
+      "file": "frame_16_sc7_outro_hold.jpg",
+      "sizeBytes": 116952
+    }
+  ]
+}
