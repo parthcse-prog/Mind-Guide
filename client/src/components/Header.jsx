@@ -55,7 +55,7 @@ const Header = () => {
     : defaultAvatar;
 
   return (
-    <header className="bg-[#122b35] text-white py-3 px-5 md:px-10 sticky top-0 z-40 border-b border-white/10 font-['Manrope']">
+    <header className="bg-[#0c242c] text-white py-3 px-5 md:px-10 sticky top-0 z-40 border-b border-white/10 font-['Manrope']">
       <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
         {/* Brand: Saarthi.ai & MIET */}
         <div className="flex items-center gap-4">
@@ -69,7 +69,7 @@ const Header = () => {
               <span className="text-xl font-bold tracking-tight text-white">
                 Saarthi<span className="text-teal-400 font-extrabold">.ai</span>
               </span>
-              <span className="block text-[11px] text-teal-200/80 font-normal">
+              <span className="block text-[11px] text-teal-300 font-medium">
                 By MIET
               </span>
             </div>

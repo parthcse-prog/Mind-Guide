@@ -1,23 +1,32 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --brand-navy: #002531;
-  --brand-dark: #1a3b47;
-  --brand-teal: #acecdc;
-  --brand-teal-hover: #8ee4d0;
-  --brand-accent: #4648d4;
-  --surface-soft: #f0f7f4;
-  --surface-light: #f9f9ff;
+  --brand-navy: #0c242c;
+  --brand-dark: #122b35;
+  --brand-teal: #0d9488;
+  --brand-teal-hover: #0f766e;
+  --brand-accent: #0284c7;
+  --surface-soft: #f8fafc;
+  --surface-light: #ffffff;
 }
 
 * {
   padding: 0;
   margin: 0;
   box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: #1e293b;
+  background-color: #f8fafc;
+}
+
+h1, h2, h3, h4, .font-heading {
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
 }
 html,
 body {

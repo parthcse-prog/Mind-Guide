@@ -44,8 +44,8 @@ function App() {
                 <Route index element={<HeroDashBoard />} />
                 <Route path="reports" element={<GetAllReports />} />
                 <Route path="getRoadmap" element={<GetRoadmap />} />
-                <Route path="jobBoard" element={<Navigate to="/account/dashboard/profile" replace />} />
-                <Route path="resume-analyzer" element={<Navigate to="/account/dashboard/profile" replace />} />
+                <Route path="jobBoard" element={<JobBoard />} />
+                <Route path="resume-analyzer" element={<ResumeAnalyzer />} />
                 <Route path="profile" element={<Profile />} />
               </Route>
             </Route>

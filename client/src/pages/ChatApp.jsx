@@ -936,17 +936,22 @@ Tone & Approach:
 
         {/* Bottom Input Bar */}
         <div className="absolute bottom-4 left-0 right-0 px-4 md:px-8 z-20">
-          <div className="max-w-3xl mx-auto bg-white rounded-2xl p-2 flex items-center border border-slate-200 shadow-sm gap-2">
-            <input
-              type="text"
-              className="flex-grow bg-transparent border-none text-sm px-3 text-slate-900 placeholder:text-slate-400 outline-hidden"
-              placeholder={`Ask ${activeCounselor.name} anything...`}
+          <div className="max-w-3xl mx-auto bg-white rounded-2xl p-2.5 flex items-end border border-slate-200/90 shadow-md gap-2 focus-within:ring-2 focus-within:ring-teal-500 focus-within:border-teal-500 transition-all">
+            <textarea
+              rows={1}
+              className="flex-grow bg-transparent border-none text-sm px-3 py-1.5 text-slate-900 placeholder:text-slate-400 outline-none resize-none max-h-32 min-h-[38px] leading-relaxed custom-scrollbar"
+              placeholder={`Ask ${activeCounselor.name} anything... (Shift+Enter for newline)`}
               value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
+              onChange={(e) => {
+                setInputText(e.target.value);
+                e.target.style.height = "auto";
+                e.target.style.height = `${Math.min(e.target.scrollHeight, 128)}px`;
+              }}
               ref={inputElement}
               disabled={loading}
+              aria-label={`Ask ${activeCounselor.name} a question`}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
+                if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   handleSendMessage();
                 }
@@ -957,15 +962,16 @@ Tone & Approach:
             <motion.button
               animate={microphoneAnimationControls}
               onClick={startListening}
-              className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-600 hover:text-teal-700 hover:bg-teal-50 transition-colors shrink-0 mb-0.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-teal-500"
               title="Voice Input"
+              aria-label="Start voice input"
             >
               <FontAwesomeIcon icon={faMicrophone} className="text-sm" />
             </motion.button>
 
             {/* Send */}
             <button
-              className="bg-[#1a3b47] hover:bg-[#224d5d] text-white w-9 h-9 rounded-xl flex items-center justify-center transition-colors cursor-pointer"
+              className="bg-[#0c242c] hover:bg-[#122b35] text-white w-9 h-9 rounded-xl flex items-center justify-center transition-colors cursor-pointer shrink-0 mb-0.5 focus-visible:ring-2 focus-visible:ring-teal-500"
               onClick={() => {
                 if (transcript) {
                   handleSendMessage(transcript);
@@ -974,16 +980,18 @@ Tone & Approach:
                   handleSendMessage();
                 }
               }}
-              title="Send"
+              title="Send message"
+              aria-label="Send message"
             >
               <FontAwesomeIcon icon={faPaperPlane} className="text-xs" />
             </button>
 
             {totalMessages >= 3 && (
               <button
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-teal-800 bg-teal-50 hover:bg-teal-100 transition-colors shrink-0 flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-teal-800 bg-teal-50 hover:bg-teal-100 transition-colors shrink-0 mb-0.5 flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-teal-500 cursor-pointer"
                 onClick={HandleReportGenerate}
-                title="Summary"
+                title="Generate Session Summary Report"
+                aria-label="Generate Session Summary Report"
               >
                 <FontAwesomeIcon icon={faFileLines} />
                 <span>Summary</span>
