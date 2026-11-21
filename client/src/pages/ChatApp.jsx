@@ -583,27 +583,38 @@ Tone & Approach:
 
   if (!hasChosenAvatar) {
     return (
-      <div className="min-h-[88vh] bg-slate-50 flex items-center justify-center px-4 py-8 font-['Manrope'] text-slate-800">
-        <div className="max-w-4xl w-full space-y-6">
-          <div className="text-center space-y-1">
-            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+      <div className="min-h-[calc(100vh-64px)] bg-[#08181e] relative overflow-hidden flex items-center justify-center px-4 py-12 font-['Manrope'] text-white">
+        {/* Luminous Ambient Glow Spheres (Creates genuine glass refraction) */}
+        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] bg-teal-500/20 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[460px] h-[460px] bg-sky-500/15 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-emerald-500/10 rounded-full blur-[90px] pointer-events-none" />
+
+        <div className="max-w-5xl w-full space-y-8 relative z-10">
+          {/* Header Title with Glass Accent */}
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs text-teal-300 font-semibold shadow-xs mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
+              <span>Saarthi Companion Selection</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight drop-shadow-sm">
               Choose an Avatar
             </h1>
-            <p className="text-xs text-slate-500">
+            <p className="text-sm text-teal-100/70 max-w-md mx-auto">
               Select an avatar to start your conversation.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Glassmorphism Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {AVAILABLE_AVATARS.map((av) => (
               <button
                 key={av.id}
                 type="button"
                 onClick={() => handleSelectAvatar(av.id)}
-                className="flex flex-col items-center bg-white rounded-2xl border border-slate-200 shadow-xs hover:shadow-xl hover:border-teal-600 transition-all overflow-hidden cursor-pointer group text-center"
+                className="flex flex-col items-center rounded-3xl bg-white/[0.08] hover:bg-white/[0.14] backdrop-blur-2xl border border-white/20 hover:border-teal-400/60 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] hover:shadow-[0_16px_40px_0_rgba(13,148,136,0.3)] hover:-translate-y-1.5 transition-all duration-300 overflow-hidden cursor-pointer group text-center"
               >
-                {/* Literal 3D Avatar Viewport */}
-                <div className="w-full h-64 bg-[#122b35] relative flex items-center justify-center pointer-events-none">
+                {/* 3D Avatar Viewport inside Glass */}
+                <div className="w-full h-64 bg-gradient-to-b from-[#122b35]/40 to-[#0c242c]/60 relative flex items-center justify-center pointer-events-none">
                   <AssistantAvatar
                     size="w-full h-full"
                     counselorType={av.id}
@@ -613,9 +624,9 @@ Tone & Approach:
                   />
                 </div>
 
-                {/* Name Only - No specifications */}
-                <div className="py-3 px-2 w-full bg-white group-hover:bg-slate-50 transition-colors border-t border-slate-100">
-                  <span className="text-sm font-bold text-slate-900 group-hover:text-teal-800 transition-colors block truncate">
+                {/* Frosted Glass Footer Banner */}
+                <div className="py-4 px-3 w-full bg-black/30 group-hover:bg-teal-950/40 backdrop-blur-md transition-colors border-t border-white/15">
+                  <span className="text-sm font-bold text-white group-hover:text-teal-300 transition-colors block truncate tracking-wide">
                     {av.fullName}
                   </span>
                 </div>
