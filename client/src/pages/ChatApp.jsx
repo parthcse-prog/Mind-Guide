@@ -67,7 +67,7 @@ const AVAILABLE_AVATARS = [
   {
     id: "saarthi",
     name: "Alex",
-    fullName: "Dr. Alex (Saarthi)",
+    fullName: "Alex",
     role: "Chief Life & Youth Guide",
     description: "Your all-around mentor for life choices, self-doubt, identity, and direction.",
     icon: faBrain,

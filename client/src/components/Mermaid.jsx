@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import Mermaid from "react-mermaid2";
+import mermaid from "mermaid";
 
 const MernRoadmap = () => {
   const [tasks, setTasks] = useState({});
-  const [mermaidCode, setMermaidCode] = useState("");
+  const [svgContent, setSvgContent] = useState("");
 
   useEffect(() => {
     const parsedTasks = {};
@@ -37,7 +37,17 @@ P --> Q(Engaging Developer Communities)
     });
 
     setTasks(parsedTasks);
-    setMermaidCode(code);
+
+    const renderChart = async () => {
+      try {
+        mermaid.initialize({ startOnLoad: false, theme: "forest" });
+        const { svg } = await mermaid.render(`mern_chart_${Date.now()}`, code);
+        setSvgContent(svg);
+      } catch (err) {
+        console.error("Mermaid error:", err);
+      }
+    };
+    renderChart();
   }, []);
 
   const handleCheckboxChange = (task) => {
@@ -49,8 +59,10 @@ P --> Q(Engaging Developer Communities)
   return (
     <div className="max-w-screen-md mx-auto p-8 bg-gray-100 rounded shadow-md">
       <div className="flex items-center justify-center">
-        {mermaidCode?.length > 0 && (
-          <Mermaid className="w-full" chart={mermaidCode} />
+        {svgContent ? (
+          <div className="w-full" dangerouslySetInnerHTML={{ __html: svgContent }} />
+        ) : (
+          <p className="text-gray-500 text-sm">Loading roadmap chart...</p>
         )}
       </div>
 

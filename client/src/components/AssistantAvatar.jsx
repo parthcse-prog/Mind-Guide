@@ -18,7 +18,7 @@ export const COUNSELOR_CONFIGS = {
     id: "saarthi",
     model: model1Path,
     gender: "male",
-    name: "Dr. Alex (Saarthi)",
+    name: "Alex",
     title: "Chief Life & Youth Guide",
     position: [0, -2.1, 0],
     scale: 1.35,
@@ -63,7 +63,7 @@ export const COUNSELOR_CONFIGS = {
     id: "alex",
     model: model1Path,
     gender: "male",
-    name: "Dr. Alex (Saarthi)",
+    name: "Alex",
     title: "Chief Life & Youth Guide",
     position: [0, -2.1, 0],
     scale: 1.35,
@@ -74,7 +74,7 @@ export const COUNSELOR_CONFIGS = {
     id: "saarthi",
     model: model1Path,
     gender: "male",
-    name: "Dr. Alex (Saarthi)",
+    name: "Alex",
     title: "Chief Life & Youth Guide",
     position: [0, -2.1, 0],
     scale: 1.35,
@@ -306,7 +306,7 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
           }
 
           // Max aperture calibration:
-          // - Dr. Alex & Ethan (Model 1 & 2): 0.86 for clear, distinct lip movement
+          // - Alex & Ethan (Model 1 & 2): 0.86 for clear, distinct lip movement
           // - Marcus Cole & Maya Lin: calibrated to a subtle 0.38 so their mouth opens gently without gaping too wide
           // - Other avatars: 0.50
           let maxAperture = 0.50;

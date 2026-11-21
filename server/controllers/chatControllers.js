@@ -546,6 +546,44 @@ STRICT INSTRUCTION: Return ONLY a valid JSON array of roadmap objects. Follow th
       }
     }
 
+    // Normalize roadmap objects to guarantee valid schema { Goal, timeline, recommendations, isCompleted }
+    if (Array.isArray(roadmapData)) {
+      roadmapData = roadmapData.map((item, idx) => {
+        if (!item || typeof item !== "object") {
+          return {
+            Goal: String(item || `Step ${idx + 1}`),
+            timeline: `Week ${idx + 1}`,
+            recommendations: [],
+            isCompleted: false,
+          };
+        }
+        const goalText =
+          item.Goal || item.goal || item.title || item.task || item.name || `Goal ${idx + 1}`;
+        const timelineText =
+          item.timeline || item.Timeline || item.duration || `Day ${idx * 3 + 1} - Day ${(idx + 1) * 3}`;
+
+        let recs = [];
+        if (Array.isArray(item.recommendations)) {
+          recs = item.recommendations.map((r) => {
+            if (typeof r === "string") {
+              return { title: r, link: "https://www.coursera.org" };
+            }
+            return {
+              title: r?.title || r?.name || "Recommended Learning Resource",
+              link: r?.link || r?.url || "https://www.coursera.org",
+            };
+          });
+        }
+
+        return {
+          Goal: String(goalText).trim(),
+          timeline: String(timelineText).trim(),
+          recommendations: recs,
+          isCompleted: Boolean(item.isCompleted),
+        };
+      });
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
       { $set: { roadmap: roadmapData } },
@@ -564,23 +602,25 @@ STRICT INSTRUCTION: Return ONLY a valid JSON array of roadmap objects. Follow th
 });
 
 const handleTaskUpdate = asyncHandler(async (req, res) => {
-  const { roadmap } = req.body;
-  User.findOneAndUpdate(
-    { email: req.user.email },
-    { $set: { roadmap } },
-    { new: true }
-  )
-    .then((updatedUser) => {
-      if (updatedUser) {
-        console.log("User roadmap updated successfully.");
-        // Send report via email
-      } else {
-        console.log("User not found.");
-      }
-    })
-    .catch((error) => {
-      console.error("Error updating user roadmap:", error);
-    });
+  try {
+    const { roadmap } = req.body;
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: req.user._id },
+      { $set: { roadmap } },
+      { new: true }
+    );
+    if (updatedUser) {
+      return res.status(200).json({
+        success: true,
+        message: "Roadmap updated successfully",
+        roadmap: updatedUser.roadmap,
+      });
+    }
+    return res.status(404).json({ success: false, message: "User not found" });
+  } catch (error) {
+    console.error("Error updating user roadmap:", error);
+    return res.status(500).json({ success: false, message: "Failed to update roadmap" });
+  }
 });
 const handleRoadmapUpdation = asyncHandler(async (req, res) => {
   console.log(messages);

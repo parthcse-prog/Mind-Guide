@@ -31,7 +31,7 @@ function escapeXml(unsafe) {
 
 // Distinct Voice Mappings:
 // Maya Lin (Female): en-US-JennyNeural / hi-IN-SwaraNeural
-// Dr. Alex (Saarthi Male 1): en-US-GuyNeural / hi-IN-MadhurNeural (+0Hz pitch, +0% rate)
+// Alex (Male 1): en-US-GuyNeural / hi-IN-MadhurNeural (+0Hz pitch, +0% rate)
 // Marcus Cole (Male 2): en-GB-RyanNeural / hi-IN-MadhurNeural (-10Hz pitch, +3% rate - deep commanding male tone)
 // Ethan Rostova (Male 3): en-US-ChristopherNeural / hi-IN-MadhurNeural (+2Hz pitch, +3% rate - energetic youthful male tone)
 function getVoiceConfig(counselorName = "", gender = "female", isHindi = false) {
@@ -67,7 +67,7 @@ function getVoiceConfig(counselorName = "", gender = "female", isHindi = false) 
     };
   }
 
-  // Dr. Alex / Default Saarthi Male
+  // Alex / Default Saarthi Male
   return {
     voiceName: isHindi ? "hi-IN-MadhurNeural" : "en-US-GuyNeural",
     xmlLang: isHindi ? "hi-IN" : "en-US",

@@ -27,49 +27,60 @@ const ReportModal = ({ report, open, onClose, messages = [], language = "en" }) 
   const { type: counsellorType } = useParams();
   const navigate = useNavigate();
   const saveReportToCloud = async () => {
-    setUploading(true);
-    const content = contentRef.current;
-    if (content) {
-      const pdfContent = content.cloneNode(true);
-      const buttonsToRemove = pdfContent.querySelectorAll("button");
-      buttonsToRemove.forEach((button) => button.remove());
+    try {
+      setUploading(true);
+      const content = contentRef.current;
+      if (content) {
+        const pdfContent = content.cloneNode(true);
+        const buttonsToRemove = pdfContent.querySelectorAll("button");
+        buttonsToRemove.forEach((button) => button.remove());
 
-      const pdfOptions = {
-        margin: 10,
-        filename: "report.pdf",
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      };
+        const pdfOptions = {
+          margin: 10,
+          filename: "report.pdf",
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        };
 
-      html2pdf()
-        .from(pdfContent)
-        .set(pdfOptions)
-        .output("blob")
-        .then(function (blob) {
-          const formData = new FormData();
-          formData.append("file", blob, "report.pdf");
-          axios
-            .post(
-              `/api/v1/user/uploadpdf/${encodeURIComponent(counsellorType || "General")}`,
-              formData,
-              {
-                withCredentials: true,
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              }
-            )
-            .then((response) => {
-              console.log("Server response:", response.data);
-              toast.success("Report successfully uploaded");
-              setUploading(false);
-            })
-            .catch((error) => {
-              console.error("Upload error:", error.response);
-              setUploading(false);
-            });
-        });
+        html2pdf()
+          .from(pdfContent)
+          .set(pdfOptions)
+          .output("blob")
+          .then(function (blob) {
+            const formData = new FormData();
+            formData.append("file", blob, "report.pdf");
+            axios
+              .post(
+                `/api/v1/user/uploadpdf/${encodeURIComponent(counsellorType || "General")}`,
+                formData,
+                {
+                  withCredentials: true,
+                  headers: {
+                    "Content-Type": "multipart/form-data",
+                  },
+                }
+              )
+              .then((response) => {
+                console.log("Server response:", response.data);
+                toast.success("Report successfully uploaded");
+                setUploading(false);
+              })
+              .catch((error) => {
+                console.error("Upload error:", error.response);
+                setUploading(false);
+              });
+          })
+          .catch((pdfErr) => {
+            console.error("html2pdf output error:", pdfErr);
+            setUploading(false);
+          });
+      } else {
+        setUploading(false);
+      }
+    } catch (e) {
+      console.error("saveReportToCloud caught error:", e);
+      setUploading(false);
     }
   };
 
@@ -110,7 +121,6 @@ const ReportModal = ({ report, open, onClose, messages = [], language = "en" }) 
   };
 
   const handleCloseModal = () => {
-    if (uploading) return;
     if (onClose) {
       onClose();
     }

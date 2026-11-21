@@ -51,7 +51,7 @@ const Home = () => {
                 </div>
                 <div>
                   <span className="block text-base font-bold">Start Chat</span>
-                  <span className="text-xs text-teal-200">Ask Dr. Alex, Maya, Ethan or Marcus</span>
+                  <span className="text-xs text-teal-200">Ask Alex, Maya, Ethan or Marcus</span>
                 </div>
               </div>
               <FontAwesomeIcon

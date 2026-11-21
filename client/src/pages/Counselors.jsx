@@ -13,7 +13,7 @@ import {
 
 const counselors = [
   {
-    type: "Dr. Alex (Saarthi)",
+    type: "Alex",
     counselorKey: "saarthi",
     title: "Chief Life & Youth Guide",
     description: "Your all-around mentor for life choices, self-doubt, identity, and direction.",
