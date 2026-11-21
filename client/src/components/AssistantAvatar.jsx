@@ -298,14 +298,11 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
           // This prevents the mouth from freezing/staying open and creates articulate open-close speech.
           const syllableFlap = Math.max(0, syllableCycle);
 
-          let speechIntensity = 1.0;
-          if (hasAnalyser) {
-            if (volume > 0.025) {
-              speechIntensity = Math.min(Math.max((volume - 0.02) * 3.8, 0.45), 1.15);
-            } else {
-              // Natural pause/breath between sentences: mouth stays closed
-              speechIntensity = 0.0;
-            }
+          let speechIntensity = 0.85;
+          if (hasAnalyser && volume > 0.015) {
+            speechIntensity = Math.min(Math.max((volume - 0.012) * 3.8, 0.55), 1.25);
+          } else {
+            speechIntensity = 0.85;
           }
 
           // Max aperture calibration:

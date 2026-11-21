@@ -38,7 +38,7 @@ import ReactMarkdown from "react-markdown";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { callGatewayLLMDirect } from "../services/llmService";
-import { speakWithNeuralTTS, stopNeuralTTS } from "../services/azureSpeechService";
+import { speakWithNeuralTTS, stopNeuralTTS, transcribeAudioWithGateway } from "../services/azureSpeechService";
 
 // Helper for relative timestamps
 const formatRelativeTime = (dateStr) => {
@@ -147,7 +147,12 @@ const ChatApp = () => {
   const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isPreparingVoice, setIsPreparingVoice] = useState(false);
   const [isTtsEnabled, setIsTtsEnabled] = useState(true);
+  const [chatLanguage, setChatLanguage] = useState("en"); // "en" | "hi"
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const [report, setReport] = useState();
   const userInfo = useSelector((state) => state.mindGuide?.userInfo);
   const [isReportModalOpen, setReportModalOpen] = useState(false);
@@ -173,21 +178,74 @@ const ChatApp = () => {
     };
   }, []);
 
-  const startListening = () => {
-    if (!browserSupportsSpeechRecognition) {
-      toast.info("Voice input is not supported in this browser.");
-      return;
-    }
+  const startListening = async () => {
     if (!listening) {
       if (window.speechSynthesis && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
-        setIsSpeaking(false);
       }
-      SpeechRecognition.startListening({ continuous: true, language: "en-IN" });
+      stopNeuralTTS();
+      setIsSpeaking(false);
+      resetTranscript();
+
+      // Start MediaRecorder for MIET DGX STT (AI4Bharat IndicConformer for Hindi / Whisper for English)
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunksRef.current = [];
+        const recorder = new MediaRecorder(stream);
+        recorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) {
+            audioChunksRef.current.push(e.data);
+          }
+        };
+        recorder.start(250);
+        mediaRecorderRef.current = recorder;
+      } catch (err) {
+        console.warn("MediaRecorder mic access warning:", err);
+      }
+
+      // Also start live browser speech recognition in parallel
+      if (browserSupportsSpeechRecognition) {
+        SpeechRecognition.startListening({
+          continuous: true,
+          language: chatLanguage === "hi" ? "hi-IN" : "en-IN",
+        });
+      }
       setListening(true);
     } else {
-      SpeechRecognition.stopListening();
       setListening(false);
+      if (browserSupportsSpeechRecognition) {
+        SpeechRecognition.stopListening();
+      }
+
+      // Handle recorded audio stream
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        const recorder = mediaRecorderRef.current;
+        recorder.onstop = async () => {
+          recorder.stream?.getTracks().forEach((t) => t.stop());
+          const audioBlob = new Blob(audioChunksRef.current, {
+            type: chatLanguage === "hi" ? "audio/wav" : "audio/webm",
+          });
+
+          // If browser speech didn't capture text or on Hindi voice, transcribe with MIET STT Gateway
+          if (!transcript && audioBlob.size > 1000) {
+            setIsTranscribing(true);
+            try {
+              const transcribedText = await transcribeAudioWithGateway({
+                audioBlob,
+                language: chatLanguage,
+              });
+              if (transcribedText) {
+                setInputText(transcribedText);
+              }
+            } catch (err) {
+              console.warn("MIET STT error:", err);
+            } finally {
+              setIsTranscribing(false);
+            }
+          }
+        };
+        recorder.stop();
+      }
     }
   };
 
@@ -385,6 +443,11 @@ const ChatApp = () => {
       setMessages(updatedMessages);
 
       const userName = userInfo?.name || "Friend";
+      const isHindi = chatLanguage === "hi";
+      const langRule = isHindi
+        ? `\nLanguage & Communication:\n- Respond naturally and fluently in Hindi (हिन्दी) using Devanagari script.\n- Preserve the exact same deep empathy, practical advice, character, and tone of ${activeCounselor.name} as in English.`
+        : `\nLanguage: English`;
+
       const systemInstruction = {
         role: "system",
         content: `You are Saarthi.ai (सारथी - your trusted companion and personal guide), developed by MIET.
@@ -398,7 +461,7 @@ Your mission:
 Tone & Approach:
 - Sincere warmth, deep empathy, non-judgmental validation.
 - Direct, clear, insightful, actionable answers. Avoid robotic jargon.
-- Format cleanly with markdown.`,
+- Format cleanly with markdown.${langRule}`,
       };
 
       const messagesWithSystem = [systemInstruction, ...updatedMessages];
@@ -445,17 +508,29 @@ Tone & Approach:
       }
 
       if (isTtsEnabled) {
+        setIsPreparingVoice(true);
         try {
           await speakWithNeuralTTS({
             text: botResponseText,
             gender: activeCounselor.gender,
             counselorName: activeCounselor.name,
-            onStart: () => setIsSpeaking(true),
-            onEnd: () => setIsSpeaking(false),
-            onError: () => setIsSpeaking(false),
+            language: chatLanguage,
+            onStart: () => {
+              setIsPreparingVoice(false);
+              setIsSpeaking(true);
+            },
+            onEnd: () => {
+              setIsPreparingVoice(false);
+              setIsSpeaking(false);
+            },
+            onError: () => {
+              setIsPreparingVoice(false);
+              setIsSpeaking(false);
+            },
           });
         } catch (error) {
           console.error("Speech error:", error);
+          setIsPreparingVoice(false);
           setIsSpeaking(false);
         }
       }
@@ -685,12 +760,20 @@ Tone & Approach:
               className={`text-[10px] px-2 py-0.5 rounded-md font-semibold ${
                 isSpeaking
                   ? "bg-emerald-500/20 text-emerald-300"
+                  : isPreparingVoice
+                  ? "bg-teal-500/20 text-teal-300 animate-pulse"
                   : loading
                   ? "bg-amber-500/20 text-amber-300"
                   : "bg-white/10 text-white/60"
               }`}
             >
-              {isSpeaking ? "Speaking" : loading ? "Thinking" : "Ready"}
+              {isSpeaking
+                ? "Speaking"
+                : isPreparingVoice
+                ? (chatLanguage === "hi" ? "आवाज़ लोड हो रही है..." : "Loading Voice...")
+                : loading
+                ? (chatLanguage === "hi" ? "सोच रहे हैं..." : "Thinking")
+                : "Ready"}
             </span>
           </div>
         </div>
@@ -757,10 +840,38 @@ Tone & Approach:
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {/* Language Switcher Pill: EN | हिन्दी */}
+            <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setChatLanguage("en")}
+                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                  chatLanguage === "en"
+                    ? "bg-[#1a3b47] text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+                title="Switch to English"
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setChatLanguage("hi")}
+                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                  chatLanguage === "hi"
+                    ? "bg-[#1a3b47] text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+                title="हिन्दी में बदलें (Switch to Hindi)"
+              >
+                हिन्दी
+              </button>
+            </div>
+
             <button
               onClick={handleNewSession}
               disabled={loading}
-              className="px-3 py-1.5 rounded-lg bg-[#1a3b47] hover:bg-[#224d5d] text-white font-bold text-xs flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-[#1a3b47] hover:bg-[#224d5d] text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
               title="New conversation"
             >
               <FontAwesomeIcon icon={faPlus} className="text-xs" />
@@ -951,7 +1062,11 @@ Tone & Approach:
             <textarea
               rows={1}
               className="flex-grow bg-transparent border-none text-sm px-3 py-1.5 text-slate-900 placeholder:text-slate-400 outline-none resize-none max-h-32 min-h-[38px] leading-relaxed custom-scrollbar"
-              placeholder={`Ask ${activeCounselor.name} anything... (Shift+Enter for newline)`}
+              placeholder={
+                chatLanguage === "hi"
+                  ? `${activeCounselor.name} से कुछ भी पूछें... (Shift+Enter for newline)`
+                  : `Ask ${activeCounselor.name} anything... (Shift+Enter for newline)`
+              }
               value={inputText}
               onChange={(e) => {
                 setInputText(e.target.value);
@@ -959,7 +1074,7 @@ Tone & Approach:
                 e.target.style.height = `${Math.min(e.target.scrollHeight, 128)}px`;
               }}
               ref={inputElement}
-              disabled={loading}
+              disabled={loading || isTranscribing}
               aria-label={`Ask ${activeCounselor.name} a question`}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
@@ -973,8 +1088,21 @@ Tone & Approach:
             <motion.button
               animate={microphoneAnimationControls}
               onClick={startListening}
-              className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-600 hover:text-teal-700 hover:bg-teal-50 transition-colors shrink-0 mb-0.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-teal-500"
-              title="Voice Input"
+              disabled={loading || isTranscribing}
+              className={`w-9 h-9 flex items-center justify-center rounded-xl transition-colors shrink-0 mb-0.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-teal-500 ${
+                listening
+                  ? "bg-rose-50 text-rose-600 animate-pulse"
+                  : isTranscribing
+                  ? "bg-amber-50 text-amber-600"
+                  : "text-slate-600 hover:text-teal-700 hover:bg-teal-50"
+              }`}
+              title={
+                isTranscribing
+                  ? "Transcribing with MIET DGX..."
+                  : listening
+                  ? "Listening (click to stop)..."
+                  : `Voice Input (${chatLanguage === "hi" ? "हिन्दी" : "English"})`
+              }
               aria-label="Start voice input"
             >
               <FontAwesomeIcon icon={faMicrophone} className="text-sm" />
