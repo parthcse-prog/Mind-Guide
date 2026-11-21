@@ -37,6 +37,11 @@ const chatSessionSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    language: {
+      type: String,
+      default: "en",
+      trim: true,
+    },
     messages: [chatMessageSchema],
     lastActivity: {
       type: Date,

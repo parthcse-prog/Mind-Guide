@@ -17,7 +17,7 @@ import {
   faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
 
-const ReportModal = ({ report, open, onClose, messages = [] }) => {
+const ReportModal = ({ report, open, onClose, messages = [], language = "en" }) => {
   const contentRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [roadmapGenerating, setRoadmapGenerating] = useState(false);
@@ -90,14 +90,16 @@ const ReportModal = ({ report, open, onClose, messages = [] }) => {
   const handleRoadmapCreation = async () => {
     try {
       setRoadmapGenerating(true);
-      toast.info("Generating your personalized growth roadmap...");
+      const isHindi = language === "hi" || messages.some((m) => /[\u0900-\u097F]/.test(m.content || ""));
+      toast.info(isHindi ? "आपका व्यक्तिगत विकास रोडमैप तैयार हो रहा है..." : "Generating your personalized growth roadmap...");
       const response = await axios.post("/api/v1/chat/roadmap", {
         messages: messages || [],
         chat: messages || [],
+        language: isHindi ? "hi" : "en",
       });
       if (response.data?.success) {
         setRoadmapCreated(true);
-        toast.success("Roadmap created! You can now view it under Roadmap in Dashboard.");
+        toast.success(isHindi ? "रोडमैप सफलतापूर्वक तैयार हो गया! आप इसे डैशबोर्ड में देख सकते हैं।" : "Roadmap created! You can now view it under Roadmap in Dashboard.");
       }
     } catch (error) {
       console.error("Error creating roadmap:", error);

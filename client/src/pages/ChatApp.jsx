@@ -282,9 +282,18 @@ const ChatApp = () => {
             const latestSession = sessions[0];
             const detailRes = await axios.get(`/api/v1/chat/sessions/${latestSession._id}`);
             if (detailRes.data?.success && detailRes.data.data) {
+              const loadedData = detailRes.data.data;
               setCurrentSessionId(latestSession._id);
-              setCurrentSessionTitle(detailRes.data.data.title || "Conversation");
-              setMessages(detailRes.data.data.messages || []);
+              setCurrentSessionTitle(loadedData.title || "Conversation");
+              setMessages(loadedData.messages || []);
+              if (loadedData.language) {
+                setChatLanguage(loadedData.language);
+              } else if (
+                loadedData.messages &&
+                loadedData.messages.some((m) => /[\u0900-\u097F]/.test(m.content))
+              ) {
+                setChatLanguage("hi");
+              }
               return;
             }
           }
@@ -292,6 +301,7 @@ const ChatApp = () => {
 
         const initRes = await axios.post("/api/v1/chat/sessions", {
           counselorType: counselorKey,
+          language: chatLanguage,
         });
         if (initRes.data?.success && initRes.data.data) {
           const newSession = initRes.data.data;
@@ -303,6 +313,7 @@ const ChatApp = () => {
               _id: newSession._id,
               title: newSession.title,
               counselorType: newSession.counselorType,
+              language: chatLanguage,
               lastActivity: newSession.lastActivity,
               createdAt: newSession.createdAt,
               messageCount: 0,
@@ -326,9 +337,20 @@ const ChatApp = () => {
     try {
       const res = await axios.get(`/api/v1/chat/sessions/${sessionId}`);
       if (res.data?.success && res.data.data) {
+        const loadedData = res.data.data;
         setCurrentSessionId(sessionId);
-        setCurrentSessionTitle(res.data.data.title || "Conversation");
-        setMessages(res.data.data.messages || []);
+        setCurrentSessionTitle(loadedData.title || "Conversation");
+        setMessages(loadedData.messages || []);
+        if (loadedData.language) {
+          setChatLanguage(loadedData.language);
+        } else if (
+          loadedData.messages &&
+          loadedData.messages.some((m) => /[\u0900-\u097F]/.test(m.content))
+        ) {
+          setChatLanguage("hi");
+        } else {
+          setChatLanguage("en");
+        }
         setIsSidebarOpen(false);
       }
     } catch (err) {
@@ -338,28 +360,57 @@ const ChatApp = () => {
     }
   };
 
-  const handleNewSession = async () => {
+  const handleNewSession = async (targetLang = chatLanguage) => {
     stopNeuralTTS();
     setIsSpeaking(false);
     setLoading(true);
+
+    const counselorKey = selectedAvatarId || "saarthi";
+    const userName = userInfo?.name || "Friend";
+    const isMaya =
+      counselorKey === "maya" ||
+      counselorKey.toLowerCase().includes("maya") ||
+      activeCounselor.gender === "female";
+    const isHindi = targetLang === "hi";
+
+    const initialGreeting = isHindi
+      ? (isMaya
+          ? `नमस्ते ${userName}! मैं आपकी सारथी साथी हूँ। मैं आपकी बात सुनने, आपके सवालों के जवाब देने और आपके मन की हर बात समझने के लिए यहाँ हूँ। आज मैं आपकी क्या मदद कर सकती हूँ?`
+          : `नमस्ते ${userName}! मैं आपका सारथी साथी हूँ। मैं आपकी बात सुनने, आपके सवालों के जवाब देने और आपके मन की हर बात समझने के लिए यहाँ हूँ। आज मैं आपकी क्या मदद कर सकता हूँ?`)
+      : `Hello ${userName}! I'm your Saarthi companion. I'm here to listen, answer your questions, and explore whatever is on your mind. How can I help you today?`;
+
+    // Immediately show localized welcome greeting in state
+    setMessages([
+      {
+        role: "assistant",
+        content: initialGreeting,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+    setCurrentSessionTitle(isHindi ? "नई बातचीत" : "New Conversation");
+
     try {
       const res = await axios.post("/api/v1/chat/sessions", {
-        counselorType: selectedAvatarId || "saarthi",
+        counselorType: counselorKey,
+        language: targetLang,
       });
       if (res.data?.success && res.data.data) {
         const newSession = res.data.data;
         setCurrentSessionId(newSession._id);
         setCurrentSessionTitle(newSession.title);
-        setMessages(newSession.messages || []);
+        if (newSession.messages && newSession.messages.length > 0) {
+          setMessages(newSession.messages);
+        }
         setSessionList((prev) => [
           {
             _id: newSession._id,
             title: newSession.title,
             counselorType: newSession.counselorType,
+            language: targetLang,
             lastActivity: newSession.lastActivity,
             createdAt: newSession.createdAt,
             messageCount: 0,
-            preview: "Started new conversation",
+            preview: initialGreeting.substring(0, 85),
           },
           ...prev,
         ]);
@@ -370,6 +421,14 @@ const ChatApp = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLanguageSwitch = async (newLang) => {
+    if (newLang === chatLanguage) return;
+    setChatLanguage(newLang);
+    stopNeuralTTS();
+    setIsSpeaking(false);
+    await handleNewSession(newLang);
   };
 
   const handleRenameSession = async (sessionId, e) => {
@@ -412,7 +471,7 @@ const ChatApp = () => {
           if (remaining.length > 0) {
             handleSelectSession(remaining[0]._id);
           } else {
-            handleNewSession();
+            handleNewSession(chatLanguage);
           }
         }
       }
@@ -444,9 +503,25 @@ const ChatApp = () => {
 
       const userName = userInfo?.name || "Friend";
       const isHindi = chatLanguage === "hi";
-      const langRule = isHindi
-        ? `\nLanguage & Communication:\n- Respond naturally and fluently in Hindi (हिन्दी) using Devanagari script.\n- Preserve the exact same deep empathy, practical advice, character, and tone of ${activeCounselor.name} as in English.`
-        : `\nLanguage: English`;
+      const isMaya = activeCounselor.id === "maya" || activeCounselor.name.toLowerCase().includes("maya");
+      const isFemale = activeCounselor.gender === "female" || isMaya;
+
+      let langRule = "";
+      if (isHindi) {
+        if (isFemale) {
+          langRule = `\nLanguage & Grammar (MANDATORY FOR MAYA LIN):
+- Respond in natural, warm Hindi (हिन्दी) using Devanagari script.
+- CRITICAL FEMININE GRAMMAR: You are Maya Lin, a female guide. You MUST strictly use female grammatical gender (स्त्रीलिंग) for yourself at all times.
+- Use feminine verb inflections for yourself: "मैं समझती हूँ" (NEVER "समझता हूँ"), "मैं कर सकती हूँ" (NEVER "सकता हूँ"), "मैं आपकी मदद करूंगी" (NEVER "करूंगा"), "मैं आपके साथ साझा करूंगी", "लूंगी" (NEVER "लूंगा"), "बताऊंगी" (NEVER "बताऊंगा").
+- NEVER use masculine self-references like "समझता हूँ", "लूंगा", "करूंगा", "सकता हूँ".`;
+        } else {
+          langRule = `\nLanguage & Grammar:
+- Respond naturally and fluently in Hindi (हिन्दी) using Devanagari script.
+- You are a male mentor (${activeCounselor.name}). Use natural masculine Hindi grammar (पुल्लिंग) for yourself (e.g. "मैं समझता हूँ", "मैं सलाह दूंगा", "कर सकता हूँ").`;
+        }
+      } else {
+        langRule = `\nLanguage: English`;
+      }
 
       const systemInstruction = {
         role: "system",
@@ -466,15 +541,12 @@ Tone & Approach:
 
       const messagesWithSystem = [systemInstruction, ...updatedMessages];
       const botResponseText = await callGatewayLLMDirect(messagesWithSystem);
-      setLoading(false);
 
       const botMessage = {
         role: "assistant",
         content: botResponseText,
         timestamp: new Date().toISOString(),
       };
-
-      setMessages([...updatedMessages, botMessage]);
 
       if (currentSessionId) {
         axios
@@ -507,6 +579,17 @@ Tone & Approach:
           });
       }
 
+      // Synchronize text appearance with voice start
+      let revealed = false;
+      const revealBotMessage = () => {
+        if (!revealed) {
+          revealed = true;
+          setLoading(false);
+          setIsPreparingVoice(false);
+          setMessages([...updatedMessages, botMessage]);
+        }
+      };
+
       if (isTtsEnabled) {
         setIsPreparingVoice(true);
         try {
@@ -516,23 +599,25 @@ Tone & Approach:
             counselorName: activeCounselor.name,
             language: chatLanguage,
             onStart: () => {
-              setIsPreparingVoice(false);
+              revealBotMessage(); // Reveal text the exact millisecond voice starts speaking
               setIsSpeaking(true);
             },
             onEnd: () => {
-              setIsPreparingVoice(false);
+              revealBotMessage();
               setIsSpeaking(false);
             },
             onError: () => {
-              setIsPreparingVoice(false);
+              revealBotMessage();
               setIsSpeaking(false);
             },
           });
         } catch (error) {
           console.error("Speech error:", error);
-          setIsPreparingVoice(false);
+          revealBotMessage();
           setIsSpeaking(false);
         }
+      } else {
+        revealBotMessage();
       }
     } catch (err) {
       setLoading(false);
@@ -607,11 +692,19 @@ Tone & Approach:
       );
     });
 
-    if (loading) {
+    if (loading || isPreparingVoice) {
       content.push(
         <div key="loading-indicator" className="w-full flex justify-start my-3">
           <div className="flex items-center gap-2 px-4 py-3 bg-white border border-slate-200 rounded-2xl rounded-tl-none shadow-xs text-xs text-slate-600">
-            <span>Thinking</span>
+            <span>
+              {isPreparingVoice
+                ? chatLanguage === "hi"
+                  ? `${activeCounselor.name} आवाज़ तैयार कर रहे हैं...`
+                  : `${activeCounselor.name} is preparing voice...`
+                : chatLanguage === "hi"
+                ? `${activeCounselor.name} सोच रहे हैं...`
+                : "Thinking"}
+            </span>
             <div className="flex items-center gap-1">
               <motion.span
                 className="w-1.5 h-1.5 bg-teal-600 rounded-full"
@@ -635,7 +728,7 @@ Tone & Approach:
     }
 
     setRenderContent(content);
-  }, [messages, loading]);
+  }, [messages, loading, isPreparingVoice]);
 
   useEffect(() => {
     if (listening) {
@@ -719,6 +812,7 @@ Tone & Approach:
         <ReportModal
           report={report}
           messages={messages}
+          language={chatLanguage}
           open={isReportModalOpen}
           onClose={() => setReportModalOpen(false)}
         />
@@ -844,7 +938,7 @@ Tone & Approach:
             <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
               <button
                 type="button"
-                onClick={() => setChatLanguage("en")}
+                onClick={() => handleLanguageSwitch("en")}
                 className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
                   chatLanguage === "en"
                     ? "bg-[#1a3b47] text-white shadow-xs"
@@ -856,7 +950,7 @@ Tone & Approach:
               </button>
               <button
                 type="button"
-                onClick={() => setChatLanguage("hi")}
+                onClick={() => handleLanguageSwitch("hi")}
                 className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
                   chatLanguage === "hi"
                     ? "bg-[#1a3b47] text-white shadow-xs"
@@ -869,7 +963,7 @@ Tone & Approach:
             </div>
 
             <button
-              onClick={handleNewSession}
+              onClick={() => handleNewSession(chatLanguage)}
               disabled={loading}
               className="px-3 py-1.5 rounded-lg bg-[#1a3b47] hover:bg-[#224d5d] text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
               title="New conversation"
@@ -914,7 +1008,7 @@ Tone & Approach:
 
                 <div className="p-3 border-b border-slate-100">
                   <button
-                    onClick={handleNewSession}
+                    onClick={() => handleNewSession(chatLanguage)}
                     className="w-full bg-[#1a3b47] hover:bg-[#224d5d] text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors"
                   >
                     <FontAwesomeIcon icon={faPlus} />

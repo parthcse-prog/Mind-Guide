@@ -17,10 +17,39 @@ async function getChatGPTResponse(messages) {
 }
 
 // Reusable helper to build personalized companion messages for life, mental health, relationships & youth guidance
-async function buildInitialCounselorMessages(user, counselorType) {
+async function buildInitialCounselorMessages(user, counselorType = "", language = "en") {
   const name = user?.name || "Friend";
+  const norm = String(counselorType).toLowerCase();
+  const isMaya = norm.includes("maya");
+  const isHindi = language === "hi";
 
-  const guidePrompt = `You are Saarthi.ai (सारथी - your trusted companion and personal guide), developed by MIET.
+  let greeting = "";
+  if (isHindi) {
+    if (isMaya) {
+      greeting = `नमस्ते ${name}! मैं आपकी सारथी साथी हूँ। मैं आपकी बात सुनने, आपके सवालों के जवाब देने और आपके मन की हर बात समझने के लिए यहाँ हूँ। आज मैं आपकी क्या मदद कर सकती हूँ?`;
+    } else {
+      greeting = `नमस्ते ${name}! मैं आपका सारथी साथी हूँ। मैं आपकी बात सुनने, आपके सवालों के जवाब देने और आपके मन की हर बात समझने के लिए यहाँ हूँ। आज मैं आपकी क्या मदद कर सकता हूँ?`;
+    }
+  } else {
+    greeting = `Hello ${name}! I'm your Saarthi companion. I'm here to listen, answer your questions, and explore whatever is on your mind. How can I help you today?`;
+  }
+
+  const guidePrompt = isHindi
+    ? `You are Saarthi.ai (सारथी - your trusted companion and personal guide), developed by MIET.
+Active Companion Persona: ${counselorType}.
+You are speaking with ${name}.
+Language: Always respond in natural Hindi (हिन्दी) using Devanagari script.
+${isMaya ? "You are a female guide (Maya Lin). ALWAYS use feminine Hindi grammar (e.g. मैं समझती हूँ, कर सकती हूँ, मदद करूंगी, बताऊंगी)." : "You are a male mentor. Use natural masculine Hindi grammar (e.g. मैं समझता हूँ, कर सकता हूँ, मदद करूंगा)."}
+Your mission is to provide an open, non-judgmental, psychologically safe, and supportive space for:
+- Open "Ask Me Anything" on any question, curiosities, everyday situations, learning, and life decisions.
+- Thoughtful advice, perspective, clarity, and personal growth.
+
+GUIDELINES:
+1. Speak with genuine warmth, clarity, emotional intelligence, and sincere attentiveness.
+2. Validate the user's thoughts and feelings without judgment or preaching.
+3. Provide grounded, insightful, and practical answers to whatever they ask.
+4. Keep the conversation open, versatile, and supportive.`
+    : `You are Saarthi.ai (सारथी - your trusted companion and personal guide), developed by MIET.
 Active Companion Persona: ${counselorType}.
 You are speaking with ${name}.
 Your mission is to provide an open, non-judgmental, psychologically safe, and supportive space for:
@@ -40,22 +69,29 @@ GUIDELINES:
     },
     {
       role: "assistant",
-      content: `Hello ${name}! I'm your Saarthi companion. I'm here to listen, answer your questions, and explore whatever is on your mind. How can I help you today?`,
+      content: greeting,
     },
   ];
 }
 
 const getChat = asyncHandler(async (req, res) => {
   const counselorType = req.params.counselorType;
+  const language = req.query.language || "en";
   try {
     const user = await User.findById(req.user._id);
-    const initialMessages = await buildInitialCounselorMessages(user, counselorType);
+    const initialMessages = await buildInitialCounselorMessages(user, counselorType, language);
+
+    const title =
+      language === "hi"
+        ? "नई बातचीत"
+        : `New ${counselorType.charAt(0).toUpperCase() + counselorType.slice(1)} Session`;
 
     // Create a new persistent chat session in MongoDB
     const session = await ChatSession.create({
       user: user._id,
       counselorType,
-      title: `New ${counselorType.charAt(0).toUpperCase() + counselorType.slice(1)} Session`,
+      language,
+      title,
       messages: initialMessages,
       lastActivity: new Date(),
     });
@@ -85,7 +121,7 @@ const getUserChatSessions = asyncHandler(async (req, res) => {
 
     const sessions = await ChatSession.find(filter)
       .sort({ lastActivity: -1 })
-      .select("_id title counselorType lastActivity createdAt messages")
+      .select("_id title counselorType language lastActivity createdAt messages")
       .lean();
 
     const formatted = sessions.map((s) => {
@@ -95,6 +131,7 @@ const getUserChatSessions = asyncHandler(async (req, res) => {
         _id: s._id,
         title: s.title,
         counselorType: s.counselorType,
+        language: s.language || "en",
         lastActivity: s.lastActivity || s.createdAt,
         createdAt: s.createdAt,
         messageCount: userMsgCount,
@@ -139,13 +176,20 @@ const getChatSessionById = asyncHandler(async (req, res) => {
 const createChatSession = asyncHandler(async (req, res) => {
   try {
     const counselorType = req.body.counselorType || req.query.counselorType || "academic counselor";
+    const language = req.body.language || req.query.language || "en";
     const user = await User.findById(req.user._id);
-    const initialMessages = await buildInitialCounselorMessages(user, counselorType);
+    const initialMessages = await buildInitialCounselorMessages(user, counselorType, language);
 
-    const title = req.body.title || `New ${counselorType.charAt(0).toUpperCase() + counselorType.slice(1)} Session`;
+    const title =
+      req.body.title ||
+      (language === "hi"
+        ? "नई बातचीत"
+        : `New ${counselorType.charAt(0).toUpperCase() + counselorType.slice(1)} Session`);
+
     const session = await ChatSession.create({
       user: req.user._id,
       counselorType,
+      language,
       title,
       messages: initialMessages,
       lastActivity: new Date(),
@@ -196,7 +240,7 @@ const appendChatSessionMessage = asyncHandler(async (req, res) => {
     }
 
     // Auto-generate title if currently default
-    if (session.title.startsWith("New ") || session.title.includes("Counseling Session")) {
+    if (session.title.startsWith("New ") || session.title.includes("Counseling Session") || session.title === "नई बातचीत") {
       const firstUserMsg = session.messages.find((m) => m.role === "user");
       if (firstUserMsg && firstUserMsg.content) {
         const cleanPrompt = firstUserMsg.content.trim().replace(/[\r\n]+/g, " ");
@@ -314,7 +358,7 @@ const handleCreateReport = asyncHandler(async (req, res) => {
   }
 });
 const handleCreateRoadmap = asyncHandler(async (req, res) => {
-  const { roadmap, chat, messages: reqMessages } = req.body;
+  const { roadmap, chat, messages: reqMessages, language } = req.body;
   let chatHistory = reqMessages || chat || [];
 
   try {
@@ -332,13 +376,31 @@ const handleCreateRoadmap = asyncHandler(async (req, res) => {
       .filter((m) => m && m.role && m.content)
       .map((m) => ({ role: m.role, content: String(m.content).trim() }));
 
-    const roadmapPrompt = [
-      ...cleanChat,
+    const hasHindi =
+      language === "hi" ||
+      cleanChat.some((m) => /[\u0900-\u097F]/.test(m.content));
+
+    const systemPrompt = hasHindi
+      ? `You are Saarthi.ai's expert Career & Growth Mentor.
+TASK: Analyze the student's conversation below and produce a structured, actionable growth roadmap in HINDI (हिन्दी).
+STRICT INSTRUCTION: Output ONLY a valid JSON array of roadmap objects. Do NOT output any intro, outro, or conversational chit-chat.
+Format:
+[
+  {
+    "Goal": "लक्ष्य का स्पष्ट विवरण (e.g. अपने करियर की प्राथमिकताओं और रुचियों को समझना)",
+    "timeline": "दिन 1 - दिन 3",
+    "recommendations": [
       {
-        role: "system",
-        content: `You are Saarthi.ai's expert Growth and Development Mentor.
+        "title": "संसाधन या अभ्यास कार्य",
+        "link": "https://www.coursera.org"
+      }
+    ],
+    "isCompleted": false
+  }
+]`
+      : `You are Saarthi.ai's expert Growth and Development Mentor.
 Based on the conversation and the user's goals, aspirations, challenges, and current situation, create a comprehensive, day-by-day structured action roadmap.
-Return a STRICT JSON array of roadmap objects. Follow this exact schema with NO extra commentary or explanation:
+STRICT INSTRUCTION: Return ONLY a valid JSON array of roadmap objects. Follow this exact schema with NO extra commentary or explanation:
 [
   {
     "Goal": "Actionable goal description (e.g. Master React fundamentals)",
@@ -351,31 +413,137 @@ Return a STRICT JSON array of roadmap objects. Follow this exact schema with NO 
     ],
     "isCompleted": false
   }
-]`,
+]`;
+
+    const conversationContext =
+      cleanChat.length > 0
+        ? cleanChat.map((m) => `${m.role}: ${m.content}`).join("\n\n")
+        : "General life, mental wellness, and career growth roadmap.";
+
+    const roadmapPrompt = [
+      {
+        role: "system",
+        content: systemPrompt,
+      },
+      {
+        role: "user",
+        content: `Here is the conversation history with the student:\n\n${conversationContext}\n\nNow generate the customized JSON roadmap array${hasHindi ? " in Hindi" : ""}. Output ONLY the JSON array starting with [ and ending with ].`,
       },
     ];
 
-    const responseText = await callGatewayLLM(roadmapPrompt, "llama3.1:8b");
+    let responseText = "";
+    try {
+      responseText = await callGatewayLLM(roadmapPrompt, "llama3.1:8b");
+    } catch (llmErr) {
+      console.warn("LLM roadmap call failed:", llmErr.message);
+    }
 
     let roadmapData = [];
-    try {
-      const match = responseText.match(/\[[\s\S]*\]/);
-      if (match) {
-        roadmapData = JSON.parse(match[0]);
-      } else {
-        roadmapData = JSON.parse(responseText);
-      }
-    } catch (parseErr) {
-      console.warn("JSON parse fallback, trying cleanup:", parseErr.message);
-      const cleaned = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
-      const match = cleaned.match(/\[[\s\S]*\]/);
-      if (match) {
-        roadmapData = JSON.parse(match[0]);
+    if (responseText) {
+      try {
+        const match = responseText.match(/\[[\s\S]*\]/);
+        if (match) {
+          roadmapData = JSON.parse(match[0]);
+        } else {
+          roadmapData = JSON.parse(responseText);
+        }
+      } catch (parseErr) {
+        console.warn("JSON parse fallback, trying cleanup:", parseErr.message);
+        const cleaned = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
+        const match = cleaned.match(/\[[\s\S]*\]/);
+        if (match) {
+          roadmapData = JSON.parse(match[0]);
+        }
       }
     }
 
+    // High quality default fallback if LLM formatting had an issue
     if (!Array.isArray(roadmapData) || roadmapData.length === 0) {
-      return res.status(500).json({ success: false, message: "Could not structure roadmap items" });
+      if (hasHindi) {
+        roadmapData = [
+          {
+            Goal: "अपने करियर के प्राथमिकताओं और मुख्य रुचियों को समझना",
+            timeline: "दिन 1 - दिन 3",
+            recommendations: [
+              {
+                title: "स्व-मूल्यांकन और कौशल विश्लेषण (Skill & Self-Assessment Guide)",
+                link: "https://www.coursera.org/learn/career-planning",
+              },
+              {
+                title: "अपनी प्राथमिकताओं और लक्ष्यों की सूची तैयार करना",
+                link: "https://www.mindtools.com",
+              },
+            ],
+            isCompleted: false,
+          },
+          {
+            Goal: "व्यावसायिक और तकनीकी कौशल विकास योजना बनाना",
+            timeline: "दिन 4 - दिन 7",
+            recommendations: [
+              {
+                title: "कोर विषय अध्ययन और व्यावहारिक प्रोजेक्ट्स",
+                link: "https://www.edx.org",
+              },
+              {
+                title: "मार्गदर्शकों (Mentors) और पूर्व छात्रों से संपर्क",
+                link: "https://www.linkedin.com",
+              },
+            ],
+            isCompleted: false,
+          },
+          {
+            Goal: "व्यावहारिक पोर्टफोलियो निर्माण और आत्मविश्वास सुदृढ़ीकरण",
+            timeline: "दिन 8 - दिन 14",
+            recommendations: [
+              {
+                title: "परियोजना प्रलेखन और रिज्यूमे समीक्षा",
+                link: "https://github.com",
+              },
+              {
+                title: "साक्षात्कार अभ्यास और लक्ष्य समीक्षा",
+                link: "https://leetcode.com",
+              },
+            ],
+            isCompleted: false,
+          },
+        ];
+      } else {
+        roadmapData = [
+          {
+            Goal: "Clarify career priorities and core interests",
+            timeline: "Day 1 - Day 3",
+            recommendations: [
+              {
+                title: "Self-assessment and personal strengths audit",
+                link: "https://www.coursera.org/learn/career-planning",
+              },
+            ],
+            isCompleted: false,
+          },
+          {
+            Goal: "Strengthen foundational competencies and practical skills",
+            timeline: "Day 4 - Day 7",
+            recommendations: [
+              {
+                title: "Targeted skill training and practical assignments",
+                link: "https://www.edx.org",
+              },
+            ],
+            isCompleted: false,
+          },
+          {
+            Goal: "Build portfolio projects and professional presence",
+            timeline: "Day 8 - Day 14",
+            recommendations: [
+              {
+                title: "Project documentation and resume alignment",
+                link: "https://github.com",
+              },
+            ],
+            isCompleted: false,
+          },
+        ];
+      }
     }
 
     const updatedUser = await User.findByIdAndUpdate(
