@@ -246,12 +246,14 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
         if (!dict || !infl) return;
 
         if (isSpeaking) {
-          // REAL-TIME AUDIO REACTIVE LIP SYNC
+          // REAL-TIME AUDIO REACTIVE LIP SYNC WITH NATURAL SYLLABLE FLAP
           let targetJaw = 0;
           let targetO = 0;
           let targetE = 0;
+          let volume = 0;
+          const hasAnalyser = Boolean(window.globalAudioAnalyser && window.globalAudioDataArray);
 
-          if (window.globalAudioAnalyser && window.globalAudioDataArray) {
+          if (hasAnalyser) {
             window.globalAudioAnalyser.getByteFrequencyData(window.globalAudioDataArray);
             
             let bass = 0;
@@ -266,23 +268,65 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
             
             bass = (bass / half) / 255.0; 
             treble = (treble / half) / 255.0;
-            const volume = bass + treble;
-            
-            // Ethan and Dr. Alex need wider mouth movements due to their model mesh density
-            const counselorName = config?.name || "";
-            const isWideMouth = counselorName === "Ethan Rostova" || counselorName === "Dr. Alex";
-            const jawMultiplier = isWideMouth ? 1.0 : 0.7;
-            const jawMax = isWideMouth ? 0.65 : 0.4;
-            
-            targetJaw = Math.min(volume * jawMultiplier, jawMax); 
-            
-            // Relying strictly on raw FFT bass vs treble often just looks like a constant "O".
-            // Instead, we use the real-time volume to drive the jaw perfectly in sync with the audio,
-            // while smoothly cycling the O (pucker) and E (widen) shapes to simulate actual phonetic speech.
-            const shapeCycle = Math.floor(elapsed * 6) % 3;
-            targetO = shapeCycle === 0 ? targetJaw * 0.7 : 0; 
-            targetE = shapeCycle === 1 ? targetJaw * 0.8 : 0; 
+            volume = (bass * 1.5 + treble * 0.8);
           }
+
+          // Check specifically for counselors
+          const counselorName = config?.name || "";
+          const isAlexOrEthan =
+            counselorName.includes("Alex") ||
+            counselorName.includes("Ethan") ||
+            config?.id === "saarthi" ||
+            config?.id === "alex" ||
+            config?.id === "ethan" ||
+            config?.model === model1Path ||
+            config?.model === model2Path;
+
+          const isMarcusOrMaya =
+            counselorName.includes("Marcus") ||
+            counselorName.includes("Maya") ||
+            config?.id === "marcus" ||
+            config?.id === "maya" ||
+            config?.model === maleAvatarPath ||
+            config?.model === femaleBrunetteTPath;
+
+          // Natural human speech syllable cadence (~3.8 to 4.5 syllables/second)
+          // Combining primary syllable frequency (~4.0 Hz) and cadence phrasing (~2.2 Hz)
+          const syllableCycle = Math.sin(elapsed * 25.0) * 0.65 + Math.sin(elapsed * 14.0) * 0.35;
+          // Crucial for natural talking: only the positive half-wave opens the mouth (vowels),
+          // while the negative half firmly clamps to 0.0 (consonant closures / bilabials: M, B, P, T, S).
+          // This prevents the mouth from freezing/staying open and creates articulate open-close speech.
+          const syllableFlap = Math.max(0, syllableCycle);
+
+          let speechIntensity = 1.0;
+          if (hasAnalyser) {
+            if (volume > 0.025) {
+              speechIntensity = Math.min(Math.max((volume - 0.02) * 3.8, 0.45), 1.15);
+            } else {
+              // Natural pause/breath between sentences: mouth stays closed
+              speechIntensity = 0.0;
+            }
+          }
+
+          // Max aperture calibration:
+          // - Dr. Alex & Ethan (Model 1 & 2): 0.86 for clear, distinct lip movement
+          // - Marcus Cole & Maya Lin: calibrated to a subtle 0.38 so their mouth opens gently without gaping too wide
+          // - Other avatars: 0.50
+          let maxAperture = 0.50;
+          if (isAlexOrEthan) {
+            maxAperture = 0.86;
+          } else if (isMarcusOrMaya) {
+            maxAperture = 0.38;
+          }
+
+          targetJaw = Math.pow(syllableFlap, 1.25) * maxAperture * speechIntensity;
+
+          // Cycle phonetic viseme variations for avatars supporting O / E
+          const shapeCycle = Math.floor(elapsed * 6) % 3;
+          targetO = shapeCycle === 0 ? targetJaw * 0.6 : 0; 
+          targetE = shapeCycle === 1 ? targetJaw * 0.6 : 0; 
+
+          const hasMouthOpen = dict["mouthOpen"] !== undefined;
           
           Object.keys(dict).forEach((key) => {
             const k = key.toLowerCase();
@@ -297,7 +341,16 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
               k === "a01" ||
               k === "fcl_mth_a"
             ) {
-              infl[idx] += (Math.min(targetJaw, 1.0) - infl[idx]) * 0.45;
+              // Avoid double-stacking: if mesh has both mouthOpen and viseme_aa (like Marcus Cole),
+              // prioritize mouthOpen and skip viseme_aa to avoid jaw over-extension
+              if (hasMouthOpen && k.includes("viseme_aa")) {
+                infl[idx] += (0 - infl[idx]) * 0.35;
+                return;
+              }
+
+              const current = infl[idx];
+              const speed = targetJaw > current ? 0.60 : 0.45;
+              infl[idx] += (Math.min(targetJaw, 1.0) - current) * speed;
             }
             // Universal O shape
             else if (k.includes("viseme_o") || k.includes("vowel_o") || k === "a04" || k === "fcl_mth_o") {
@@ -310,7 +363,8 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
           });
         } else {
           Object.keys(dict).forEach((key) => {
-            if (key.startsWith("viseme_") || key === "jawOpen" || key === "mouthOpen") {
+            const k = key.toLowerCase();
+            if (key.startsWith("viseme_") || k.includes("jaw") || k.includes("mouthopen")) {
               const idx = dict[key];
               infl[idx] += (0 - infl[idx]) * 0.35;
             }
@@ -336,28 +390,27 @@ const CharacterModel = ({ config, isSpeaking, loading }) => {
       });
     }
 
-    // 1. Interactive Cursor & Gaze Tracking: Eyes/Head follow the student's mouse smoothly
+    // 1. Direct Frontal Focus: Heads and Necks locked strictly to the front (no looking left/right)
     const head = scene.getObjectByName("Head") || scene.getObjectByName("mixamorigHead") || scene.getObjectByName("J_Bip_C_Head");
     const neck = scene.getObjectByName("Neck") || scene.getObjectByName("mixamorigNeck") || scene.getObjectByName("J_Bip_C_Neck");
     
-    // Smooth target gaze angles (safely clamped within natural human neck range)
-    const targetHeadY = Math.max(Math.min(ptrX * 0.28, 0.32), -0.32);
-    const targetHeadX = Math.max(Math.min(-ptrY * 0.22, 0.24), -0.24);
-
     if (head) {
-      head.rotation.y += (targetHeadY - head.rotation.y) * 0.08;
-      head.rotation.x += (targetHeadX - head.rotation.x) * 0.08;
+      head.rotation.y = 0; // Strictly zero left/right rotation - locks gaze directly front
+      head.rotation.z = 0;
 
       if (isSpeaking) {
-        // Conversational empathetic nod (1-2 degrees) synced to voice cadence
-        const speechNod = Math.sin(elapsed * 2.2) * 0.022;
-        head.rotation.x += speechNod;
+        // Conversational empathetic front nod (subtle 1 degree vertical nod) synced to voice cadence
+        const speechNod = Math.sin(elapsed * 2.2) * 0.018;
+        head.rotation.x = speechNod;
+      } else {
+        head.rotation.x = 0;
       }
     }
 
     if (neck) {
-      neck.rotation.y += (targetHeadY * 0.35 - neck.rotation.y) * 0.08;
-      neck.rotation.x += (targetHeadX * 0.35 - neck.rotation.x) * 0.08;
+      neck.rotation.y = 0; // Strictly zero left/right rotation - locks neck directly front
+      neck.rotation.x = 0;
+      neck.rotation.z = 0;
     }
 
     // 2. Ambient Spine Breathing (Natural respiratory life so models never feel frozen)
@@ -483,7 +536,7 @@ const AssistantAvatar = ({
       {!hideStatusPill && (
         <div className="absolute top-3 left-3 z-10 px-2.5 py-1 bg-black/40 backdrop-blur-md rounded-full text-[10px] text-teal-300 font-semibold flex items-center gap-1.5 border border-white/10 pointer-events-none transition-all shadow-xs">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 motion-safe:animate-pulse"></span>
-          <span className="truncate max-w-[180px]">{interactiveMsg || `${config.name} • Active Gaze`}</span>
+          <span className="truncate max-w-[180px]">{interactiveMsg || `${config.name} • Focused Front`}</span>
         </div>
       )}
 
@@ -508,6 +561,7 @@ const AssistantAvatar = ({
               />
             </Suspense>
             <OrbitControls
+              enableRotate={false}
               enableZoom={false}
               enablePan={false}
               target={[0, 0, 0]}
