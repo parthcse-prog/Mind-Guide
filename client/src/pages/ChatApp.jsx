@@ -38,7 +38,12 @@ import ReactMarkdown from "react-markdown";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { callGatewayLLMDirect } from "../services/llmService";
-import { speakWithNeuralTTS, stopNeuralTTS, transcribeAudioWithGateway } from "../services/azureSpeechService";
+import {
+  speakWithNeuralTTS,
+  stopNeuralTTS,
+  transcribeAudioWithGateway,
+  playPrecachedDemoAudio,
+} from "../services/azureSpeechService";
 
 // Helper for relative timestamps
 const formatRelativeTime = (dateStr) => {
@@ -399,7 +404,15 @@ const ChatApp = () => {
         setCurrentSessionId(newSession._id);
         setCurrentSessionTitle(newSession.title);
         if (newSession.messages && newSession.messages.length > 0) {
-          setMessages(newSession.messages);
+          const visible = newSession.messages
+            .filter((m) => m.role !== "system")
+            .map((m) => {
+              if (isHindi && m.role === "assistant" && m.content.includes("I'm your Saarthi companion")) {
+                return { ...m, content: initialGreeting };
+              }
+              return m;
+            });
+          setMessages(visible);
         }
         setSessionList((prev) => [
           {
@@ -424,7 +437,7 @@ const ChatApp = () => {
   };
 
   const handleLanguageSwitch = async (newLang) => {
-    if (newLang === chatLanguage) return;
+    // Switching or clicking EN / Hindi always starts a fresh chat in that language
     setChatLanguage(newLang);
     stopNeuralTTS();
     setIsSpeaking(false);
@@ -506,6 +519,131 @@ const ChatApp = () => {
       const isMaya = activeCounselor.id === "maya" || activeCounselor.name.toLowerCase().includes("maya");
       const isFemale = activeCounselor.gender === "female" || isMaya;
 
+      // 1. Check for Pre-cached Career Guidance Demo Questions (Instant 0ms Audio & Text)
+      const queryLower = query.toLowerCase();
+      const isDemoQ1En =
+        queryLower.includes("pcm with computer science") ||
+        (queryLower.includes("torn between") && queryLower.includes("science")) ||
+        (queryLower.includes("computers and coding") && queryLower.includes("entrepreneurship"));
+
+      const isDemoQ2En =
+        queryLower.includes("mandatory to prepare for jee") ||
+        (queryLower.includes("jee") && queryLower.includes("coaching burnout")) ||
+        queryLower.includes("learning practical software skills on my own");
+
+      const isDemoQ1Hi =
+        (queryLower.includes("10वीं") && (queryLower.includes("साइंस") || queryLower.includes("कॉमर्स"))) ||
+        queryLower.includes("करियर को लेकर कुछ मार्गदर्शन");
+
+      const isDemoQ2Hi =
+        (queryLower.includes("जेईई") && queryLower.includes("कोचिंग")) ||
+        queryLower.includes("बर्नआउट");
+
+      let demoBotText = null;
+      let demoAudioPath = null;
+
+      if (isDemoQ1En) {
+        demoBotText = `Congratulations on clearing your 10th boards! You are in a fantastic position because tech and business naturally amplify each other.
+
+If you choose **Science (PCM with Computer Science)**:
+- You maintain maximum technical flexibility.
+- Direct eligibility for B.Tech Computer Science, Data Science, AI, and software engineering degrees.
+- You can always pursue an MBA or launch tech ventures later—many top startup founders start with engineering!
+
+If you choose **Commerce with Mathematics**:
+- Directly immerses you in finance, economics, business analytics, and accountancy.
+- You can still pursue coding, fintech, and product management, or degrees like BCA and B.Sc Computer Science.
+
+**Actionable Advice**:
+If you enjoy building technical products from scratch, lean towards Science. If your passion is market dynamics, business models, and financial strategies, Commerce with Mathematics is an extraordinary launchpad.`;
+        demoAudioPath = isFemale
+          ? "/audio/demo_en_q1_female.mp3"
+          : "/audio/demo_en_q1_male.mp3";
+      } else if (isDemoQ2En) {
+        demoBotText = `**Absolutely not!** JEE coaching is not mandatory, and your mental well-being must always come first.
+
+Here is the practical reality:
+1. **Diverse Pathways**: A huge number of successful software engineers and startup founders never wrote JEE. Many top institutes offer admission through CUET, state-level entrance exams, or university-specific tests.
+2. **Practical Skills Triumph**: In modern tech, your GitHub repositories, real-world projects, problem-solving skills, and open-source contributions matter far more than an entrance coaching rank.
+3. **Prevent Burnout**: Balancing school academics with self-paced learning (Python, web development, algorithm practice) builds genuine passion without exhausting you.
+
+Focus on your school board foundations and spend weekends building practical projects. You will thrive with confidence and balance.`;
+        demoAudioPath = isFemale
+          ? "/audio/demo_en_q2_female.mp3"
+          : "/audio/demo_en_q2_male.mp3";
+      } else if (isDemoQ1Hi) {
+        demoBotText = `**10वीं बोर्ड पास करने पर आपको बहुत-बहुत बधाई!**
+
+यह बहुत अच्छी बात है कि आपकी रुचि टेक्नोलॉजी और बिज़नेस दोनों में है। आइए दोनों विकल्पों को समझें:
+
+1. **साइंस (PCM + कंप्यूटर साइंस)**:
+   - यह आपको तकनीकी क्षेत्र में सबसे अधिक विकल्प देता है।
+   - आप बी.टेक कंप्यूटर साइंस, डेटा साइंस या बीसीए कर सकते हैं।
+   - भविष्य में आप एमबीए करके या स्टार्टअप शुरू करके बिज़नेस में भी आ सकते हैं।
+
+2. **कॉमर्स (मैथ्स के साथ)**:
+   - आपको फाइनेंस, इकोनॉमिक्स और बिज़नेस की गहरी समझ शुरुआत से मिलेगी।
+   - आप कोडिंग और सॉफ्टवेयर स्किल्स ऑनलाइन साथ-साथ सीख सकते हैं और फिनटेक के क्षेत्र में आगे बढ़ सकते हैं।
+
+**मार्गदर्शन**: यदि आपका प्राथमिक लक्ष्य कोर सॉफ्टवेयर और तकनीक बनाना है, तो साइंस चुनें। यदि आपकी रुचि मार्केट, फाइनेंस और व्यापार रणनीति में अधिक है, तो मैथ्स के साथ कॉमर्स बेहतरीन विकल्प है।`;
+        demoAudioPath = isFemale
+          ? "/audio/demo_hi_q1_female.mp3"
+          : "/audio/demo_hi_q1_male.mp3";
+      } else if (isDemoQ2Hi) {
+        demoBotText = `**बिल्कुल भी नहीं!** जेईई कोचिंग लेना कोई अनिवार्य शर्त नहीं है, और आपकी मानसिक शांति और स्वास्थ्य सबसे महत्वपूर्ण हैं।
+
+ज़मीनी हकीकत यह है:
+1. **कई अन्य रास्ते**: सॉफ्टवेयर इंडस्ट्री में सफल होने के लिए सिर्फ आईआईटी ही एकमात्र रास्ता नहीं है। कई बेहतरीन यूनिवर्सिटीज़ CUET, राज्य स्तरीय परीक्षाओं और मेरिट के आधार पर एडमिशन देती हैं।
+2. **प्रैक्टिकल कोडिंग महत्वपूर्ण है**: कंपनियों में आपकी वास्तविक कोडिंग स्किल्स, प्रोजेक्ट्स और प्रॉब्लम-सॉल्विंग क्षमता देखी जाती है, न कि किसी कोचिंग का रैंक।
+3. **बर्नआउट से बचें**: स्कूल की पढ़ाई पर ध्यान दें और अपने खाली समय में खुद से कोडिंग सीखें। इससे आपकी सीखने की जिज्ञासा बनी रहेगी।
+
+आप बिना अत्यधिक तनाव लिए स्कूल और प्रैक्टिकल स्किल्स दोनों में बहुत अच्छा प्रदर्शन कर सकते हैं!`;
+        demoAudioPath = isFemale
+          ? "/audio/demo_hi_q2_female.mp3"
+          : "/audio/demo_hi_q2_male.mp3";
+      }
+
+      if (demoBotText && demoAudioPath) {
+        const botMessage = {
+          role: "assistant",
+          content: demoBotText,
+          timestamp: new Date().toISOString(),
+        };
+
+        setLoading(false);
+        setIsPreparingVoice(false);
+        setMessages([...updatedMessages, botMessage]);
+
+        if (currentSessionId) {
+          axios
+            .post(`/api/v1/chat/sessions/${currentSessionId}/messages`, {
+              userMessage,
+              assistantMessage: botMessage,
+            })
+            .then((res) => {
+              if (res.data?.success && res.data.data) {
+                const updatedTitle = res.data.data.title;
+                if (updatedTitle && updatedTitle !== currentSessionTitle) {
+                  setCurrentSessionTitle(updatedTitle);
+                }
+              }
+            })
+            .catch((err) => console.warn("Save demo session error:", err.message));
+        }
+
+        if (isTtsEnabled) {
+          playPrecachedDemoAudio({
+            audioSrc: demoAudioPath,
+            spokenText: demoBotText,
+            onStart: () => setIsSpeaking(true),
+            onEnd: () => setIsSpeaking(false),
+            onError: () => setIsSpeaking(false),
+          });
+        }
+        return;
+      }
+
+      // 2. Dynamic Conversation: Call MIET AI Services LLM & Synthesize with Edge-TTS
       let langRule = "";
       if (isHindi) {
         if (isFemale) {
@@ -649,8 +787,26 @@ Tone & Approach:
   };
 
   useEffect(() => {
+    const isMaya =
+      activeCounselor.id === "maya" ||
+      activeCounselor.name?.toLowerCase().includes("maya") ||
+      activeCounselor.gender === "female";
+    const userName = userInfo?.name || "Friend";
+    const localizedHindiGreeting = isMaya
+      ? `नमस्ते ${userName}! मैं आपकी सारथी साथी हूँ। मैं आपकी बात सुनने, आपके सवालों के जवाब देने और आपके मन की हर बात समझने के लिए यहाँ हूँ। आज मैं आपकी क्या मदद कर सकती हूँ?`
+      : `नमस्ते ${userName}! मैं आपका सारथी साथी हूँ। मैं आपकी बात सुनने, आपके सवालों के जवाब देने और आपके मन की हर बात समझने के लिए यहाँ हूँ। आज मैं आपकी क्या मदद कर सकता हूँ?`;
+
     const content = messages.map((message, index) => {
       const isUserMessage = message.role === "user";
+      let displayContent = message.content;
+      if (
+        !isUserMessage &&
+        chatLanguage === "hi" &&
+        (displayContent.includes("I'm your Saarthi companion") ||
+          (displayContent.includes("Hello ") && displayContent.includes("Saarthi companion")))
+      ) {
+        displayContent = localizedHindiGreeting;
+      }
 
       return (
         <div
@@ -672,7 +828,7 @@ Tone & Approach:
               }`}
             >
               <div className="prose prose-sm max-w-none text-inherit prose-headings:text-inherit prose-a:text-teal-700">
-                <ReactMarkdown>{message.content}</ReactMarkdown>
+                <ReactMarkdown>{displayContent}</ReactMarkdown>
               </div>
               {message.timestamp && (
                 <div

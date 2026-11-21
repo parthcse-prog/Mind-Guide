@@ -1,4 +1,5 @@
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -7,6 +8,7 @@ const connectDB = require("./config/connectDB");
 const userRouter = require("./routes/User");
 const chatRouter = require("./routes/Chat"); // Import chatRouter module
 const aiChatRouter = require("./routes/aiChatRoute"); // Import AI Chat router
+const voiceRouter = require("./routes/voiceRoute"); // Edge-TTS ultra-fast voice router
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
 
 const app = express();
@@ -25,6 +27,7 @@ app.use(express.json());
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/chat", chatRouter); // Use chatRouter for /chat route
 app.use("/api/v1/ai/chat", aiChatRouter); // Use aiChatRoute for /ai/chat route
+app.use("/api/v1/voice", voiceRouter); // Use voiceRouter for Edge-TTS voice synthesis
 
 app.use(notFound);
 app.use(errorHandler);

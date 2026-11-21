@@ -225,152 +225,138 @@ export const speakWithNeuralTTS = async ({
     }
   }
 
-  // Kokoro TTS from MIET gateway (supports English and Hindi with exact character voices)
-  playKokoroTTS({ sanitizedText, gender, counselorName, language: targetLanguage, onStart, onEnd, onError });
+  // Ultra-fast Edge-TTS voice synthesis (~0.5s latency, distinct voices)
+  playEdgeTTS({ sanitizedText, gender, counselorName, language: targetLanguage, onStart, onEnd, onError });
 };
 
-const playKokoroTTS = async ({ sanitizedText, gender, counselorName, language = "en", onStart, onEnd, onError }) => {
+/**
+ * Play pre-cached demo audio with instant response & audio-reactive lip sync
+ */
+export const playPrecachedDemoAudio = async ({
+  audioSrc,
+  spokenText = "",
+  onStart = () => {},
+  onEnd = () => {},
+  onError = () => {},
+}) => {
+  stopNeuralTTS();
   const playId = currentTTSId;
   try {
-    const token = import.meta.env?.VITE_OPENAI_API_KEY || window?.OPENAI_API_KEY || "dgx_942ea91f275263b6ee47220c55583ba3e9ca8fa9f7904833";
-    
-    const isHindi = language === "hi" || /[\u0900-\u097F]/.test(sanitizedText);
-    const norm = (counselorName || "").toLowerCase();
-
-    // English Voices (Kokoro):
-    // Dr. Alex: am_echo
-    // Marcus Cole: bm_george
-    // Ethan Rostova: am_liam
-    // Maya Lin: af_sarah
-    let englishVoiceId = gender === "male" ? "am_echo" : "af_sarah";
-    if (norm.includes("alex") || norm.includes("saarthi")) {
-      englishVoiceId = "am_echo";
-    } else if (norm.includes("marcus")) {
-      englishVoiceId = "bm_george";
-    } else if (norm.includes("ethan")) {
-      englishVoiceId = "am_liam";
-    } else if (norm.includes("maya")) {
-      englishVoiceId = "af_sarah";
-    }
-
-    // Native Indian Hindi Voices (AI4Bharat Indic):
-    // Maya Lin: hi_divya (Native Indian female Hindi voice - zero foreign accent)
-    // Dr. Alex (Saarthi): hi_rohit (Native Indian male Hindi mentor voice)
-    // Marcus Cole: doi_karan (Distinct native Indian male voice)
-    // Ethan Rostova: hi_rohit (Native Indian male Hindi voice)
-    let indicVoiceId = gender === "male" ? "hi_rohit" : "hi_divya";
-    if (norm.includes("maya")) {
-      indicVoiceId = "hi_divya";
-    } else if (norm.includes("marcus")) {
-      indicVoiceId = "doi_karan";
-    } else if (norm.includes("ethan") || norm.includes("alex") || norm.includes("saarthi")) {
-      indicVoiceId = "hi_rohit";
-    }
-    
-    // Chunk by sentences: support English (. ! ?) and Hindi sentence danda (। \u0964) and newlines
-    const rawChunks = sanitizedText.match(/[^.!?।\n]+[.!?।\n]*/g) || [sanitizedText];
-    const chunks = [];
-    for (const c of rawChunks) {
-      const trimmed = c.trim();
-      if (!trimmed) continue;
-      // If a single chunk without punctuation is very long, split by comma to prevent gateway timeout
-      if (trimmed.length > 220) {
-        const subParts = trimmed.match(/[^,;，]+[,;，]*/g) || [trimmed];
-        chunks.push(...subParts.map(s => s.trim()).filter(Boolean));
-      } else {
-        chunks.push(trimmed);
-      }
-    }
-    
-    // 1. Pre-fetch all audio chunks in parallel to eliminate any delay between sentences
-    const audioBlobs = await Promise.all(
-      chunks.map(async (chunk) => {
-        if (playId !== currentTTSId) return null;
-        if (!chunk.trim()) return null;
-
-        const requestPayload = isHindi
-          ? {
-              input: chunk.trim(),
-              backend: "indic",
-              voice: indicVoiceId,
-            }
-          : {
-              input: chunk.trim(),
-              voice: englishVoiceId,
-              language: "en",
-              speed: 1.0,
-            };
-
-        const response = await fetch("https://ai-services.mietjmu.in/gateway/voice/tts", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(requestPayload)
-        });
-
-        if (!response.ok) {
-          throw new Error(`TTS returned ${response.status}`);
-        }
-
-        return await response.blob();
-      })
-    );
-
-    if (playId !== currentTTSId) return;
-
-    // Filter valid audio blobs
-    const validBlobs = audioBlobs.filter(Boolean);
-    if (validBlobs.length === 0) {
-      onEnd();
-      return;
-    }
-
-    // 2. Concatenate all sentence blobs into a single continuous seamless MP3 stream
-    const combinedBlob = new Blob(validBlobs, { type: "audio/mpeg" });
-    const combinedUrl = URL.createObjectURL(combinedBlob);
-
-    // Ensure global audio context is unlocked
     if (!audioInitialized || !globalAudioEl) {
       initGlobalAudio();
     }
-    if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+    if (globalAudioCtx && globalAudioCtx.state === "suspended") {
       globalAudioCtx.resume();
     }
 
-    // 3. Start playback and synchronized lip movements together with ZERO stutter
+    onStart();
+    window.globalAudioActive = true;
+    window.currentSpeakingText = spokenText;
+
+    globalAudioEl.src = audioSrc;
+    currentActiveAudio = globalAudioEl;
+
+    await new Promise((resolve, reject) => {
+      globalAudioEl.onended = () => resolve();
+      globalAudioEl.onerror = (e) => reject(e);
+      globalAudioEl.play().catch((err) => reject(err));
+    });
+
+    if (playId === currentTTSId) {
+      window.globalAudioActive = false;
+      window.currentSpokenWord = "";
+      window.currentVisemeId = 0;
+      onEnd();
+    }
+  } catch (err) {
+    console.warn("Precached demo audio playback error:", err);
+    window.globalAudioActive = false;
+    onError(err);
+  }
+};
+
+/**
+ * Play speech using Edge-TTS proxy with distinct counselor voices
+ */
+export const playEdgeTTS = async ({
+  sanitizedText,
+  gender = "female",
+  counselorName = "",
+  language = "en",
+  onStart = () => {},
+  onEnd = () => {},
+  onError = () => {},
+}) => {
+  const playId = currentTTSId;
+  try {
+    const isHindi = language === "hi" || /[\u0900-\u097F]/.test(sanitizedText);
+    const targetLanguage = isHindi ? "hi" : "en";
+
+    const response = await fetch("http://localhost:3001/api/v1/voice/tts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text: sanitizedText,
+        language: targetLanguage,
+        counselorName,
+        gender,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Edge-TTS returned ${response.status}`);
+    }
+
+    if (playId !== currentTTSId) return;
+
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+
+    if (!audioInitialized || !globalAudioEl) {
+      initGlobalAudio();
+    }
+    if (globalAudioCtx && globalAudioCtx.state === "suspended") {
+      globalAudioCtx.resume();
+    }
+
     onStart();
     window.globalAudioActive = true;
     window.currentSpeakingText = sanitizedText;
 
-    globalAudioEl.src = combinedUrl;
+    globalAudioEl.src = audioUrl;
     currentActiveAudio = globalAudioEl;
 
     await new Promise((resolve, reject) => {
       globalAudioEl.onended = () => {
-        URL.revokeObjectURL(combinedUrl);
+        URL.revokeObjectURL(audioUrl);
         resolve();
       };
       globalAudioEl.onerror = (e) => {
-        URL.revokeObjectURL(combinedUrl);
+        URL.revokeObjectURL(audioUrl);
         reject(e);
       };
       globalAudioEl.play().catch((err) => {
-        URL.revokeObjectURL(combinedUrl);
+        URL.revokeObjectURL(audioUrl);
         reject(err);
       });
     });
 
-    window.globalAudioActive = false;
-    onEnd();
-    
+    if (playId === currentTTSId) {
+      window.globalAudioActive = false;
+      window.currentSpokenWord = "";
+      window.currentVisemeId = 0;
+      onEnd();
+    }
   } catch (err) {
-    console.warn("Kokoro TTS failed, falling back to browser speech:", err);
+    console.warn("Edge-TTS failed, falling back to browser speech:", err);
     window.globalAudioActive = false;
     fallbackWebSpeech({ sanitizedText, gender, counselorName, language, onStart, onEnd, onError });
   }
 };
+
+export const playKokoroTTS = playEdgeTTS;
 
 const fallbackWebSpeech = ({ sanitizedText, gender, counselorName = "", language = "en", onStart, onEnd, onError }) => {
   if (!("speechSynthesis" in window)) {
