@@ -345,6 +345,14 @@ const ChatApp = () => {
         const loadedData = res.data.data;
         setCurrentSessionId(sessionId);
         setCurrentSessionTitle(loadedData.title || "Conversation");
+        if (loadedData.counselorType) {
+          const matchedAvatar = Object.keys(COUNSELOR_CONFIGS).find(
+            (k) => k.toLowerCase() === loadedData.counselorType.toLowerCase()
+          );
+          if (matchedAvatar) {
+            setSelectedAvatarId(matchedAvatar);
+          }
+        }
         setMessages(loadedData.messages || []);
         if (loadedData.language) {
           setChatLanguage(loadedData.language);

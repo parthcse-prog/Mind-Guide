@@ -1,3 +1,5 @@
+const dns = require("dns");
+dns.setDefaultResultOrder("ipv4first");
 const express = require("express");
 const router = express.Router();
 const { MsEdgeTTS, OUTPUT_FORMAT } = require("msedge-tts");
@@ -29,12 +31,14 @@ function escapeXml(unsafe) {
 
 // Distinct Voice Mappings:
 // Maya Lin (Female): en-US-JennyNeural / hi-IN-SwaraNeural
-// Dr. Alex (Saarthi Male 1): en-US-GuyNeural / hi-IN-MadhurNeural (+0Hz)
-// Marcus Cole (Male 2): en-GB-RyanNeural / hi-IN-MadhurNeural (-10Hz pitch, +3% rate)
-// Ethan Rostova (Male 3): en-US-ChristopherNeural / hi-IN-MadhurNeural (+12Hz pitch, +4% rate)
+// Dr. Alex (Saarthi Male 1): en-US-GuyNeural / hi-IN-MadhurNeural (+0Hz pitch, +0% rate)
+// Marcus Cole (Male 2): en-GB-RyanNeural / hi-IN-MadhurNeural (-10Hz pitch, +3% rate - deep commanding male tone)
+// Ethan Rostova (Male 3): en-US-ChristopherNeural / hi-IN-MadhurNeural (+2Hz pitch, +3% rate - energetic youthful male tone)
 function getVoiceConfig(counselorName = "", gender = "female", isHindi = false) {
   const norm = String(counselorName).toLowerCase();
-  const isFemale = gender === "female" || norm.includes("maya");
+  const isExplicitMale = norm.includes("ethan") || norm.includes("alex") || norm.includes("marcus") || norm.includes("saarthi");
+  const isExplicitFemale = norm.includes("maya");
+  const isFemale = isExplicitFemale || (!isExplicitMale && gender === "female");
 
   if (isFemale) {
     return {
@@ -58,8 +62,8 @@ function getVoiceConfig(counselorName = "", gender = "female", isHindi = false) 
     return {
       voiceName: isHindi ? "hi-IN-MadhurNeural" : "en-US-ChristopherNeural",
       xmlLang: isHindi ? "hi-IN" : "en-US",
-      pitch: isHindi ? "+12Hz" : "+5Hz",
-      rate: "+4%",
+      pitch: isHindi ? "+2Hz" : "+3Hz",
+      rate: "+3%",
     };
   }
 
