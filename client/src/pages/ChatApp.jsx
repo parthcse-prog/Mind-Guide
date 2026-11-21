@@ -857,18 +857,19 @@ Tone & Approach:
     });
 
     if (loading || isPreparingVoice) {
+      const isMaya =
+        activeCounselor.id === "maya" ||
+        activeCounselor.name?.toLowerCase().includes("maya") ||
+        activeCounselor.gender === "female";
+      const thinkingLabel =
+        chatLanguage === "hi"
+          ? `${activeCounselor.name} सोच ${isMaya ? "रही" : "रहे"} हैं...`
+          : `${activeCounselor.name} is thinking...`;
+
       content.push(
         <div key="loading-indicator" className="w-full flex justify-start my-3">
           <div className="flex items-center gap-2 px-4 py-3 bg-white border border-slate-200 rounded-2xl rounded-tl-none shadow-xs text-xs text-slate-600">
-            <span>
-              {isPreparingVoice
-                ? chatLanguage === "hi"
-                  ? `${activeCounselor.name} आवाज़ तैयार कर रहे हैं...`
-                  : `${activeCounselor.name} is preparing voice...`
-                : chatLanguage === "hi"
-                ? `${activeCounselor.name} सोच रहे हैं...`
-                : "Thinking"}
-            </span>
+            <span>{thinkingLabel}</span>
             <div className="flex items-center gap-1">
               <motion.span
                 className="w-1.5 h-1.5 bg-teal-600 rounded-full"
@@ -1018,19 +1019,15 @@ Tone & Approach:
               className={`text-[10px] px-2 py-0.5 rounded-md font-semibold ${
                 isSpeaking
                   ? "bg-emerald-500/20 text-emerald-300"
-                  : isPreparingVoice
-                  ? "bg-teal-500/20 text-teal-300 animate-pulse"
-                  : loading
-                  ? "bg-amber-500/20 text-amber-300"
+                  : loading || isPreparingVoice
+                  ? "bg-amber-500/20 text-amber-300 animate-pulse"
                   : "bg-white/10 text-white/60"
               }`}
             >
               {isSpeaking
-                ? "Speaking"
-                : isPreparingVoice
-                ? (chatLanguage === "hi" ? "आवाज़ लोड हो रही है..." : "Loading Voice...")
-                : loading
-                ? (chatLanguage === "hi" ? "सोच रहे हैं..." : "Thinking")
+                ? (chatLanguage === "hi" ? "बोल रहे हैं..." : "Speaking")
+                : loading || isPreparingVoice
+                ? (chatLanguage === "hi" ? "सोच रहे हैं..." : "Thinking...")
                 : "Ready"}
             </span>
           </div>
