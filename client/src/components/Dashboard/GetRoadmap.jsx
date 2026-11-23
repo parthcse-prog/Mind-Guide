@@ -611,7 +611,9 @@ const GetRoadmapContent = () => {
                   {index < roadmapData.length - 1 && (
                     <div className="my-2 flex flex-col items-center">
                       <div className="w-0.5 h-4 bg-teal-400"></div>
-                      <span className="material-symbols-outlined text-teal-600 text-sm -mt-1">expand_more</span>
+                      <svg className="w-4 h-4 text-teal-600 -mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
                     </div>
                   )}
                 </div>
@@ -747,7 +749,14 @@ const GetRoadmapContent = () => {
       {progress === 100 && (
         <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-6 rounded-3xl shadow-lg text-center flex flex-col items-center gap-3">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-2xl text-amber-300">military_tech</span>
+            <svg className="w-6 h-6 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+              <path d="M4 22h16" />
+              <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+              <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+              <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+            </svg>
             <h3 className="text-lg font-extrabold font-['Manrope']">Congratulations! You completed your roadmap!</h3>
           </div>
           <p className="text-xs text-emerald-100 max-w-md">
@@ -766,12 +775,17 @@ const GetRoadmapContent = () => {
                 </>
               ) : syncSuccess ? (
                 <>
-                  <span className="material-symbols-outlined text-sm text-emerald-600">check_circle</span>
+                  <svg className="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
                   <span>Synced Successfully!</span>
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-sm text-emerald-700">sync</span>
+                  <svg className="w-4 h-4 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                  </svg>
                   <span>Sync Extracted Skills to Profile</span>
                 </>
               )}
@@ -782,7 +796,10 @@ const GetRoadmapContent = () => {
               className="px-5 py-2.5 rounded-xl text-xs font-bold bg-white/15 hover:bg-white/25 text-white border border-white/30 backdrop-blur-sm transition-all flex items-center gap-1.5"
             >
               <span>View Badges in Profile</span>
-              <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
             </Link>
           </div>
         </div>

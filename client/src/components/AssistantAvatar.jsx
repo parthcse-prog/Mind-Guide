@@ -155,7 +155,10 @@ class AvatarErrorBoundary extends React.Component {
       return (
         <div className="w-full h-full flex flex-col items-center justify-center bg-[#1a3b47]/80 rounded-3xl p-6 text-center backdrop-blur-md border border-white/20">
           <div className="w-20 h-20 rounded-full bg-[#002531] border border-[#acecdc]/30 flex items-center justify-center shadow-lg mb-3 motion-safe:animate-pulse">
-            <span className="material-symbols-outlined text-[#acecdc] text-4xl">person</span>
+            <svg className="w-10 h-10 text-[#acecdc]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
           </div>
           <span className="text-sm font-semibold text-white/90">
             {this.props.counselorConfig?.name || "Counselor Avatar"}
