@@ -3,30 +3,6 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Unified Sample Job Descriptions across Technical & Business domains
-const SAMPLE_JDS = [
-  {
-    role: "Full Stack Engineer (Tech)",
-    category: "Software & Engineering",
-    text: "We are seeking a Full Stack Software Engineer proficient in React.js, Node.js, Express, MongoDB/PostgreSQL, and REST APIs. Experience with Docker, Git version control, CI/CD pipelines, and cloud deployment (AWS/GCP) is strongly preferred. Candidates must demonstrate measurable project impact, clean code practices, and strong team collaboration."
-  },
-  {
-    role: "Growth & Digital Marketing (Non-Tech)",
-    category: "Marketing & Growth",
-    text: "Seeking a Growth Marketing Specialist experienced in performance marketing, SEO/SEM, conversion rate optimization (CRO), and campaign analytics. Proficiency with Google Analytics, HubSpot/Salesforce, Meta Ads Manager, and email automation funnels is required. Must demonstrate quantifiable revenue impact, customer acquisition cost (CAC) reduction, and cross-functional leadership."
-  },
-  {
-    role: "Financial & Business Analyst (Non-Tech)",
-    category: "Finance & Strategy",
-    text: "Looking for an analytical Financial & Business Analyst proficient in financial modeling (DCF/LBO), variance analysis, budgeting, and corporate valuation. Strong mastery of advanced Excel/VBA, Power BI/Tableau, and ERP systems (SAP/Oracle) required. Candidates should have a keen eye for cost optimization, revenue forecasting, and executive stakeholder presentations."
-  },
-  {
-    role: "HR & Talent Operations (Non-Tech)",
-    category: "People & Operations",
-    text: "Seeking a proactive Human Resources & Talent Operations Specialist skilled in full-lifecycle recruitment, employee onboarding workflows, HRMS platforms (Workday/BambooHR), and labor compliance. Experience designing performance appraisal frameworks, boosting employee retention metrics, and facilitating cross-departmental culture initiatives is strongly desired."
-  }
-];
-
 // Clean inline SVG Radar Chart (Zero-dependency, high performance)
 const CompetencyRadarChart = ({ metrics }) => {
   if (!metrics || metrics.length < 3) return null;
@@ -321,23 +297,6 @@ const ResumeAnalyzer = () => {
                 <span className="w-6 h-6 rounded-full bg-[#4648d4]/10 text-[#4648d4] text-xs font-bold flex items-center justify-center">2</span>
                 Target Job Description
               </h3>
-            </div>
-
-            {/* Quick Sample Presets */}
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Quick Presets:</span>
-              <div className="flex flex-wrap gap-1.5">
-                {SAMPLE_JDS.map((jd, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setJobDescription(jd.text)}
-                    className="text-xs font-medium px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-[#4648d4]/10 hover:text-[#4648d4] text-slate-700 transition-colors border border-slate-200/60"
-                  >
-                    + {jd.role}
-                  </button>
-                ))}
-              </div>
             </div>
 
             <textarea

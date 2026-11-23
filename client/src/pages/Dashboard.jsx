@@ -7,7 +7,6 @@ import {
   faRoute,
   faUser,
   faBriefcase,
-  faFileSignature,
   faBars,
   faXmark,
   faChevronLeft,
@@ -32,11 +31,6 @@ const Dashboard = () => {
       title: "Reports",
       icon: faFileLines,
       link: "./reports",
-    },
-    {
-      title: "Resume Analyzer",
-      icon: faFileSignature,
-      link: "./resume-analyzer",
     },
     {
       title: "Profile",
