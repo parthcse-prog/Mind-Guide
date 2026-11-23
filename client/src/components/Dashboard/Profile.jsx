@@ -132,14 +132,6 @@ const Profile = () => {
     }
   };
 
-  const createdAtDate = new Date(userInfo?.createdAt || Date.now());
-  const formattedCreatedAt =
-    createdAtDate.getDate() +
-    " " +
-    createdAtDate.toLocaleString("default", { month: "long" }) +
-    " " +
-    createdAtDate.getFullYear();
-
   const isFemale =
     /umika|female|woman|girl|maya|priya|ananya|neha|riya|shreya|simran/i.test(
       userInfo?.name || ""
@@ -208,10 +200,6 @@ const Profile = () => {
                 title="Verified"
               />
             </p>
-
-            <p className="text-xs text-slate-400">
-              Member since {formattedCreatedAt}
-            </p>
           </div>
         </div>
       </section>
@@ -275,12 +263,9 @@ const Profile = () => {
                       <div className="w-11 h-11 shrink-0 flex items-center justify-center bg-white rounded-xl shadow-xs border border-blue-100 group-hover:scale-110 transition-transform">
                         <img src={badge} alt="Technical Badge" className="h-8 w-8 object-contain" />
                       </div>
-                      <div className="flex flex-col min-w-0">
+                      <div className="flex flex-col min-w-0 justify-center">
                         <span className="text-xs font-extrabold text-slate-900 truncate" title={typeof skillObj === "string" ? skillObj : skillObj.skill}>
                           {typeof skillObj === "string" ? skillObj : skillObj.skill}
-                        </span>
-                        <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">
-                          Verified Badge
                         </span>
                       </div>
                     </div>
@@ -309,12 +294,9 @@ const Profile = () => {
                       <div className="w-11 h-11 shrink-0 flex items-center justify-center bg-white rounded-xl shadow-xs border border-emerald-100 group-hover:scale-110 transition-transform">
                         <img src={tick} alt="Skill Verified" className="h-8 w-8 object-contain" />
                       </div>
-                      <div className="flex flex-col min-w-0">
+                      <div className="flex flex-col min-w-0 justify-center">
                         <span className="text-xs font-extrabold text-slate-900 truncate" title={typeof skillObj === "string" ? skillObj : skillObj.skill}>
                           {typeof skillObj === "string" ? skillObj : skillObj.skill}
-                        </span>
-                        <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">
-                          Certified Skill
                         </span>
                       </div>
                     </div>
