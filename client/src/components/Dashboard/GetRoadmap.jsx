@@ -24,7 +24,13 @@ class RoadmapErrorBoundary extends React.Component {
       return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center font-['Plus_Jakarta_Sans']">
           <div className="bg-white p-8 rounded-3xl border border-amber-200 shadow-md max-w-lg flex flex-col items-center gap-4">
-            <span className="material-symbols-outlined text-4xl text-amber-500">warning</span>
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-500">
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </div>
             <h3 className="text-xl font-bold text-[#002531]">Roadmap Display Notice</h3>
             <p className="text-xs text-gray-600">
               We encountered a slight issue displaying the interactive canvas. You can reload or access the checklist view.
@@ -103,7 +109,14 @@ const SafeMermaidViewer = ({ chartCode, panPosition, zoomScale }) => {
   if (renderError) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center">
-        <span className="material-symbols-outlined text-4xl text-teal-600 mb-2">account_tree</span>
+        <div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-600 mb-3">
+          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="2" />
+            <rect x="14" y="3" width="7" height="7" rx="2" />
+            <rect x="14" y="14" width="7" height="7" rx="2" />
+            <rect x="3" y="14" width="7" height="7" rx="2" />
+          </svg>
+        </div>
         <p className="text-sm font-bold text-gray-700">Displaying Visual Flow Nodes</p>
         <p className="text-xs text-gray-500 max-w-md mt-1">
           Switch to the Visual Flow or Checklist tab to interact directly with your milestones and resources.
@@ -300,7 +313,13 @@ const GetRoadmapContent = () => {
     return (
       <div className="min-h-[70vh] w-full flex flex-col items-center justify-center p-6 text-center font-['Plus_Jakarta_Sans']">
         <div className="bg-white p-10 rounded-3xl border border-gray-200 shadow-md max-w-lg flex flex-col items-center gap-4">
-          <span className="material-symbols-outlined text-5xl text-[#1a3b47]">map</span>
+          <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-[#1a3b47]">
+            <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
+              <line x1="9" y1="3" x2="9" y2="18" />
+              <line x1="15" y1="6" x2="15" y2="21" />
+            </svg>
+          </div>
           <h2 className="text-2xl font-extrabold text-[#002531]">No Roadmap Generated Yet</h2>
           <p className="text-sm text-gray-600">
             Start a session with your Counselor in the Counselor section to receive a personalized step-by-step career and academic roadmap.
@@ -338,35 +357,45 @@ const GetRoadmapContent = () => {
         <div className="bg-white/10 p-1.5 rounded-2xl flex items-center border border-white/15 backdrop-blur-md self-stretch md:self-auto justify-center flex-wrap gap-1">
           <button
             onClick={() => setActiveTab("graph")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === "graph"
                 ? "bg-white text-[#002531] shadow-md"
                 : "text-white/80 hover:text-white"
             }`}
           >
-            <span className="material-symbols-outlined text-sm">account_tree</span>
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 3v12" />
+              <circle cx="18" cy="6" r="3" />
+              <circle cx="6" cy="18" r="3" />
+              <path d="M18 9a9 9 0 0 1-9 9" />
+            </svg>
             <span>Tree Graph</span>
           </button>
           <button
             onClick={() => setActiveTab("pipeline")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === "pipeline"
                 ? "bg-white text-[#002531] shadow-md"
                 : "text-white/80 hover:text-white"
             }`}
           >
-            <span className="material-symbols-outlined text-sm">timeline</span>
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
             <span>Visual Flow</span>
           </button>
           <button
             onClick={() => setActiveTab("list")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === "list"
                 ? "bg-white text-[#002531] shadow-md"
                 : "text-white/80 hover:text-white"
             }`}
           >
-            <span className="material-symbols-outlined text-sm">checklist</span>
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m9 11 3 3L22 4" />
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+            </svg>
             <span>Checklist</span>
           </button>
         </div>
@@ -389,35 +418,60 @@ const GetRoadmapContent = () => {
       {/* TAB CONTENT: Interactive Graph */}
       {activeTab === "graph" && (
         <div className="bg-white rounded-3xl p-6 border border-gray-200/80 shadow-sm flex flex-col gap-4 relative">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-gray-100 pb-3">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-gray-100 pb-3">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-gray-500">Interactive Canvas Controls:</span>
-              <span className="text-[11px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-medium">
+              <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+              <span className="text-xs font-bold text-slate-700">Interactive Canvas</span>
+              <span className="text-[11px] text-slate-400 bg-slate-100 px-2.5 py-0.5 rounded-full font-medium">
                 Scroll to Zoom • Drag to Pan
               </span>
             </div>
-            <div className="flex items-center gap-1.5 self-end sm:self-auto">
-              <button
-                onClick={() => setZoomScale((prev) => Math.min(prev + 0.15, 2.5))}
-                className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
-                title="Zoom In"
-              >
-                +
-              </button>
+
+            {/* Premium segmented canvas controls */}
+            <div className="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200/80 shadow-2xs self-end sm:self-auto">
               <button
                 onClick={() => setZoomScale((prev) => Math.max(prev - 0.15, 0.5))}
-                className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
+                className="w-7 h-7 rounded-lg hover:bg-white text-slate-600 hover:text-slate-900 flex items-center justify-center transition-all cursor-pointer hover:shadow-2xs active:scale-95"
                 title="Zoom Out"
+                aria-label="Zoom Out"
               >
-                -
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
               </button>
+
               <button
                 onClick={handleResetZoomPan}
-                className="px-2.5 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
-                title="Reset View"
+                className="px-2 h-7 text-[11px] font-bold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+                title="Reset zoom to 100%"
               >
-                <span className="material-symbols-outlined text-sm">restart_alt</span>
-                <span>Reset</span>
+                {Math.round(zoomScale * 100)}%
+              </button>
+
+              <button
+                onClick={() => setZoomScale((prev) => Math.min(prev + 0.15, 2.5))}
+                className="w-7 h-7 rounded-lg hover:bg-white text-slate-600 hover:text-slate-900 flex items-center justify-center transition-all cursor-pointer hover:shadow-2xs active:scale-95"
+                title="Zoom In"
+                aria-label="Zoom In"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </button>
+
+              <div className="h-4 w-px bg-slate-300 mx-1" />
+
+              <button
+                onClick={handleResetZoomPan}
+                className="px-2.5 h-7 rounded-lg hover:bg-white text-slate-700 hover:text-[#002531] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer hover:shadow-2xs active:scale-95"
+                title="Reset Canvas View (Zoom & Center)"
+              >
+                <svg className="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                </svg>
+                <span>Reset View</span>
               </button>
             </div>
           </div>

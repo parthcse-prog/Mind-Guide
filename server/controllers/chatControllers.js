@@ -377,13 +377,16 @@ const handleCreateRoadmap = asyncHandler(async (req, res) => {
       .map((m) => ({ role: m.role, content: String(m.content).trim() }));
 
     const hasHindi =
-      language === "hi" ||
-      cleanChat.some((m) => /[\u0900-\u097F]/.test(m.content));
+      language === "hi"
+        ? true
+        : language === "en"
+        ? false
+        : cleanChat.some((m) => m.role === "user" && /[\u0900-\u097F]/.test(m.content));
 
     const systemPrompt = hasHindi
       ? `You are Saarthi.ai's expert Career & Growth Mentor.
 TASK: Analyze the student's conversation below and produce a structured, actionable growth roadmap in HINDI (हिन्दी).
-STRICT INSTRUCTION: Output ONLY a valid JSON array of roadmap objects. Do NOT output any intro, outro, or conversational chit-chat.
+STRICT INSTRUCTION: Output ONLY a valid JSON array of roadmap objects. All milestone Goal titles and recommendations must be in Hindi. Do NOT output any intro, outro, or conversational chit-chat.
 Format:
 [
   {
@@ -400,7 +403,7 @@ Format:
 ]`
       : `You are Saarthi.ai's expert Growth and Development Mentor.
 Based on the conversation and the user's goals, aspirations, challenges, and current situation, create a comprehensive, day-by-day structured action roadmap.
-STRICT INSTRUCTION: Return ONLY a valid JSON array of roadmap objects. Follow this exact schema with NO extra commentary or explanation:
+STRICT INSTRUCTION: The language MUST be strictly ENGLISH. Every goal, timeline, and recommendation title must be written in English. Return ONLY a valid JSON array of roadmap objects. Follow this exact schema with NO extra commentary or explanation:
 [
   {
     "Goal": "Actionable goal description (e.g. Master React fundamentals)",
@@ -427,7 +430,7 @@ STRICT INSTRUCTION: Return ONLY a valid JSON array of roadmap objects. Follow th
       },
       {
         role: "user",
-        content: `Here is the conversation history with the student:\n\n${conversationContext}\n\nNow generate the customized JSON roadmap array${hasHindi ? " in Hindi" : ""}. Output ONLY the JSON array starting with [ and ending with ].`,
+        content: `Here is the conversation history with the student:\n\n${conversationContext}\n\nNow generate the customized JSON roadmap array ${hasHindi ? "in Hindi (हिन्दी)" : "strictly in English"}. Output ONLY the JSON array starting with [ and ending with ].`,
       },
     ];
 

@@ -101,7 +101,12 @@ const ReportModal = ({ report, open, onClose, messages = [], language = "en" }) 
   const handleRoadmapCreation = async () => {
     try {
       setRoadmapGenerating(true);
-      const isHindi = language === "hi" || messages.some((m) => /[\u0900-\u097F]/.test(m.content || ""));
+      const isHindi =
+        language === "hi"
+          ? true
+          : language === "en"
+          ? false
+          : messages && messages.some((m) => m.role === "user" && /[\u0900-\u097F]/.test(m.content || ""));
       toast.info(isHindi ? "आपका व्यक्तिगत विकास रोडमैप तैयार हो रहा है..." : "Generating your personalized growth roadmap...");
       const response = await axios.post("/api/v1/chat/roadmap", {
         messages: messages || [],
