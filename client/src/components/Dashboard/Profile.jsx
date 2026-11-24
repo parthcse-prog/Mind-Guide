@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUser,
   faEnvelope,
+  faLocationDot,
   faCakeCandles,
   faHourglassHalf,
   faGlobe,
@@ -54,8 +55,6 @@ const Profile = () => {
   const [isJobBoardOpen, setIsJobBoardOpen] = useState(false);
   const [isResumeAnalyzerOpen, setIsResumeAnalyzerOpen] = useState(false);
   const [jobBoardKey, setJobBoardKey] = useState(0);
-  const [showAadhaar, setShowAadhaar] = useState(false);
-  const [selectedDoc, setSelectedDoc] = useState(null);
   const [isAcademicModalOpen, setIsAcademicModalOpen] = useState(false);
   const [activeAcademicTab, setActiveAcademicTab] = useState("college");
   const [editAcademicForm, setEditAcademicForm] = useState(null);
@@ -185,7 +184,7 @@ const Profile = () => {
       year: "2020",
       rollNo: "1489204",
       marksheetId: "CBSE-X-2020-93821",
-      status: "Verified by DigiLocker",
+      status: "Verified Record",
       subjects: [
         { name: "Mathematics", marks: "95" },
         { name: "Science", marks: "94" },
@@ -203,7 +202,7 @@ const Profile = () => {
       year: "2022",
       rollNo: "2489204",
       marksheetId: "CBSE-XII-2022-90142",
-      status: "Verified by DigiLocker",
+      status: "Verified Record",
       subjects: [
         { name: "Computer Science", marks: "96" },
         { name: "Mathematics", marks: "91" },
@@ -308,50 +307,6 @@ const Profile = () => {
     },
   };
 
-  const digiLocker = userInfo?.digiLocker || {
-    isLinked: true,
-    digiLockerId: "DL-JAMMU-984210",
-    lastSynced: "24 Nov 2026, 11:30 AM",
-    fakeAadhaar: "7342 9180 4892",
-    maskedAadhaar: "•••• •••• 4892",
-    issuedDocuments: [
-      {
-        docType: "Aadhaar Card",
-        issuer: "Unique Identification Authority of India (UIDAI)",
-        verifiedDate: "14 Aug 2021",
-        docId: "UIDAI-AADH-4892",
-        uri: "in.gov.uidai.aadhaar",
-      },
-      {
-        docType: "Class X Marksheet (93%)",
-        issuer: "Central Board of Secondary Education (CBSE)",
-        verifiedDate: "18 Jul 2020",
-        docId: "CBSE-X-2020-1489204",
-        uri: "in.gov.cbse.cert.x",
-      },
-      {
-        docType: "Class XII Marksheet (90%)",
-        issuer: "Central Board of Secondary Education (CBSE)",
-        verifiedDate: "22 Jul 2022",
-        docId: "CBSE-XII-2022-2489204",
-        uri: "in.gov.cbse.cert.xii",
-      },
-      {
-        docType: "College Enrollment & Bonafide",
-        issuer: "MIET Jammu Academic Registry",
-        verifiedDate: "05 Sep 2022",
-        docId: "MIET-ENR-2022-CS041",
-        uri: "in.edu.mietjammu.student",
-      },
-    ],
-  };
-
-  const handleCopyAadhaar = () => {
-    if (navigator?.clipboard?.writeText) {
-      navigator.clipboard.writeText(digiLocker.fakeAadhaar);
-      toast.info("Aadhaar Number copied to clipboard");
-    }
-  };
 
   const handleOpenAcademicModal = (tab = "college") => {
     setActiveAcademicTab(tab);
@@ -487,15 +442,22 @@ const Profile = () => {
               />
             </div>
 
-            <p className="text-sm text-slate-600 flex items-center justify-center sm:justify-start gap-2">
-              <FontAwesomeIcon icon={faEnvelope} className="text-teal-700 text-xs" />
-              <span>{userInfo?.email || "user@mietjammu.in"}</span>
-              <FontAwesomeIcon
-                icon={faCircleCheck}
-                className="text-emerald-600 text-xs ml-0.5"
-                title="Verified"
-              />
-            </p>
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3.5 gap-y-1.5 text-sm text-slate-600">
+              <p className="flex items-center gap-1.5">
+                <FontAwesomeIcon icon={faEnvelope} className="text-teal-700 text-xs" />
+                <span>{userInfo?.email || "user@mietjammu.in"}</span>
+                <FontAwesomeIcon
+                  icon={faCircleCheck}
+                  className="text-emerald-600 text-xs ml-0.5"
+                  title="Verified"
+                />
+              </p>
+              <span className="text-slate-300 hidden sm:inline">•</span>
+              <p className="flex items-center gap-1.5 text-slate-700 font-medium">
+                <FontAwesomeIcon icon={faLocationDot} className="text-rose-500 text-xs" />
+                <span>{userInfo?.location || "Jammu, Jammu and Kashmir"}</span>
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -516,7 +478,7 @@ const Profile = () => {
                 </h2>
                 <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
                   <FontAwesomeIcon icon={faCircleCheck} className="text-[10px]" />
-                  <span>DigiLocker Verified</span>
+                  <span>Verified Records</span>
                 </span>
                 <span className="text-[10px] font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full uppercase tracking-wider hidden sm:inline-block">
                   Synced to Counselors
@@ -860,139 +822,6 @@ const Profile = () => {
         </div>
       </section>
 
-      {/* DigiLocker Verified Identity & Document Vault */}
-      <section className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/90 shadow-xs space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <div className="flex items-center gap-3">
-            {/* DigiLocker Official Styled Emblem */}
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-sm shadow-sm relative overflow-hidden shrink-0">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-green-500"></div>
-              <span>DL</span>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <span>DigiLocker Identity & Document Vault</span>
-                </h2>
-                <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span>DigiLocker Linked</span>
-                </span>
-              </div>
-              <p className="text-xs text-slate-500">
-                Government-verified digital credentials and Aadhaar ID retrieved securely from DigiLocker National Locker
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 self-start sm:self-auto text-xs text-slate-500">
-            <span>Last Synced: <strong className="text-slate-700">{digiLocker.lastSynced}</strong></span>
-          </div>
-        </div>
-
-        {/* Aadhaar Card Security Row with Password-Style Reveal */}
-        <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-[#102a33] to-slate-900 text-white shadow-sm relative overflow-hidden">
-          {/* Subtle Tri-color decorative accent bar */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 via-white to-emerald-500"></div>
-
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 backdrop-blur-sm text-amber-300">
-                <FontAwesomeIcon icon={faIdCard} className="text-xl" />
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">
-                    Government of India • UIDAI
-                  </span>
-                  <span className="text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full">
-                    Aadhaar Verified
-                  </span>
-                </div>
-                <h3 className="text-sm font-bold text-white">
-                  Aadhaar Identity (DigiLocker Pulled)
-                </h3>
-                <p className="text-xs text-slate-300">
-                  Linked to student account: <span className="text-white font-medium">{userInfo?.name || "Umika Sharma"}</span> (DOB: {dob})
-                </p>
-              </div>
-            </div>
-
-            {/* Password-style Masked Aadhaar Box */}
-            <div className="bg-white/10 border border-white/15 backdrop-blur-md px-4 py-2.5 rounded-xl flex items-center gap-3 self-stretch md:self-auto justify-between md:justify-start">
-              <div className="flex flex-col">
-                <span className="text-[10px] text-slate-300 font-medium">Aadhaar Number (Hashed & Protected)</span>
-                <span className="text-base font-mono font-bold tracking-widest text-emerald-300 select-all">
-                  {showAadhaar ? digiLocker.fakeAadhaar : digiLocker.maskedAadhaar}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 pl-2 border-l border-white/15">
-                <button
-                  type="button"
-                  onClick={() => setShowAadhaar(!showAadhaar)}
-                  className="p-2 text-slate-300 hover:text-white bg-white/5 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
-                  title={showAadhaar ? "Hide Aadhaar" : "Reveal Aadhaar"}
-                >
-                  <FontAwesomeIcon icon={showAadhaar ? faEyeSlash : faEye} className="text-xs" />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCopyAadhaar}
-                  className="p-2 text-slate-300 hover:text-white bg-white/5 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
-                  title="Copy Aadhaar"
-                >
-                  <FontAwesomeIcon icon={faCopy} className="text-xs" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Issued Documents Grid from DigiLocker */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-              <span>Issued Documents from DigiLocker ({(digiLocker.issuedDocuments || []).length})</span>
-            </h3>
-            <span className="text-[11px] text-slate-400">Digitally Signed & Tamper-Evident</span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {(digiLocker.issuedDocuments || []).map((doc, dIdx) => (
-              <div
-                key={dIdx}
-                onClick={() => setSelectedDoc(doc)}
-                className="p-3.5 rounded-xl bg-slate-50/70 hover:bg-blue-50/40 border border-slate-200/80 hover:border-blue-300 transition-all flex items-start justify-between gap-3 cursor-pointer group shadow-3xs"
-              >
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-lg bg-blue-100/70 text-blue-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                    <FontAwesomeIcon icon={faFileLines} className="text-sm" />
-                  </div>
-                  <div className="min-w-0 space-y-0.5">
-                    <h4 className="text-xs font-extrabold text-slate-900 truncate group-hover:text-blue-900">
-                      {doc.docType}
-                    </h4>
-                    <p className="text-[11px] text-slate-500 truncate">
-                      {doc.issuer}
-                    </p>
-                    <div className="flex items-center gap-2 text-[10px] text-slate-400 pt-0.5">
-                      <span>Issued: {doc.verifiedDate}</span>
-                      <span>•</span>
-                      <span className="font-mono">{doc.docId}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="shrink-0 flex items-center text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-md px-1.5 py-0.5 text-[10px] font-bold">
-                  <FontAwesomeIcon icon={faCircleCheck} className="mr-1 text-[9px]" />
-                  <span>Verified</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Verified Google Account Attributes */}
       <section className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/90 shadow-xs space-y-6">
@@ -1081,8 +910,19 @@ const Profile = () => {
             </div>
           </div>
 
+          {/* Location */}
+          <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/60 flex items-start gap-3">
+            <FontAwesomeIcon icon={faLocationDot} className="text-teal-700 text-sm mt-0.5" />
+            <div className="space-y-0.5 overflow-hidden">
+              <span className="text-slate-400 font-medium">Location</span>
+              <p className="text-sm font-semibold text-slate-900 truncate">
+                {userInfo?.location || "Jammu, Jammu and Kashmir"}
+              </p>
+            </div>
+          </div>
+
           {/* Locale */}
-          <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/60 flex items-start gap-3 sm:col-span-2">
+          <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/60 flex items-start gap-3">
             <FontAwesomeIcon icon={faGlobe} className="text-teal-700 text-sm mt-0.5" />
             <div className="space-y-0.5 overflow-hidden">
               <span className="text-slate-400 font-medium">Locale</span>
@@ -1192,77 +1032,7 @@ const Profile = () => {
         )}
       </section>
 
-      {/* DigiLocker Document Verification Modal */}
-      {selectedDoc && (
-        <div
-          onClick={() => setSelectedDoc(null)}
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-150"
-          >
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-black text-xs flex items-center justify-center">
-                  DL
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">
-                    DigiLocker Verified Document
-                  </h3>
-                  <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-                    <FontAwesomeIcon icon={faCircleCheck} className="text-[9px]" />
-                    <span>Cryptographically Signed by Issuer</span>
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => setSelectedDoc(null)}
-                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer"
-              >
-                <FontAwesomeIcon icon={faXmark} />
-              </button>
-            </div>
 
-            <div className="space-y-3 text-xs">
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1.5">
-                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Document Name</span>
-                <p className="font-bold text-slate-900 text-sm">{selectedDoc.docType}</p>
-                <p className="text-slate-600 text-[11px]">{selectedDoc.issuer}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
-                <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">Certificate ID</span>
-                  <span className="font-mono font-bold text-slate-800 truncate block">{selectedDoc.docId}</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/60">
-                  <span className="text-slate-400 block text-[10px]">Verification Date</span>
-                  <span className="font-bold text-slate-800">{selectedDoc.verifiedDate}</span>
-                </div>
-              </div>
-
-              <div className="p-3 rounded-lg bg-emerald-50/70 border border-emerald-200 text-emerald-900 text-[11px] space-y-1">
-                <div className="flex items-center gap-1.5 font-bold">
-                  <FontAwesomeIcon icon={faShieldHalved} className="text-emerald-600" />
-                  <span>National Academic Depository / UIDAI Authenticated</span>
-                </div>
-                <p className="text-[10px] text-emerald-700">
-                  This digital credential was issued directly into student DigiLocker Account ({digiLocker.digiLockerId}) and carries PKI digital signature validity under the Information Technology Act.
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setSelectedDoc(null)}
-              className="w-full py-2.5 bg-[#1a3b47] hover:bg-[#224d5d] text-white font-bold text-xs rounded-xl transition-colors cursor-pointer"
-            >
-              Close Verification Certificate
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Generic Academic Record Editor Modal */}
       {isAcademicModalOpen && editAcademicForm && (

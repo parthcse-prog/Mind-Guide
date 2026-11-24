@@ -87,6 +87,10 @@ const userSchema = mongoose.Schema(
       type: String,
       default: "en-IN",
     },
+    location: {
+      type: String,
+      default: "Jammu, Jammu and Kashmir",
+    },
     emailVerified: {
       type: Boolean,
       default: true,
@@ -102,7 +106,7 @@ const userSchema = mongoose.Schema(
           year: "2020",
           rollNo: "1489204",
           marksheetId: "CBSE-X-2020-93821",
-          status: "Verified by DigiLocker",
+          status: "Verified Record",
         },
         twelfth: {
           standard: "12th Standard (Senior Secondary)",
@@ -113,7 +117,7 @@ const userSchema = mongoose.Schema(
           year: "2022",
           rollNo: "2489204",
           marksheetId: "CBSE-XII-2022-90142",
-          status: "Verified by DigiLocker",
+          status: "Verified Record",
         },
         college: {
           degree: "B.Tech Computer Science & Engineering",
@@ -123,46 +127,6 @@ const userSchema = mongoose.Schema(
           enrollmentNo: "MIET/CSE/2022/041",
           status: "Active MIET Student",
         },
-      }),
-    },
-    digiLocker: {
-      type: mongoose.Schema.Types.Mixed,
-      default: () => ({
-        isLinked: true,
-        digiLockerId: "DL-JAMMU-984210",
-        lastSynced: "24 Nov 2026, 11:30 AM",
-        fakeAadhaar: "7342 9180 4892",
-        maskedAadhaar: "•••• •••• 4892",
-        issuedDocuments: [
-          {
-            docType: "Aadhaar Card",
-            issuer: "Unique Identification Authority of India (UIDAI)",
-            verifiedDate: "14 Aug 2021",
-            docId: "UIDAI-AADH-4892",
-            uri: "in.gov.uidai.aadhaar",
-          },
-          {
-            docType: "Class X Marksheet (93%)",
-            issuer: "Central Board of Secondary Education (CBSE)",
-            verifiedDate: "18 Jul 2020",
-            docId: "CBSE-X-2020-1489204",
-            uri: "in.gov.cbse.cert.x",
-          },
-          {
-            docType: "Class XII Marksheet (90%)",
-            issuer: "Central Board of Secondary Education (CBSE)",
-            verifiedDate: "22 Jul 2022",
-            docId: "CBSE-XII-2022-2489204",
-            uri: "in.gov.cbse.cert.xii",
-          },
-          {
-            docType: "College Enrollment & Bonafide",
-            issuer: "MIET Jammu Academic Registry",
-            verifiedDate: "05 Sep 2022",
-            docId: "MIET-ENR-2022-CS041",
-            uri: "in.edu.mietjammu.student",
-          },
-        ],
       }),
     },
   },
