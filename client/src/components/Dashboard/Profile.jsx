@@ -480,9 +480,6 @@ const Profile = () => {
                   <FontAwesomeIcon icon={faCircleCheck} className="text-[10px]" />
                   <span>Verified Records</span>
                 </span>
-                <span className="text-[10px] font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full uppercase tracking-wider hidden sm:inline-block">
-                  Synced to Counselors
-                </span>
               </div>
               <p className="text-xs text-slate-500">
                 Generic & editable academic trajectory (10th, 12th, and semester-wise higher education) used by counselors for personalized guidance
