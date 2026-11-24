@@ -31,7 +31,7 @@ const Home = () => {
               {userInfo?.name ? `Welcome, ${userInfo.name}.` : "Welcome to Saarthi.ai."}
               <br />
               <span className="text-teal-800">
-                Your Personalized Guide · Saarthi Ask Me Anything
+                Your Personalized Guide
               </span>
             </h1>
             <p className="text-slate-600 text-base md:text-lg max-w-2xl leading-relaxed">

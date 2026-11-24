@@ -669,6 +669,30 @@ Focus on your school board foundations and spend weekends building practical pro
         langRule = `\nLanguage: English`;
       }
 
+      let academicContextStr = "";
+      if (userInfo?.academicRecords) {
+        const ar = userInfo.academicRecords;
+        const items = [];
+        if (ar.tenth) {
+          const tSub = (ar.tenth.subjects || []).map((s) => `${s.name}: ${s.marks}`).join(", ");
+          items.push(`10th Standard: ${ar.tenth.percentage || "N/A"} (${ar.tenth.board || "CBSE"}) [Subjects: ${tSub || "N/A"}]`);
+        }
+        if (ar.twelfth) {
+          const twSub = (ar.twelfth.subjects || []).map((s) => `${s.name}: ${s.marks}`).join(", ");
+          items.push(`12th Standard: ${ar.twelfth.percentage || "N/A"}, Stream: ${ar.twelfth.stream || "Science"} (${ar.twelfth.board || "CBSE"}) [Subjects: ${twSub || "N/A"}]`);
+        }
+        if (ar.college) {
+          let cStr = `Higher Education: ${ar.college.degree || "B.Tech"} at ${ar.college.institution || "MIET Jammu"} | Cumulative CGPA: ${ar.college.currentCgpa || "N/A"} (${ar.college.semester || "Current Sem"})`;
+          if (Array.isArray(ar.college.semesters) && ar.college.semesters.length > 0) {
+            cStr += `\nSemester-wise SGPA: ${ar.college.semesters.map((s) => `${s.sem}: ${s.sgpa}`).join(", ")}`;
+          }
+          items.push(cStr);
+        }
+        if (items.length > 0) {
+          academicContextStr = `\n\nVerified Student Academic Profile:\n${items.join("\n")}\nINSTRUCTION FOR COUNSELOR: You have verified knowledge of the student's complete academic background, past marks, current degree, semester, and subject strengths. Reference and leverage these details whenever they seek career, academic, internship, project, or exam advice.`;
+        }
+      }
+
       const systemInstruction = {
         role: "system",
         content: `You are Saarthi.ai (सारथी - your trusted companion and personal guide), developed by MIET.
@@ -682,7 +706,7 @@ Your mission:
 Tone & Approach:
 - Sincere warmth, deep empathy, non-judgmental validation.
 - Direct, clear, insightful, actionable answers. Avoid robotic jargon.
-- Format cleanly with markdown.${langRule}`,
+- Format cleanly with markdown.${langRule}${academicContextStr}`,
       };
 
       const messagesWithSystem = [systemInstruction, ...updatedMessages];
@@ -780,7 +804,11 @@ Tone & Approach:
         ...messages,
         {
           role: "system",
-          content: `I am ${userInfo?.name || "User"}. Provide a concise summary of our conversation with key insights, action steps, and encouragement. Format cleanly with markdown.`,
+          content: `I am ${userInfo?.name || "User"}. Provide a concise summary of our conversation with key insights, action steps, and encouragement. Format cleanly with markdown.${
+            userInfo?.academicRecords?.college?.degree
+              ? ` Note: Student is studying ${userInfo.academicRecords.college.degree} (CGPA: ${userInfo.academicRecords.college.currentCgpa || "N/A"}).`
+              : ""
+          }`,
         },
       ];
 

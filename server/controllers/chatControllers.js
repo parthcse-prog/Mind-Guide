@@ -16,12 +16,39 @@ async function getChatGPTResponse(messages) {
   return await callGatewayLLM(messages);
 }
 
+function formatAcademicContextForPrompt(academicRecords) {
+  if (!academicRecords || typeof academicRecords !== "object") return "";
+  const lines = [];
+  if (academicRecords.tenth) {
+    const t = academicRecords.tenth;
+    const sub = (t.subjects || []).map((s) => `${s.name}: ${s.marks}/100`).join(", ");
+    lines.push(`- 10th Standard: ${t.percentage || "N/A"} (${t.board || "CBSE"}) [Subjects: ${sub || "N/A"}]`);
+  }
+  if (academicRecords.twelfth) {
+    const tw = academicRecords.twelfth;
+    const sub = (tw.subjects || []).map((s) => `${s.name}: ${s.marks}/100`).join(", ");
+    lines.push(`- 12th Standard: ${tw.percentage || "N/A"}, Stream: ${tw.stream || "Science"} (${tw.board || "CBSE"}) [Subjects: ${sub || "N/A"}]`);
+  }
+  if (academicRecords.college) {
+    const c = academicRecords.college;
+    let col = `- Higher Education: ${c.degree || "B.Tech"} at ${c.institution || "MIET Jammu"} | Current CGPA: ${c.currentCgpa || "N/A"} (${c.semester || "Current Sem"})`;
+    if (Array.isArray(c.semesters) && c.semesters.length > 0) {
+      const semStr = c.semesters.map((s) => `${s.sem}: SGPA ${s.sgpa}`).join("; ");
+      col += `\n  Semester-wise History: ${semStr}`;
+    }
+    lines.push(col);
+  }
+  if (lines.length === 0) return "";
+  return `\n\nSTUDENT VERIFIED ACADEMIC PROFILE:\n${lines.join("\n")}\nINSTRUCTION FOR COUNSELOR: You have full access to this student's verified academic trajectory. Use their past academic performance, strengths in specific subjects, semester grades, and current degree to provide realistic, hyper-personalized, and insightful academic and career recommendations.`;
+}
+
 // Reusable helper to build personalized companion messages for life, mental health, relationships & youth guidance
 async function buildInitialCounselorMessages(user, counselorType = "", language = "en") {
   const name = user?.name || "Friend";
   const norm = String(counselorType).toLowerCase();
   const isMaya = norm.includes("maya");
   const isHindi = language === "hi";
+  const academicContext = formatAcademicContextForPrompt(user?.academicRecords);
 
   let greeting = "";
   if (isHindi) {
@@ -48,7 +75,7 @@ GUIDELINES:
 1. Speak with genuine warmth, clarity, emotional intelligence, and sincere attentiveness.
 2. Validate the user's thoughts and feelings without judgment or preaching.
 3. Provide grounded, insightful, and practical answers to whatever they ask.
-4. Keep the conversation open, versatile, and supportive.`
+4. Keep the conversation open, versatile, and supportive.${academicContext}`
     : `You are Saarthi.ai (सारथी - your trusted companion and personal guide), developed by MIET.
 Active Companion Persona: ${counselorType}.
 You are speaking with ${name}.
@@ -60,7 +87,7 @@ GUIDELINES:
 1. Speak with genuine warmth, clarity, emotional intelligence, and sincere attentiveness.
 2. Validate the user's thoughts and feelings without judgment or preaching.
 3. Provide grounded, insightful, and practical answers to whatever they ask.
-4. Keep the conversation open, versatile, and supportive.`;
+4. Keep the conversation open, versatile, and supportive.${academicContext}`;
 
   return [
     {
@@ -419,9 +446,10 @@ STRICT INSTRUCTION: The language MUST be strictly ENGLISH. Every goal, timeline,
 ]`;
 
     const conversationContext =
-      cleanChat.length > 0
+      (cleanChat.length > 0
         ? cleanChat.map((m) => `${m.role}: ${m.content}`).join("\n\n")
-        : "General life, mental wellness, and career growth roadmap.";
+        : "General life, mental wellness, and career growth roadmap.") +
+      (req.user?.academicRecords ? formatAcademicContextForPrompt(req.user.academicRecords) : "");
 
     const roadmapPrompt = [
       {

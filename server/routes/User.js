@@ -13,6 +13,7 @@ const {
   handleGetJobs,
   handleGetPersonality,
   handleResumeAnalyze,
+  handleUpdateAcademicRecords,
 } = require("../controllers/userControllers");
 const multer = require("multer");
 const { protectCookie } = require("../middleware/authMiddleware");
@@ -41,4 +42,6 @@ router.route("/getSkills").get(protectCookie, handleGetSkills);
 router.route("/jobs").get(protectCookie, handleGetJobs);
 router.route("/personality").get(protectCookie, handleGetPersonality);
 router.route("/resume-analyze").post(protectCookie, upload.single("resume"), handleResumeAnalyze);
+router.route("/academic-records").put(protectCookie, handleUpdateAcademicRecords);
+
 module.exports = router;

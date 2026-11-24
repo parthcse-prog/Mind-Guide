@@ -191,6 +191,50 @@ const getUserProfile = asyncHandler(async (req, res) => {
   }
   return res.status(200).json(null);
 });
+
+const handleUpdateAcademicRecords = asyncHandler(async (req, res) => {
+  const { academicRecords } = req.body;
+  if (!academicRecords) {
+    res.status(400);
+    throw new Error("academicRecords payload required");
+  }
+
+  let userId = req.user?._id;
+  if (!userId && req.body.email) {
+    const found = await User.findOne({ email: req.body.email });
+    if (found) userId = found._id;
+  }
+
+  if (!userId && req.cookies?.token) {
+    try {
+      const decoded = jwt.verify(req.cookies.token, process.env.JWT_SECRET);
+      if (decoded?._id) userId = decoded._id;
+    } catch (e) {}
+  }
+
+  if (!userId) {
+    res.status(401);
+    throw new Error("User authentication required");
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { $set: { academicRecords } },
+    { new: true }
+  ).select("-password");
+
+  if (!updatedUser) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: "Academic records updated successfully",
+    academicRecords: updatedUser.academicRecords,
+    user: updatedUser,
+  });
+});
 const handleLogout = asyncHandler(async (req, res) => {
   res.clearCookie("token");
   res.status(200).json({ message: "Logged out successfully" });
@@ -847,4 +891,5 @@ module.exports = {
   handleGetJobs,
   handleGetPersonality,
   handleResumeAnalyze,
+  handleUpdateAcademicRecords,
 };
