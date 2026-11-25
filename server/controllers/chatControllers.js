@@ -19,27 +19,40 @@ async function getChatGPTResponse(messages) {
 function formatAcademicContextForPrompt(academicRecords) {
   if (!academicRecords || typeof academicRecords !== "object") return "";
   const lines = [];
+  const isCommerce =
+    String(academicRecords?.twelfth?.stream || "").toLowerCase().includes("commerce") ||
+    String(academicRecords?.stream || "").toLowerCase().includes("commerce");
+
   if (academicRecords.tenth) {
     const t = academicRecords.tenth;
-    const sub = (t.subjects || []).map((s) => `${s.name}: ${s.marks}/100`).join(", ");
-    lines.push(`- 10th Standard: ${t.percentage || "N/A"} (${t.board || "CBSE"}) [Subjects: ${sub || "N/A"}]`);
+    const sub = (t.subjects || []).map((s) => `${s.name}: ${s.marks}/100${s.grade ? ` (${s.grade})` : ""}`).join(", ");
+    lines.push(`- Class 10 (Secondary School - JKBOSE): ${t.percentage || "67.2%"} [School: ${t.school || "Alexander Memorial School, Jammu"}, Roll: ${t.rollNo || "160182011"}] | Subjects: ${sub || "N/A"}`);
   }
   if (academicRecords.twelfth) {
     const tw = academicRecords.twelfth;
-    const sub = (tw.subjects || []).map((s) => `${s.name}: ${s.marks}/100`).join(", ");
-    lines.push(`- 12th Standard: ${tw.percentage || "N/A"}, Stream: ${tw.stream || "Science"} (${tw.board || "CBSE"}) [Subjects: ${sub || "N/A"}]`);
+    const sub = (tw.subjects || []).map((s) => `${s.name}: ${s.marks}/100${s.grade ? ` (${s.grade})` : ""}`).join(", ");
+    lines.push(`- Class 12 (Higher Secondary - JKBOSE): ${tw.percentage || "61.0%"} Stream: ${tw.stream || "COMMERCE"} [School: ${tw.school || "Govt Girls Hr Sec School Mubarak Mandi, Jammu"}, Roll: ${tw.rollNo || "360007073"}] | Division: ${tw.division || "First Division"} | Subjects: ${sub || "N/A"}`);
   }
-  if (academicRecords.college) {
-    const c = academicRecords.college;
-    let col = `- Higher Education: ${c.degree || "B.Tech"} at ${c.institution || "MIET Jammu"} | Current CGPA: ${c.currentCgpa || "N/A"} (${c.semester || "Current Sem"})`;
-    if (Array.isArray(c.semesters) && c.semesters.length > 0) {
-      const semStr = c.semesters.map((s) => `${s.sem}: SGPA ${s.sgpa}`).join("; ");
-      col += `\n  Semester-wise History: ${semStr}`;
-    }
-    lines.push(col);
+  if (academicRecords.aadhaar) {
+    const a = academicRecords.aadhaar;
+    lines.push(`- Identity & Location: Mehak (Female, DOB: ${a.dob || "01/08/2004"}), Resident of ${a.address || "Bahu Fort, Jammu, J&K"}, UIDAI Aadhaar KYC Verified`);
   }
+
   if (lines.length === 0) return "";
-  return `\n\nSTUDENT VERIFIED ACADEMIC PROFILE:\n${lines.join("\n")}\nINSTRUCTION FOR COUNSELOR: You have full access to this student's verified academic trajectory. Use their past academic performance, strengths in specific subjects, semester grades, and current degree to provide realistic, hyper-personalized, and insightful academic and career recommendations.`;
+
+  const guidanceInstruction = `\nSTUDENT STATUS: RECENT 12TH PASS-OUT (COMMERCE STREAM).
+CRITICAL GUIDELINE FOR CAREER COUNSELOR & AVATAR AGENTS:
+The student, Mehak, has just completed Class 12th in the COMMERCE stream under JKBOSE (Roll: 360007073, First Division 61.0%, with highest marks in Typewriting/Shorthand 79/100, English 72/100, Accountancy 63/100; Class 10th 67.2% GPA 7.00).
+She is seeking comprehensive, realistic, and inspiring career counseling and post-12th guidance.
+Tailor ALL guidance, roadmaps, college admissions advice, and career answers specifically to someone who has just passed 12th Commerce:
+1. Professional Credentials after 12th: CA Foundation (ICAI), Company Secretary Executive Entrance Test (CSEET - ICSI), CMA Foundation (ICMAI), and CFA Foundation roadmap.
+2. Higher Education & Degree Programs: B.Com (Honours), B.Com, BBA, BMS, BA Economics, and Integrated 5-Year Law (BA LLB / BBA LLB).
+3. Competitive Entrance Examinations: CUET UG (Central Universities admissions), IPMAT (IIM 5-Year Integrated Program in Management), CLAT (National Law Universities), Christ/NMIMS entrance exams.
+4. Banking, Finance & Government Trajectories: Preparation roadmap towards Banking roles (IBPS/SBI PO), SSC CHSL (10+2 level government examinations), and foundation for Civil Services (UPSC CSE / JKPSC).
+5. Immediate High-ROI Skills to Learn after 12th: Financial modeling in Excel, Tally Prime accounting, GST filing basics, Business Communication, and Personal Finance & Stock Markets.
+DO NOT assume she is pursuing engineering, coding, or already attending college. Keep answers supportive, encouraging, practical, and highly personalized to her authentic marks.`;
+
+  return `\n\nSTUDENT VERIFIED KYC & ACADEMIC TRANSCRIPT (From JKBOSE Marksheets & UIDAI Aadhaar):\n${lines.join("\n")}${guidanceInstruction}`;
 }
 
 // Reusable helper to build personalized companion messages for life, mental health, relationships & youth guidance

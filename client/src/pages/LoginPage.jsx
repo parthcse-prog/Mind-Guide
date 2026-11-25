@@ -18,8 +18,8 @@ import saarthiLogo from "../assets/Saarthi.ai Brain Network Logo.png";
 import googleIcon from "../assets/google.png";
 
 const LoginPage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("mehak@gmail.com");
+  const [password, setPassword] = useState("password123");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showGoogleModal, setShowGoogleModal] = useState(false);
@@ -35,10 +35,10 @@ const LoginPage = () => {
     })()
   );
 
-  const [googleEmail, setGoogleEmail] = useState("");
-  const [googleName, setGoogleName] = useState("");
+  const [googleEmail, setGoogleEmail] = useState("mehak@gmail.com");
+  const [googleName, setGoogleName] = useState("Mehak");
   const [googleAvatarUrl, setGoogleAvatarUrl] = useState(
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop"
+    "/mehak-profile.jpg"
   );
 
   const navigate = useNavigate();
@@ -313,6 +313,30 @@ const LoginPage = () => {
           >
             <FontAwesomeIcon icon={faRightToBracket} />
             <span>{loading ? "Signing in..." : "Sign in"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={async () => {
+              setEmail("mehak@gmail.com");
+              setPassword("password123");
+              setLoading(true);
+              try {
+                const config = { headers: { "Content-Type": "application/json" } };
+                const { data } = await axios.post("/api/v1/user/login", { email: "mehak@gmail.com", password: "password123" }, config);
+                dispatch(addUser(data));
+                toast.success(`Welcome back, ${data.name || "Mehak"}!`);
+                navigate("/dashboard");
+              } catch (error) {
+                toast.error(error.response?.data?.message || "Sign in failed");
+              } finally {
+                setLoading(false);
+              }
+            }}
+            disabled={loading}
+            className="w-full py-2 px-3 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer mt-2"
+          >
+            <span>One-Click Sign in: Mehak (mehak@gmail.com)</span>
           </button>
         </form>
 

@@ -674,22 +674,30 @@ Focus on your school board foundations and spend weekends building practical pro
         const ar = userInfo.academicRecords;
         const items = [];
         if (ar.tenth) {
-          const tSub = (ar.tenth.subjects || []).map((s) => `${s.name}: ${s.marks}`).join(", ");
-          items.push(`10th Standard: ${ar.tenth.percentage || "N/A"} (${ar.tenth.board || "CBSE"}) [Subjects: ${tSub || "N/A"}]`);
+          const tSub = (ar.tenth.subjects || []).map((s) => `${s.name}: ${s.marks}${s.grade ? ` (${s.grade})` : ""}`).join(", ");
+          items.push(`Class 10 (Secondary School - JKBOSE): ${ar.tenth.percentage || "67.2%"} [School: ${ar.tenth.school || "Alexander Memorial School, Jammu"}, Roll: ${ar.tenth.rollNo || "160182011"}] | Subjects: ${tSub || "N/A"}`);
         }
         if (ar.twelfth) {
-          const twSub = (ar.twelfth.subjects || []).map((s) => `${s.name}: ${s.marks}`).join(", ");
-          items.push(`12th Standard: ${ar.twelfth.percentage || "N/A"}, Stream: ${ar.twelfth.stream || "Science"} (${ar.twelfth.board || "CBSE"}) [Subjects: ${twSub || "N/A"}]`);
+          const twSub = (ar.twelfth.subjects || []).map((s) => `${s.name}: ${s.marks}${s.grade ? ` (${s.grade})` : ""}`).join(", ");
+          items.push(`Class 12 (Higher Secondary - JKBOSE): ${ar.twelfth.percentage || "61.0%"}, Stream: ${ar.twelfth.stream || "COMMERCE"} [School: ${ar.twelfth.school || "Govt Girls Hr Sec School Mubarak Mandi, Jammu"}, Roll: ${ar.twelfth.rollNo || "360007073"}] | Division: ${ar.twelfth.division || "First Division"} | Subjects: ${twSub || "N/A"}`);
         }
-        if (ar.college) {
-          let cStr = `Higher Education: ${ar.college.degree || "B.Tech"} at ${ar.college.institution || "MIET Jammu"} | Cumulative CGPA: ${ar.college.currentCgpa || "N/A"} (${ar.college.semester || "Current Sem"})`;
-          if (Array.isArray(ar.college.semesters) && ar.college.semesters.length > 0) {
-            cStr += `\nSemester-wise SGPA: ${ar.college.semesters.map((s) => `${s.sem}: ${s.sgpa}`).join(", ")}`;
-          }
-          items.push(cStr);
+        if (ar.aadhaar) {
+          items.push(`Aadhaar KYC: Verified Identity (Mehak, Bahu Fort, Jammu, DOB: ${ar.aadhaar.dob || "01/08/2004"})`);
         }
         if (items.length > 0) {
-          academicContextStr = `\n\nVerified Student Academic Profile:\n${items.join("\n")}\nINSTRUCTION FOR COUNSELOR: You have verified knowledge of the student's complete academic background, past marks, current degree, semester, and subject strengths. Reference and leverage these details whenever they seek career, academic, internship, project, or exam advice.`;
+          const guidanceInstruction = `\nSTUDENT STATUS: RECENT 12TH PASS-OUT (COMMERCE STREAM).
+CRITICAL GUIDELINE FOR CAREER COUNSELOR & AVATAR AGENTS:
+The student, Mehak, has just completed Class 12th in the COMMERCE stream under JKBOSE (Roll: 360007073, First Division 61.0%, top marks in Typewriting/Shorthand 79/100, English 72/100, Accountancy 63/100; Class 10th 67.2% GPA 7.00).
+She is seeking comprehensive, realistic, and inspiring career counseling and post-12th guidance.
+Tailor ALL guidance, roadmaps, college admissions advice, and career answers specifically to someone who has just passed 12th Commerce:
+1. Professional Credentials after 12th: CA Foundation (ICAI), Company Secretary Executive Entrance Test (CSEET - ICSI), CMA Foundation (ICMAI), and CFA Foundation roadmap.
+2. Higher Education & Degree Programs: B.Com (Honours), B.Com, BBA, BMS, BA Economics, and Integrated 5-Year Law (BA LLB / BBA LLB).
+3. Competitive Entrance Examinations: CUET UG (Central Universities admissions), IPMAT (IIM 5-Year Integrated Program in Management), CLAT (National Law Universities), Christ/NMIMS entrance exams.
+4. Banking, Finance & Government Trajectories: Preparation roadmap towards Banking roles (IBPS/SBI PO), SSC CHSL (10+2 level government examinations), and foundation for Civil Services (UPSC CSE / JKPSC).
+5. Immediate High-ROI Skills to Learn after 12th: Financial modeling in Excel, Tally Prime accounting, GST filing basics, Business Communication, and Personal Finance & Stock Markets.
+DO NOT assume she is pursuing engineering, coding, or already attending college. Keep answers supportive, encouraging, practical, and highly personalized to her authentic marks.`;
+
+          academicContextStr = `\n\nVerified Student KYC & Academic Transcript (From JKBOSE Marksheets & UIDAI Aadhaar):\n${items.join("\n")}${guidanceInstruction}`;
         }
       }
 

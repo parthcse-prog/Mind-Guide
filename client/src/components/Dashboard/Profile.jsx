@@ -36,6 +36,7 @@ import {
   faFloppyDisk,
   faBookOpen,
   faLayerGroup,
+  faArrowUpRightFromSquare,
 } from "@fortawesome/free-solid-svg-icons";
 import googleIcon from "../../assets/google.png";
 import mietLogo from "../../assets/MIET Logos/miet-logo-dark.png";
@@ -48,6 +49,7 @@ const Profile = () => {
   const userInfo = useSelector((state) => state.mindGuide.userInfo);
   const dispatch = useDispatch();
 
+  const [viewingDoc, setViewingDoc] = useState(null);
   const [isEditingDob, setIsEditingDob] = useState(false);
   const [dob, setDob] = useState(userInfo?.dob || "15 August 2003");
   const [loadingDob, setLoadingDob] = useState(false);
@@ -56,10 +58,9 @@ const Profile = () => {
   const [isResumeAnalyzerOpen, setIsResumeAnalyzerOpen] = useState(false);
   const [jobBoardKey, setJobBoardKey] = useState(0);
   const [isAcademicModalOpen, setIsAcademicModalOpen] = useState(false);
-  const [activeAcademicTab, setActiveAcademicTab] = useState("college");
+  const [activeAcademicTab, setActiveAcademicTab] = useState("twelfth");
   const [editAcademicForm, setEditAcademicForm] = useState(null);
   const [savingAcademic, setSavingAcademic] = useState(false);
-  const [expandedSemesters, setExpandedSemesters] = useState(true);
 
   const handleRefreshJobBoard = (e) => {
     e.stopPropagation();
@@ -165,150 +166,75 @@ const Profile = () => {
         userInfo?.name || "User"
       )}&background=0c242c&color=2dd4bf&size=256&bold=true`;
 
-  const profilePic = isFemale
-    ? "/female-avatar.svg"
-    : userInfo?.picture && !userInfo.picture.includes("534528741775")
-    ? userInfo.picture
-    : userInfo?.pic && !userInfo.pic.includes("534528741775")
-    ? userInfo.pic
-    : defaultAvatar;
+  const profilePic =
+    userInfo?.pic && !userInfo.pic.includes("female") && !userInfo.pic.includes("534528741775")
+      ? userInfo.pic
+      : userInfo?.picture && !userInfo.picture.includes("female") && !userInfo.picture.includes("534528741775")
+      ? userInfo.picture
+      : "/mehak-profile.jpg";
 
   const locale = userInfo?.locale || "en-IN (English)";
 
   const academicRecords = userInfo?.academicRecords || {
     tenth: {
-      standard: "10th Standard (Secondary Examination)",
-      percentage: "93%",
-      board: "CBSE",
-      school: "Delhi Public School, Jammu",
-      year: "2020",
-      rollNo: "1489204",
-      marksheetId: "CBSE-X-2020-93821",
-      status: "Verified Record",
+      standard: "Secondary School Examination (Class X)",
+      percentage: "67.2%",
+      board: "The Jammu and Kashmir Board of School Education (JKBOSE)",
+      school: "Alexander Memorial School, Idd Gah, Residency Road, Jammu",
+      year: "2021",
+      rollNo: "160182011",
+      regnNo: "1960010000060013",
+      marks: "336 / 500",
+      gpa: "7.00",
+      division: "Qualified B2",
+      marksheetId: "JKBOSE-X-2021-160182011",
+      status: "KYC Verified (JKBOSE Authenticated)",
+      marksheetUrl: "/SSCER_8468.pdf",
       subjects: [
-        { name: "Mathematics", marks: "95" },
-        { name: "Science", marks: "94" },
-        { name: "English Language & Lit.", marks: "92" },
-        { name: "Social Science", marks: "91" },
-        { name: "Hindi Course A", marks: "93" },
+        { name: "General English", marks: "68", grade: "B2", maxMarks: "100" },
+        { name: "Mathematics", marks: "65", grade: "B2", maxMarks: "100" },
+        { name: "Hindi", marks: "70", grade: "B2", maxMarks: "100" },
+        { name: "Science", marks: "66", grade: "B2", maxMarks: "100" },
+        { name: "Social Science", marks: "67", grade: "B2", maxMarks: "100" },
       ],
     },
     twelfth: {
-      standard: "12th Standard (Senior Secondary Examination)",
-      percentage: "90%",
-      stream: "Science (PCM with Computer Science)",
-      board: "CBSE",
-      school: "Delhi Public School, Jammu",
-      year: "2022",
-      rollNo: "2489204",
-      marksheetId: "CBSE-XII-2022-90142",
-      status: "Verified Record",
+      standard: "Higher Secondary Examination Part-II (Class XII)",
+      percentage: "61.0%",
+      stream: "Commerce",
+      board: "The Jammu and Kashmir Board of School Education (JKBOSE)",
+      school: "Govt Girls Hr Sec School Mubarak Mandi, Jammu",
+      year: "2023",
+      rollNo: "360007073",
+      regnNo: "1960010000060013",
+      marks: "305 / 500",
+      division: "First Division",
+      marksheetId: "JKBOSE-XII-2023-360007073",
+      status: "KYC Verified (JKBOSE Authenticated)",
+      marksheetUrl: "/HSCER_8468.pdf",
       subjects: [
-        { name: "Computer Science", marks: "96" },
-        { name: "Mathematics", marks: "91" },
-        { name: "Physics", marks: "89" },
-        { name: "Chemistry", marks: "88" },
-        { name: "English Core", marks: "92" },
+        { name: "Typewriting / Shorthand", marks: "79", grade: "A2", maxMarks: "100" },
+        { name: "General English", marks: "72", grade: "B1", maxMarks: "100" },
+        { name: "Accountancy", marks: "63", grade: "B2", maxMarks: "100" },
+        { name: "Economics", marks: "46", grade: "C2", maxMarks: "100" },
+        { name: "Business Studies", marks: "45", grade: "C2", maxMarks: "100" },
       ],
     },
-    college: {
-      degree: "B.Tech Computer Science & Engineering",
-      institution: "Model Institute of Engineering & Technology (MIET), Jammu",
-      currentCgpa: "8.84 CGPA",
-      semester: "7th Semester",
-      enrollmentNo: "MIET/CSE/2022/041",
-      status: "Active MIET Student",
-      stream: "Computer Science & Engineering",
-      semesters: [
-        {
-          sem: "Semester 1",
-          sgpa: "8.60",
-          credits: "22",
-          status: "Completed",
-          subjects: [
-            { name: "Engineering Mathematics I", marks: "88" },
-            { name: "Engineering Physics", marks: "85" },
-            { name: "Basic Electrical Engg.", marks: "84" },
-            { name: "Programming in C", marks: "90" },
-          ],
-        },
-        {
-          sem: "Semester 2",
-          sgpa: "8.75",
-          credits: "22",
-          status: "Completed",
-          subjects: [
-            { name: "Engineering Mathematics II", marks: "89" },
-            { name: "Data Structures & Algorithms", marks: "92" },
-            { name: "Digital Electronics", marks: "86" },
-            { name: "Python for Engineers", marks: "91" },
-          ],
-        },
-        {
-          sem: "Semester 3",
-          sgpa: "8.85",
-          credits: "24",
-          status: "Completed",
-          subjects: [
-            { name: "Object-Oriented Programming (Java)", marks: "93" },
-            { name: "Discrete Mathematical Structures", marks: "87" },
-            { name: "Computer Organization & Arch.", marks: "86" },
-            { name: "Database Management Systems", marks: "92" },
-          ],
-        },
-        {
-          sem: "Semester 4",
-          sgpa: "8.70",
-          credits: "24",
-          status: "Completed",
-          subjects: [
-            { name: "Operating Systems", marks: "88" },
-            { name: "Design & Analysis of Algorithms", marks: "94" },
-            { name: "Theory of Computation", marks: "82" },
-            { name: "Software Engineering & Agile", marks: "89" },
-          ],
-        },
-        {
-          sem: "Semester 5",
-          sgpa: "9.05",
-          credits: "24",
-          status: "Completed",
-          subjects: [
-            { name: "Computer Networks", marks: "91" },
-            { name: "Web Technologies & MERN Stack", marks: "97" },
-            { name: "Artificial Intelligence Foundations", marks: "92" },
-            { name: "Cloud Computing & DevOps", marks: "88" },
-          ],
-        },
-        {
-          sem: "Semester 6",
-          sgpa: "8.90",
-          credits: "24",
-          status: "Completed",
-          subjects: [
-            { name: "Machine Learning & Neural Nets", marks: "90" },
-            { name: "Information Security & Cryptography", marks: "87" },
-            { name: "Distributed Systems", marks: "89" },
-            { name: "Full-Stack Capstone Project I", marks: "95" },
-          ],
-        },
-        {
-          sem: "Semester 7",
-          sgpa: "8.95",
-          credits: "20",
-          status: "In Progress / Current",
-          subjects: [
-            { name: "Deep Learning & Generative AI", marks: "93" },
-            { name: "Scalable Microservices Architecture", marks: "91" },
-            { name: "Major Project Phase II", marks: "96" },
-          ],
-        },
-      ],
+    aadhaar: {
+      name: "Mehak",
+      gender: "Female",
+      dob: "01/08/2004",
+      aadhaarNumber: "3901 5658 5688",
+      maskedAadhaar: "XXXX XXXX 5688",
+      address: "House no. 141, Ward no. 48, Gorkha Nagar Bahu Fort Jammu, Jammu City, Jammu, Jammu and Kashmir - 180006",
+      issuer: "Unique Identification Authority of India (UIDAI)",
+      status: "UIDAI Biometric & Demographic KYC Verified",
+      documentUrl: "/ADHAR_8468.pdf",
     },
   };
 
 
-  const handleOpenAcademicModal = (tab = "college") => {
+  const handleOpenAcademicModal = (tab = "twelfth") => {
     setActiveAcademicTab(tab);
     setEditAcademicForm(JSON.parse(JSON.stringify(academicRecords)));
     setIsAcademicModalOpen(true);
@@ -334,7 +260,7 @@ const Profile = () => {
     }
   };
 
-  const handleAddSubject = (level, semIndex = null) => {
+  const handleAddSubject = (level) => {
     if (!editAcademicForm) return;
     const updated = { ...editAcademicForm };
     if (level === "tenth") {
@@ -343,19 +269,11 @@ const Profile = () => {
     } else if (level === "twelfth") {
       updated.twelfth = { ...updated.twelfth };
       updated.twelfth.subjects = [...(updated.twelfth.subjects || []), { name: "New Subject", marks: "90" }];
-    } else if (level === "semester" && semIndex !== null) {
-      updated.college = { ...updated.college };
-      const sems = [...(updated.college.semesters || [])];
-      sems[semIndex] = {
-        ...sems[semIndex],
-        subjects: [...(sems[semIndex].subjects || []), { name: "New Course", marks: "85" }],
-      };
-      updated.college.semesters = sems;
     }
     setEditAcademicForm(updated);
   };
 
-  const handleRemoveSubject = (level, subIndex, semIndex = null) => {
+  const handleRemoveSubject = (level, subIndex) => {
     if (!editAcademicForm) return;
     const updated = { ...editAcademicForm };
     if (level === "tenth") {
@@ -364,45 +282,7 @@ const Profile = () => {
     } else if (level === "twelfth") {
       updated.twelfth = { ...updated.twelfth };
       updated.twelfth.subjects = updated.twelfth.subjects.filter((_, idx) => idx !== subIndex);
-    } else if (level === "semester" && semIndex !== null) {
-      updated.college = { ...updated.college };
-      const sems = [...(updated.college.semesters || [])];
-      sems[semIndex] = {
-        ...sems[semIndex],
-        subjects: sems[semIndex].subjects.filter((_, idx) => idx !== subIndex),
-      };
-      updated.college.semesters = sems;
     }
-    setEditAcademicForm(updated);
-  };
-
-  const handleAddSemester = () => {
-    if (!editAcademicForm) return;
-    const updated = { ...editAcademicForm };
-    updated.college = { ...updated.college };
-    const currentSems = updated.college.semesters || [];
-    const nextNum = currentSems.length + 1;
-    updated.college.semesters = [
-      ...currentSems,
-      {
-        sem: `Semester ${nextNum}`,
-        sgpa: "9.00",
-        credits: "20",
-        status: "In Progress / Current",
-        subjects: [
-          { name: "Elective Specialization", marks: "90" },
-          { name: "Major Project Phase II", marks: "94" },
-        ],
-      },
-    ];
-    setEditAcademicForm(updated);
-  };
-
-  const handleRemoveSemester = (semIndex) => {
-    if (!editAcademicForm) return;
-    const updated = { ...editAcademicForm };
-    updated.college = { ...updated.college };
-    updated.college.semesters = (updated.college.semesters || []).filter((_, idx) => idx !== semIndex);
     setEditAcademicForm(updated);
   };
 
@@ -433,7 +313,7 @@ const Profile = () => {
           <div className="flex-1 text-center sm:text-left space-y-2">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                {userInfo?.name || "Parth Sharma"}
+                {userInfo?.name || "Mehak"}
               </h1>
               <img
                 src={mietLogo}
@@ -445,7 +325,7 @@ const Profile = () => {
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3.5 gap-y-1.5 text-sm text-slate-600">
               <p className="flex items-center gap-1.5">
                 <FontAwesomeIcon icon={faEnvelope} className="text-teal-700 text-xs" />
-                <span>{userInfo?.email || "user@mietjammu.in"}</span>
+                <span>{userInfo?.email || "mehak@gmail.com"}</span>
                 <FontAwesomeIcon
                   icon={faCircleCheck}
                   className="text-emerald-600 text-xs ml-0.5"
@@ -464,71 +344,40 @@ const Profile = () => {
 
 
 
-      {/* Verified Academic Records Card */}
+      {/* Verified Academic & Identity Records Card (KYC Authenticated) */}
       <section className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/90 shadow-xs space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-200 shadow-2xs">
-              <FontAwesomeIcon icon={faGraduationCap} className="text-lg" />
+            <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-700 border border-teal-200 shadow-2xs">
+              <FontAwesomeIcon icon={faShieldHalved} className="text-lg" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base sm:text-lg font-bold text-slate-900">
-                  Academic Records & Qualifications
+                  Academic Records & Identity Qualifications
                 </h2>
                 <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
                   <FontAwesomeIcon icon={faCircleCheck} className="text-[10px]" />
-                  <span>Verified Records</span>
+                  <span>KYC Verified</span>
                 </span>
               </div>
               <p className="text-xs text-slate-500">
-                Generic & editable academic trajectory (10th, 12th, and semester-wise higher education) used by counselors for personalized guidance
+                Government-verified academic transcripts and identity credentials authenticated via UIDAI and JKBOSE DigiLocker
               </p>
             </div>
           </div>
-
-          <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
-            <button
-              type="button"
-              onClick={() => handleOpenAcademicModal("college")}
-              className="text-xs font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
-              title="Edit marks, semesters and courses"
-            >
-              <FontAwesomeIcon icon={faPen} className="text-teal-600 text-xs" />
-              <span>Edit Records</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleOpenAcademicModal("college")}
-              className="text-xs font-bold text-white bg-[#1a3b47] hover:bg-[#224d5d] px-3.5 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs active:scale-95"
-              title="Add a new semester or qualification"
-            >
-              <FontAwesomeIcon icon={faPlus} className="text-xs" />
-              <span>Add Semester</span>
-            </button>
-          </div>
         </div>
 
-        {/* 10th and 12th Standard Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* 10th Standard Card */}
+        {/* 3 KYC Credential Cards Grid (10th, 12th, Aadhaar) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Card 1: 10th Standard SSC */}
           <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50/40 via-white to-teal-50/30 border border-emerald-200/80 shadow-2xs relative flex flex-col justify-between space-y-4">
             <div className="space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-100/70 border border-emerald-300 px-2.5 py-0.5 rounded-md inline-block">
-                      Secondary Examination
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleOpenAcademicModal("tenth")}
-                      className="text-slate-400 hover:text-emerald-700 p-1 text-xs transition-colors cursor-pointer"
-                      title="Edit 10th Standard Marks"
-                    >
-                      <FontAwesomeIcon icon={faPen} />
-                    </button>
-                  </div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100/70 border border-emerald-300 px-2 py-0.5 rounded-md inline-block">
+                    JKBOSE SSC • KYC Verified
+                  </span>
                   <h3 className="text-base font-extrabold text-slate-900 mt-1">
                     10th Standard (Class X)
                   </h3>
@@ -538,79 +387,70 @@ const Profile = () => {
                     {academicRecords.tenth.percentage}
                   </span>
                   <span className="block text-[10px] font-bold text-emerald-600 uppercase">
-                    Distinction
+                    {academicRecords.tenth.division}
                   </span>
                 </div>
               </div>
 
               <div className="space-y-1 text-xs text-slate-600 pt-1">
-                <p className="flex items-center gap-1.5">
-                  <FontAwesomeIcon icon={faBuildingColumns} className="text-slate-400 text-[11px]" />
+                <p className="flex items-start gap-1.5">
+                  <FontAwesomeIcon icon={faBuildingColumns} className="text-slate-400 text-[11px] mt-0.5 shrink-0" />
                   <span className="font-semibold text-slate-800">{academicRecords.tenth.school}</span>
                 </p>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 pt-0.5">
+                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-slate-500 pt-0.5">
                   <span>Board: <strong className="text-slate-700">{academicRecords.tenth.board}</strong></span>
                   <span>•</span>
-                  <span>Passing Year: <strong className="text-slate-700">{academicRecords.tenth.year}</strong></span>
+                  <span>Year: <strong className="text-slate-700">{academicRecords.tenth.year}</strong></span>
                   <span>•</span>
-                  <span>Roll No: <strong className="text-slate-700">{academicRecords.tenth.rollNo}</strong></span>
+                  <span>Roll: <strong className="text-slate-700 font-mono">{academicRecords.tenth.rollNo}</strong></span>
                 </div>
               </div>
             </div>
 
             {/* Subject Breakdown Chips */}
-            <div className="pt-2 border-t border-emerald-100/80">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  Subject Scores (Out of 100)
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleOpenAcademicModal("tenth")}
-                  className="text-[10px] font-semibold text-emerald-700 hover:underline cursor-pointer"
-                >
-                  + Add / Edit Subjects
-                </button>
-              </div>
+            <div className="pt-2 border-t border-emerald-100/80 space-y-1.5">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                Subject Breakdown (JKBOSE)
+              </span>
               <div className="flex flex-wrap gap-1.5">
                 {(academicRecords.tenth.subjects || []).map((sub, sIdx) => (
                   <span
                     key={sIdx}
                     className="text-[11px] px-2 py-0.5 rounded-md bg-white border border-emerald-200 text-slate-700 font-medium shadow-3xs"
                   >
-                    {sub.name}: <strong className="text-emerald-700">{sub.marks}</strong>
+                    {sub.name}: <strong className="text-emerald-700">{sub.marks}</strong> {sub.grade && <span className="text-[10px] text-slate-400 font-bold">({sub.grade})</span>}
                   </span>
                 ))}
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-[11px] pt-1">
-              <span className="text-slate-400 font-mono text-[10px]">Cert ID: {academicRecords.tenth.marksheetId}</span>
-              <span className="text-emerald-700 font-bold flex items-center gap-1">
-                <FontAwesomeIcon icon={faCircleCheck} className="text-[11px]" />
-                <span>Verified</span>
-              </span>
+            <div className="pt-2 border-t border-emerald-100/60 flex flex-col gap-2">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-slate-400 font-mono text-[10px]">Cert: {academicRecords.tenth.marksheetId}</span>
+                <span className="text-emerald-700 font-bold flex items-center gap-1 text-[11px]">
+                  <FontAwesomeIcon icon={faCircleCheck} className="text-[11px]" />
+                  <span>Authenticated</span>
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingDoc({ url: "/SSCER_8468.pdf", title: "Class 10th Marksheet (SSCER_8468.pdf) - Mehak" })}
+                className="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer active:scale-95"
+              >
+                <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="text-xs" />
+                <span>View Document (SSCER_8468.pdf)</span>
+              </button>
             </div>
           </div>
 
-          {/* 12th Standard Card */}
+          {/* Card 2: 12th Standard HSC (Commerce) */}
           <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-50/40 via-white to-indigo-50/30 border border-blue-200/80 shadow-2xs relative flex flex-col justify-between space-y-4">
             <div className="space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-blue-700 bg-blue-100/70 border border-blue-300 px-2.5 py-0.5 rounded-md inline-block">
-                      Senior Secondary
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleOpenAcademicModal("twelfth")}
-                      className="text-slate-400 hover:text-blue-700 p-1 text-xs transition-colors cursor-pointer"
-                      title="Edit 12th Standard Marks"
-                    >
-                      <FontAwesomeIcon icon={faPen} />
-                    </button>
-                  </div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-800 bg-blue-100/70 border border-blue-300 px-2 py-0.5 rounded-md inline-block">
+                    JKBOSE HSC • COMMERCE
+                  </span>
                   <h3 className="text-base font-extrabold text-slate-900 mt-1">
                     12th Standard (Class XII)
                   </h3>
@@ -620,201 +460,123 @@ const Profile = () => {
                     {academicRecords.twelfth.percentage}
                   </span>
                   <span className="block text-[10px] font-bold text-blue-600 uppercase">
-                    Distinction
+                    {academicRecords.twelfth.division}
                   </span>
                 </div>
               </div>
 
               <div className="space-y-1 text-xs text-slate-600 pt-1">
-                <p className="flex items-center gap-1.5">
-                  <FontAwesomeIcon icon={faBuildingColumns} className="text-slate-400 text-[11px]" />
+                <p className="flex items-start gap-1.5">
+                  <FontAwesomeIcon icon={faBuildingColumns} className="text-slate-400 text-[11px] mt-0.5 shrink-0" />
                   <span className="font-semibold text-slate-800">{academicRecords.twelfth.school}</span>
                 </p>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 pt-0.5">
-                  <span>Stream: <strong className="text-slate-700">{academicRecords.twelfth.stream}</strong></span>
+                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-slate-500 pt-0.5">
+                  <span>Stream: <strong className="text-slate-700 font-bold">{academicRecords.twelfth.stream}</strong></span>
                   <span>•</span>
-                  <span>Board: <strong className="text-slate-700">{academicRecords.twelfth.board}</strong></span>
+                  <span>Year: <strong className="text-slate-700">{academicRecords.twelfth.year}</strong></span>
                   <span>•</span>
-                  <span>Passing Year: <strong className="text-slate-700">{academicRecords.twelfth.year}</strong></span>
+                  <span>Roll: <strong className="text-slate-700 font-mono">{academicRecords.twelfth.rollNo}</strong></span>
                 </div>
               </div>
             </div>
 
             {/* Subject Breakdown Chips */}
-            <div className="pt-2 border-t border-blue-100/80">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  Subject Scores (Out of 100)
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleOpenAcademicModal("twelfth")}
-                  className="text-[10px] font-semibold text-blue-700 hover:underline cursor-pointer"
-                >
-                  + Add / Edit Subjects
-                </button>
-              </div>
+            <div className="pt-2 border-t border-blue-100/80 space-y-1.5">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                Commerce Subjects (JKBOSE)
+              </span>
               <div className="flex flex-wrap gap-1.5">
                 {(academicRecords.twelfth.subjects || []).map((sub, sIdx) => (
                   <span
                     key={sIdx}
                     className="text-[11px] px-2 py-0.5 rounded-md bg-white border border-blue-200 text-slate-700 font-medium shadow-3xs"
                   >
-                    {sub.name}: <strong className="text-blue-700">{sub.marks}</strong>
+                    {sub.name}: <strong className="text-blue-700">{sub.marks}</strong> {sub.grade && <span className="text-[10px] text-slate-400 font-bold">({sub.grade})</span>}
                   </span>
                 ))}
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-[11px] pt-1">
-              <span className="text-slate-400 font-mono text-[10px]">Cert ID: {academicRecords.twelfth.marksheetId}</span>
-              <span className="text-blue-700 font-bold flex items-center gap-1">
-                <FontAwesomeIcon icon={faCircleCheck} className="text-[11px]" />
-                <span>Verified</span>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Current Degree (MIET College Record) */}
-        <div className="rounded-2xl border border-slate-200/90 overflow-hidden bg-slate-50/60 shadow-xs">
-          <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/70 bg-white">
-            <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 shadow-2xs">
-                <img src={mietLogo} alt="MIET" className="h-7 object-contain" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h4 className="font-extrabold text-slate-900 text-base">
-                    {academicRecords.college.degree}
-                  </h4>
-                  <span className="text-[10px] font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md">
-                    {academicRecords.college.semester}
-                  </span>
-                </div>
-                <p className="text-slate-500 text-xs mt-0.5">
-                  {academicRecords.college.institution} • Enrollment: <strong className="text-slate-700 font-mono">{academicRecords.college.enrollmentNo}</strong>
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 sm:text-right">
-              <div>
-                <span className="text-xs text-slate-400 block font-medium">Cumulative CGPA</span>
-                <span className="text-base font-black text-teal-700 tracking-tight">{academicRecords.college.currentCgpa}</span>
+            <div className="pt-2 border-t border-blue-100/60 flex flex-col gap-2">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-slate-400 font-mono text-[10px]">Cert: {academicRecords.twelfth.marksheetId}</span>
+                <span className="text-blue-700 font-bold flex items-center gap-1 text-[11px]">
+                  <FontAwesomeIcon icon={faCircleCheck} className="text-[11px]" />
+                  <span>Authenticated</span>
+                </span>
               </div>
               <button
                 type="button"
-                onClick={() => handleOpenAcademicModal("college")}
-                className="p-2 text-slate-500 hover:text-teal-700 hover:bg-teal-50 border border-slate-200 rounded-lg transition-colors cursor-pointer"
-                title="Edit Degree & Semesters"
+                onClick={() => setViewingDoc({ url: "/HSCER_8468.pdf", title: "Class 12th Marksheet (HSCER_8468.pdf) - Mehak" })}
+                className="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer active:scale-95"
               >
-                <FontAwesomeIcon icon={faPen} className="text-xs" />
+                <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="text-xs" />
+                <span>View Document (HSCER_8468.pdf)</span>
               </button>
             </div>
           </div>
 
-          {/* Semester-wise Academic Performance Accordion */}
-          <div className="p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FontAwesomeIcon icon={faLayerGroup} className="text-teal-700 text-xs" />
-                <h5 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Semester-wise Performance & Coursework ({(academicRecords.college.semesters || []).length} Semesters)
-                </h5>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleOpenAcademicModal("college")}
-                  className="text-xs font-bold text-teal-700 hover:text-teal-900 hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  <FontAwesomeIcon icon={faPlus} className="text-[10px]" />
-                  <span>Add Semester</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setExpandedSemesters(!expandedSemesters)}
-                  className="text-xs text-slate-500 hover:text-slate-800 font-semibold flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-white border border-slate-200 transition-colors cursor-pointer"
-                >
-                  <span>{expandedSemesters ? "Collapse" : "Expand All"}</span>
-                  <FontAwesomeIcon icon={expandedSemesters ? faChevronUp : faChevronDown} className="text-[10px]" />
-                </button>
-              </div>
-            </div>
-
-            {expandedSemesters && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
-                {(academicRecords.college.semesters || []).map((semObj, semIdx) => (
-                  <div
-                    key={semIdx}
-                    className="p-3.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs hover:border-teal-300 transition-all flex flex-col justify-between space-y-2.5 group"
-                  >
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                      <div>
-                        <span className="font-extrabold text-slate-900 text-xs block">
-                          {semObj.sem}
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-medium">
-                          Credits: {semObj.credits || "22"} • {semObj.status || "Completed"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-black text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md">
-                          SGPA {semObj.sgpa}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleOpenAcademicModal("college")}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-teal-700 transition-opacity cursor-pointer"
-                          title="Edit Semester"
-                        >
-                          <FontAwesomeIcon icon={faPen} className="text-[10px]" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Semester Subjects */}
-                    <div className="space-y-1">
-                      <span className="text-[10px] text-slate-400 uppercase font-bold block">
-                        Coursework & Grades:
-                      </span>
-                      <div className="flex flex-col gap-1">
-                        {(semObj.subjects || []).map((course, cIdx) => (
-                          <div
-                            key={cIdx}
-                            className="flex items-center justify-between text-[11px] bg-slate-50/70 px-2 py-0.5 rounded-md border border-slate-100"
-                          >
-                            <span className="text-slate-700 truncate pr-2 font-medium" title={course.name}>
-                              {course.name}
-                            </span>
-                            <span className="font-bold text-teal-700 shrink-0">
-                              {course.marks}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Quick Add Semester Card */}
-                <div
-                  onClick={() => handleOpenAcademicModal("college")}
-                  className="p-5 rounded-xl border border-dashed border-teal-300 hover:border-teal-500 bg-teal-50/30 hover:bg-teal-50/70 transition-all flex flex-col items-center justify-center text-center cursor-pointer min-h-[140px] group"
-                >
-                  <div className="w-9 h-9 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
-                    <FontAwesomeIcon icon={faPlus} className="text-xs" />
-                  </div>
-                  <span className="text-xs font-bold text-teal-800">
-                    Add Next Semester
+          {/* Card 3: Aadhaar Government Identity Credential */}
+          <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-50/40 via-white to-orange-50/30 border border-amber-200/80 shadow-2xs relative flex flex-col justify-between space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-100/70 border border-amber-300 px-2 py-0.5 rounded-md inline-block">
+                    GOVT OF INDIA • UIDAI KYC
                   </span>
-                  <span className="text-[11px] text-teal-600 mt-0.5">
-                    Click to add semester SGPA & courses
+                  <h3 className="text-base font-extrabold text-slate-900 mt-1">
+                    Aadhaar Identity Card
+                  </h3>
+                </div>
+                <div className="text-right">
+                  <span className="text-lg font-mono font-black text-amber-800 tracking-wider">
+                    •••• 5688
+                  </span>
+                  <span className="block text-[10px] font-bold text-emerald-600 uppercase">
+                    KYC Matched
                   </span>
                 </div>
               </div>
-            )}
+
+              <div className="space-y-1.5 text-xs text-slate-600 pt-1">
+                <p className="flex items-start gap-1.5">
+                  <FontAwesomeIcon icon={faUser} className="text-slate-400 text-[11px] mt-0.5 shrink-0" />
+                  <span>Name: <strong className="text-slate-800 font-bold">{academicRecords.aadhaar?.name || "Mehak"}</strong> (Female, DOB: {academicRecords.aadhaar?.dob || "01/08/2004"})</span>
+                </p>
+                <p className="flex items-start gap-1.5">
+                  <FontAwesomeIcon icon={faLocationDot} className="text-slate-400 text-[11px] mt-0.5 shrink-0" />
+                  <span className="text-[11px] text-slate-700 leading-snug">{academicRecords.aadhaar?.address || "HNO.141 GORKHA NAGAR BAHU FORT JAMMU, JAMMU, J & K"}</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Aadhaar Security Status */}
+            <div className="pt-2 border-t border-amber-100/80 space-y-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                Verification Protocol
+              </span>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Demographic and biometric verification retrieved securely via National DigiLocker API integration.
+              </p>
+            </div>
+
+            <div className="pt-2 border-t border-amber-100/60 flex flex-col gap-2">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-slate-400 font-mono text-[10px]">Aadhaar: 3901 5658 5688</span>
+                <span className="text-emerald-700 font-bold flex items-center gap-1 text-[11px]">
+                  <FontAwesomeIcon icon={faCircleCheck} className="text-[11px]" />
+                  <span>UIDAI Verified</span>
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingDoc({ url: "/ADHAR_8468.pdf", title: "Aadhaar Card (ADHAR_8468.pdf) - Mehak" })}
+                className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer active:scale-95"
+              >
+                <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="text-xs" />
+                <span>View Document (ADHAR_8468.pdf)</span>
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -1069,15 +831,15 @@ const Profile = () => {
             <div className="flex items-center gap-1.5 p-2.5 bg-slate-100 border-b border-slate-200/80 shrink-0 text-xs font-bold overflow-x-auto">
               <button
                 type="button"
-                onClick={() => setActiveAcademicTab("college")}
+                onClick={() => setActiveAcademicTab("twelfth")}
                 className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
-                  activeAcademicTab === "college"
-                    ? "bg-white text-teal-900 shadow-2xs"
+                  activeAcademicTab === "twelfth"
+                    ? "bg-white text-blue-900 shadow-2xs"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                <FontAwesomeIcon icon={faBuildingColumns} className="text-xs" />
-                <span>College / Semesters</span>
+                <FontAwesomeIcon icon={faBookOpen} className="text-xs" />
+                <span>12th Standard</span>
               </button>
               <button
                 type="button"
@@ -1091,235 +853,10 @@ const Profile = () => {
                 <FontAwesomeIcon icon={faBookOpen} className="text-xs" />
                 <span>10th Standard</span>
               </button>
-              <button
-                type="button"
-                onClick={() => setActiveAcademicTab("twelfth")}
-                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
-                  activeAcademicTab === "twelfth"
-                    ? "bg-white text-blue-900 shadow-2xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <FontAwesomeIcon icon={faBookOpen} className="text-xs" />
-                <span>12th Standard</span>
-              </button>
             </div>
 
             {/* Modal Body (Scrollable) */}
             <div className="p-5 sm:p-6 overflow-y-auto space-y-5 text-xs">
-              {/* TAB 1: COLLEGE / DEGREE / SEMESTERS */}
-              {activeAcademicTab === "college" && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-700">Degree / Qualification</label>
-                      <input
-                        type="text"
-                        value={editAcademicForm.college?.degree || ""}
-                        onChange={(e) =>
-                          setEditAcademicForm({
-                            ...editAcademicForm,
-                            college: { ...editAcademicForm.college, degree: e.target.value },
-                          })
-                        }
-                        placeholder="e.g. B.Tech Computer Science & Engineering"
-                        className="w-full p-2 border border-slate-300 rounded-lg font-semibold bg-white outline-hidden focus:border-teal-500"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-700">Institution / College</label>
-                      <input
-                        type="text"
-                        value={editAcademicForm.college?.institution || ""}
-                        onChange={(e) =>
-                          setEditAcademicForm({
-                            ...editAcademicForm,
-                            college: { ...editAcademicForm.college, institution: e.target.value },
-                          })
-                        }
-                        placeholder="e.g. MIET Jammu"
-                        className="w-full p-2 border border-slate-300 rounded-lg font-semibold bg-white outline-hidden focus:border-teal-500"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-700">Cumulative CGPA</label>
-                      <input
-                        type="text"
-                        value={editAcademicForm.college?.currentCgpa || ""}
-                        onChange={(e) =>
-                          setEditAcademicForm({
-                            ...editAcademicForm,
-                            college: { ...editAcademicForm.college, currentCgpa: e.target.value },
-                          })
-                        }
-                        placeholder="e.g. 8.84 CGPA"
-                        className="w-full p-2 border border-slate-300 rounded-lg font-semibold bg-white outline-hidden focus:border-teal-500"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-slate-700">Current Semester</label>
-                      <input
-                        type="text"
-                        value={editAcademicForm.college?.semester || ""}
-                        onChange={(e) =>
-                          setEditAcademicForm({
-                            ...editAcademicForm,
-                            college: { ...editAcademicForm.college, semester: e.target.value },
-                          })
-                        }
-                        placeholder="e.g. 7th Semester"
-                        className="w-full p-2 border border-slate-300 rounded-lg font-semibold bg-white outline-hidden focus:border-teal-500"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Semesters Manager */}
-                  <div className="pt-2 border-t border-slate-200 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">
-                        Semester-wise SGPA & Subjects ({(editAcademicForm.college?.semesters || []).length})
-                      </h4>
-                      <button
-                        type="button"
-                        onClick={handleAddSemester}
-                        className="px-3 py-1 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 rounded-lg font-bold text-xs transition-colors flex items-center gap-1 cursor-pointer"
-                      >
-                        <FontAwesomeIcon icon={faPlus} className="text-[10px]" />
-                        <span>Add Semester</span>
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {(editAcademicForm.college?.semesters || []).map((semItem, sIdx) => (
-                        <div
-                          key={sIdx}
-                          className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-3"
-                        >
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <input
-                                type="text"
-                                value={semItem.sem || `Semester ${sIdx + 1}`}
-                                onChange={(e) => {
-                                  const updatedSems = [...editAcademicForm.college.semesters];
-                                  updatedSems[sIdx].sem = e.target.value;
-                                  setEditAcademicForm({
-                                    ...editAcademicForm,
-                                    college: { ...editAcademicForm.college, semesters: updatedSems },
-                                  });
-                                }}
-                                className="w-28 p-1 font-bold bg-white border border-slate-300 rounded-md text-xs"
-                              />
-                              <div className="flex items-center gap-1">
-                                <span className="text-slate-400 text-[10px]">SGPA:</span>
-                                <input
-                                  type="text"
-                                  value={semItem.sgpa || ""}
-                                  onChange={(e) => {
-                                    const updatedSems = [...editAcademicForm.college.semesters];
-                                    updatedSems[sIdx].sgpa = e.target.value;
-                                    setEditAcademicForm({
-                                      ...editAcademicForm,
-                                      college: { ...editAcademicForm.college, semesters: updatedSems },
-                                    });
-                                  }}
-                                  placeholder="8.8"
-                                  className="w-16 p-1 font-bold text-teal-700 bg-white border border-slate-300 rounded-md text-xs"
-                                />
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <span className="text-slate-400 text-[10px]">Credits:</span>
-                                <input
-                                  type="text"
-                                  value={semItem.credits || ""}
-                                  onChange={(e) => {
-                                    const updatedSems = [...editAcademicForm.college.semesters];
-                                    updatedSems[sIdx].credits = e.target.value;
-                                    setEditAcademicForm({
-                                      ...editAcademicForm,
-                                      college: { ...editAcademicForm.college, semesters: updatedSems },
-                                    });
-                                  }}
-                                  placeholder="22"
-                                  className="w-14 p-1 bg-white border border-slate-300 rounded-md text-xs"
-                                />
-                              </div>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveSemester(sIdx)}
-                              className="text-slate-400 hover:text-red-600 p-1 rounded-md transition-colors cursor-pointer self-end sm:self-auto"
-                              title="Delete Semester"
-                            >
-                              <FontAwesomeIcon icon={faTrash} />
-                            </button>
-                          </div>
-
-                          {/* Subjects in this Semester */}
-                          <div className="space-y-1.5 pl-1">
-                            <div className="flex items-center justify-between text-[11px] text-slate-500 font-semibold">
-                              <span>Courses & Grades:</span>
-                              <button
-                                type="button"
-                                onClick={() => handleAddSubject("semester", sIdx)}
-                                className="text-teal-700 hover:underline font-bold text-[10px] cursor-pointer"
-                              >
-                                + Add Course
-                              </button>
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                              {(semItem.subjects || []).map((course, cIdx) => (
-                                <div
-                                  key={cIdx}
-                                  className="flex items-center gap-1.5 bg-white p-1.5 rounded-lg border border-slate-200"
-                                >
-                                  <input
-                                    type="text"
-                                    value={course.name || ""}
-                                    onChange={(e) => {
-                                      const updatedSems = [...editAcademicForm.college.semesters];
-                                      updatedSems[sIdx].subjects[cIdx].name = e.target.value;
-                                      setEditAcademicForm({
-                                        ...editAcademicForm,
-                                        college: { ...editAcademicForm.college, semesters: updatedSems },
-                                      });
-                                    }}
-                                    placeholder="Course title"
-                                    className="flex-1 p-0.5 text-xs outline-hidden"
-                                  />
-                                  <input
-                                    type="text"
-                                    value={course.marks || ""}
-                                    onChange={(e) => {
-                                      const updatedSems = [...editAcademicForm.college.semesters];
-                                      updatedSems[sIdx].subjects[cIdx].marks = e.target.value;
-                                      setEditAcademicForm({
-                                        ...editAcademicForm,
-                                        college: { ...editAcademicForm.college, semesters: updatedSems },
-                                      });
-                                    }}
-                                    placeholder="Marks/Grade"
-                                    className="w-12 p-0.5 text-xs text-right font-bold text-teal-700 outline-hidden border-l border-slate-200 pl-1"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveSubject("semester", cIdx, sIdx)}
-                                    className="text-slate-300 hover:text-red-500 p-0.5 cursor-pointer text-xs"
-                                  >
-                                    <FontAwesomeIcon icon={faXmark} />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* TAB 2: 10th STANDARD */}
               {activeAcademicTab === "tenth" && (
@@ -1635,6 +1172,63 @@ const Profile = () => {
                   <span>{savingAcademic ? "Saving & Syncing..." : "Save Academic Profile"}</span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ========================================================= */}
+      {/* MODAL: INLINE PDF DOCUMENT VIEWER                        */}
+      {/* ========================================================= */}
+      {viewingDoc && (
+        <div
+          onClick={() => setViewingDoc(null)}
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-5"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl max-w-4xl w-full h-[85vh] shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+          >
+            {/* Modal Bar */}
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <span className="w-8 h-8 rounded-lg bg-teal-50 text-teal-800 flex items-center justify-center font-bold text-xs border border-teal-200">
+                  <FontAwesomeIcon icon={faFileLines} />
+                </span>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">{viewingDoc.title}</h3>
+                  <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                    <FontAwesomeIcon icon={faCircleCheck} className="text-[9px]" />
+                    <span>Government DigiLocker / Cryptographic Signature Verified</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={viewingDoc.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs font-bold text-white bg-[#1a3b47] hover:bg-[#224d5d] px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
+                >
+                  <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="text-[10px]" />
+                  <span>Open in Tab</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setViewingDoc(null)}
+                  className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-200/60 cursor-pointer"
+                >
+                  <FontAwesomeIcon icon={faXmark} />
+                </button>
+              </div>
+            </div>
+
+            {/* Embedded PDF iframe */}
+            <div className="flex-1 bg-slate-100 w-full overflow-hidden">
+              <iframe
+                src={viewingDoc.url}
+                title={viewingDoc.title}
+                className="w-full h-full border-none"
+              />
             </div>
           </div>
         </div>

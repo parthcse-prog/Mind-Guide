@@ -46,13 +46,12 @@ const Header = () => {
     ? "/female-avatar.svg"
     : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop";
 
-  const userPhoto = isFemale
-    ? "/female-avatar.svg"
-    : userInfo?.picture && !userInfo.picture.includes("534528741775")
-    ? userInfo.picture
-    : userInfo?.pic && !userInfo.pic.includes("534528741775")
-    ? userInfo.pic
-    : defaultAvatar;
+  const userPhoto =
+    userInfo?.pic && !userInfo.pic.includes("female") && !userInfo.pic.includes("534528741775")
+      ? userInfo.pic
+      : userInfo?.picture && !userInfo.picture.includes("female") && !userInfo.picture.includes("534528741775")
+      ? userInfo.picture
+      : "/mehak-profile.jpg";
 
   return (
     <header className="bg-[#0c242c] text-white py-3 px-5 md:px-10 sticky top-0 z-40 border-b border-white/10 font-['Manrope']">
