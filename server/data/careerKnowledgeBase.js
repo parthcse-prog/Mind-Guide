@@ -83,6 +83,30 @@ const careerKnowledgeBase = [
     content:
       "Alongside B.Com or BBA, Commerce students can build immediate employability by learning TallyPrime with GST, Advanced Excel & Financial Modeling, and NISM (National Institute of Securities Markets) certifications for mutual funds and equity markets. These short-term certifications help land accounting, tax assistant, and financial analyst internships even during graduation.",
   },
+  {
+    id: "college-reviews-ratings",
+    title: "College Reviews & Ratings (Google, Shiksha, CollegeDunia)",
+    category: "Reviews & Ratings",
+    tags: ["review", "rating", "google", "shiksha", "collegedunia", "jammu", "du", "college", "campus", "faculty"],
+    content:
+      "Aggregated student reviews from Google, Shiksha, and CollegeDunia highlight key differences for Commerce aspirants: University of Jammu & Cluster University of Jammu (GGM Science / MAM / Govt. College for Women) average 3.8–4.2/5 for affordable fees and solid faculty, with students noting that extra skill certifications help boost placements. Delhi University (DU) B.Com colleges average 4.2–4.6/5 for peer network and societies. Private universities like Christ, Symbiosis, and NMIMS score 4.1–4.5/5 for corporate exposure and structured internships, though tuition fees are higher.",
+  },
+  {
+    id: "job-demand-trends-naukri-indeed",
+    title: "Commerce Job Market & Demand Trends (Naukri, Indeed)",
+    category: "Demand Trends",
+    tags: ["naukri", "indeed", "demand", "trend", "salary", "job", "hiring", "fresher", "commerce", "accounting"],
+    content:
+      "Current hiring trends on Naukri and Indeed for Commerce & B.Com/BBA freshers show strong demand for Accounts Executive, Tax/GST Assistant, Audit Associate, Banking Operations, and Business Analyst roles. Top-requested skills in job descriptions are TallyPrime, GST filing, Advanced Excel (VLOOKUP/Pivot Tables), and basic Financial Modeling. Entry-level fresher packages typically range from ₹2.5 LPA to ₹4.5 LPA in metro/tier-2 hubs, rising to ₹6–9+ LPA for CA/CMA/CS qualifiers or top-tier BBA/IPM graduates.",
+  },
+  {
+    id: "college-placement-reports",
+    title: "College Placement Data & NIRF Reports",
+    category: "Placement Data",
+    tags: ["placement", "package", "nirf", "report", "recruiter", "deloitte", "ey", "kpmg", "hdfc", "roi"],
+    content:
+      "College placement reports and NIRF data show that top recruiters for Commerce and Management graduates include Big 4 firms (Deloitte, EY, KPMG, PwC) for audit/tax analyst roles, alongside HDFC Bank, ICICI Bank, Axis Bank, and Accenture. For state universities (like University of Jammu), ROI is very high due to low annual tuition, and students who combine B.Com with internships, Tally/GST, or competitive exam prep (SSC/Banking/CA/CS) achieve the strongest career outcomes.",
+  },
 ];
 
 module.exports = careerKnowledgeBase;
