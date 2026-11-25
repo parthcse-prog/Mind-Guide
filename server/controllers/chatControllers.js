@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const axios = require("axios");
 const { callGatewayLLM } = require("../config/llmService");
+const { retrieveCareerContext, formatRagContextForPrompt } = require("../services/ragService");
 
 let messages = [];
 function updateChat(messages, role, content) {
@@ -354,7 +355,25 @@ const handleSendChat = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: "Invalid or missing messages in request body" });
     }
 
-    const modelResponse = await getChatGPTResponse(inputMessages);
+    // Hybrid RAG: retrieve relevant career knowledge for the latest user query
+    const lastUserMsg = [...inputMessages].reverse().find((m) => m?.role === "user" && m?.content);
+    let augmentedMessages = inputMessages;
+    if (lastUserMsg) {
+      const ragChunks = retrieveCareerContext(lastUserMsg.content, 3);
+      if (ragChunks.length > 0) {
+        const ragBlock = formatRagContextForPrompt(ragChunks);
+        const sysIdx = inputMessages.findIndex((m) => m?.role === "system");
+        if (sysIdx !== -1) {
+          augmentedMessages = inputMessages.map((m, idx) =>
+            idx === sysIdx ? { ...m, content: `${m.content}${ragBlock}` } : m
+          );
+        } else {
+          augmentedMessages = [{ role: "system", content: ragBlock.trim() }, ...inputMessages];
+        }
+      }
+    }
+
+    const modelResponse = await getChatGPTResponse(augmentedMessages);
     res.status(200).json(modelResponse);
   } catch (err) {
     const errorDetails = err?.response?.data || err?.message || err;
