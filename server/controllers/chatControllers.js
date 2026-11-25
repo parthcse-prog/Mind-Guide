@@ -359,7 +359,7 @@ const handleSendChat = asyncHandler(async (req, res) => {
     const lastUserMsg = [...inputMessages].reverse().find((m) => m?.role === "user" && m?.content);
     let augmentedMessages = inputMessages;
     if (lastUserMsg) {
-      const ragChunks = retrieveCareerContext(lastUserMsg.content, 3);
+      const ragChunks = retrieveCareerContext(lastUserMsg.content, 3, req.user?.academicRecords || null);
       if (ragChunks.length > 0) {
         const ragBlock = formatRagContextForPrompt(ragChunks);
         const sysIdx = inputMessages.findIndex((m) => m?.role === "system");

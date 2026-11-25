@@ -67,10 +67,70 @@ function cosineSimilarity(vecA, vecB) {
 }
 
 /**
- * Retrieve top-K relevant career knowledge chunks for a user query.
- * Returns [] if the query has no meaningful career/knowledge overlap.
+ * Lightweight tree/feature-based career fit scorer (0 to 1) inspired by GBDT/XGBoost
+ * tabular scoring, using structured student profile + career/college metadata.
  */
-function retrieveCareerContext(query, topK = 3) {
+function computeCareerFitScore(doc, academicRecords) {
+  if (!academicRecords) return 0.5;
+
+  const twelfthPct = parseFloat(academicRecords?.twelfth?.percentage) || 60;
+  const stream = String(academicRecords?.twelfth?.stream || "").toLowerCase();
+  const subjects = Array.isArray(academicRecords?.twelfth?.subjects)
+    ? academicRecords.twelfth.subjects
+    : [];
+
+  const getSubjScore = (keyword) => {
+    const found = subjects.find((s) =>
+      String(s?.name || "").toLowerCase().includes(keyword)
+    );
+    return found ? Number(found.marks) || 0 : 0;
+  };
+
+  const shorthandScore = getSubjScore("shorthand");
+  const englishScore = getSubjScore("english");
+  const accountancyScore = getSubjScore("accountancy");
+
+  let score = 0.5;
+
+  // Stream alignment
+  if (stream.includes("commerce") && doc.tags.some((t) => ["commerce", "bcom", "ca", "cs", "cma", "accounting", "tally"].includes(t))) {
+    score += 0.18;
+  }
+
+  // Shorthand strength boost (e.g., SSC Stenographer)
+  if (shorthandScore >= 70 && doc.tags.includes("shorthand")) {
+    score += 0.25;
+  }
+
+  // English & Communication boost (Law, CS, Management, SSC)
+  if (englishScore >= 70 && doc.tags.some((t) => ["cs", "law", "bba", "ssc", "shorthand"].includes(t))) {
+    score += 0.1;
+  }
+
+  // Accountancy boost
+  if (accountancyScore >= 60 && doc.tags.some((t) => ["ca", "cma", "accounting", "tally", "bcom"].includes(t))) {
+    score += 0.1;
+  }
+
+  // J&K Domicile / Jammu boost
+  const address = String(academicRecords?.aadhaar?.address || "").toLowerCase();
+  if ((address.includes("jammu") || address.includes("j&k")) && doc.tags.some((t) => ["jammu", "jk", "jkbose", "pmsss"].includes(t))) {
+    score += 0.12;
+  }
+
+  // Cutoff realism check
+  if (twelfthPct >= 55 && twelfthPct < 75 && doc.tags.some((t) => ["cuet", "jammu", "ssc", "shorthand", "cs", "tally"].includes(t))) {
+    score += 0.08;
+  }
+
+  return Math.min(1, Math.max(0, score));
+}
+
+/**
+ * Retrieve top-K relevant career knowledge chunks for a user query,
+ * re-ranked by combining semantic TF-IDF similarity with profile fit score.
+ */
+function retrieveCareerContext(query, topK = 3, academicRecords = null) {
   const queryTokens = tokenize(query);
   if (queryTokens.length === 0) return [];
 
@@ -79,12 +139,14 @@ function retrieveCareerContext(query, topK = 3) {
 
   const scored = indexedDocs
     .map(({ doc, vector }) => {
-      let score = cosineSimilarity(queryVec, vector);
-      // Slight boost if query directly mentions a tag
+      const simScore = cosineSimilarity(queryVec, vector);
       const tagBoost = doc.tags.some((tag) => queryTokens.includes(tag)) ? 0.15 : 0;
-      return { doc, score: score + tagBoost };
+      const semantic = simScore + tagBoost;
+      const fit = computeCareerFitScore(doc, academicRecords);
+      const combined = academicRecords ? 0.65 * semantic + 0.35 * fit : semantic;
+      return { doc, semantic, fit, score: combined };
     })
-    .filter((item) => item.score > 0.08)
+    .filter((item) => item.semantic > 0.08)
     .sort((a, b) => b.score - a.score)
     .slice(0, topK);
 
@@ -93,6 +155,7 @@ function retrieveCareerContext(query, topK = 3) {
     title: item.doc.title,
     category: item.doc.category,
     content: item.doc.content,
+    fitPercent: Math.round(item.fit * 100),
     score: Number(item.score.toFixed(3)),
   }));
 }
@@ -103,9 +166,9 @@ function retrieveCareerContext(query, topK = 3) {
 function formatRagContextForPrompt(chunks) {
   if (!chunks || chunks.length === 0) return "";
   const formatted = chunks
-    .map((c, i) => `[Source ${i + 1}: ${c.title} (${c.category})]\n${c.content}`)
+    .map((c, i) => `[Source ${i + 1}: ${c.title} (${c.category}) | Profile Fit: ${c.fitPercent}%]\n${c.content}`)
     .join("\n\n");
-  return `\n\n[RETRIEVED CAREER KNOWLEDGE BASE (RAG)]:\nUse the following verified career & admission references when relevant to answer the student's question accurately:\n${formatted}`;
+  return `\n\n[RETRIEVED CAREER KNOWLEDGE BASE (RAG + Fit-Ranked)]:\nUse the following verified career & admission references (ranked by relevance and student profile fit) when answering:\n${formatted}`;
 }
 
 module.exports = {
